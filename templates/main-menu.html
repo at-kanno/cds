@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="UTF-8">
+
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+  <title>メインメニュー</title>
+
+</head><body>
+<div class="content">
+    <h2 style="text-align:center;"><b><ul>メインメニュー</ul></b></h2>
+    <h3 style="text-align:center;"><b><ul>【一問一答】</ul></b></h3>
+        <form action="makeExam3" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <div id="main">
+            <div class="row">
+                <div class="six cols">
+                    <div class="row">
+                        <div class="six mobile-two cols">
+                            <button class="top-buttons" type="submit" name="category" value="91" style="background:#A46892">
+                                組織と人材<br>［時間:2分15秒 / 1問］
+                            </button>
+                        </div>
+                        <div class="six mobile-two cols">
+                            <button class="top-buttons" type="submit" name="category" value="92" style="background:#7DA7D3">
+                                情報と技術<br>［時間:2分15秒 / 1問］
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="six cols">
+                    <div class="row">
+                        <div class="six mobile-two cols">
+                            <button class="top-buttons" type="submit" name="category" value="93" style="background:#51CBCA">
+                                サービスバリュー・ストリーム<br>［時間:2分15秒 / 1問］
+                            </button>
+                        </div>
+                        <div class="six mobile-two cols">
+                            <button class="top-buttons" type="submit" name="category" value="94" style="background:#D065A2">
+                                活動調整と調達<br>［時間:2分15秒 / 1問］
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </form>
+
+        <hr size="3" noshade="">
+        <h3 style="text-align:center;"><b><ul>【分野別確認問題】</ul></b></h3>
+        <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <div id="main">
+            <div class="row">
+                <div class="six cols">
+                    <div class="row">
+                        <div class="six mobile-two cols">
+                            <button class="top-buttons" type="submit" name="category" value="10" style="background:#642852">
+                                組織と人材【5問】<br>［時間:11分15秒］
+                            </button>
+                        </div>
+                        <div class="six mobile-two cols">
+                            <input type="hidden" name="user_id" value={{ user_id }} />
+                            <button class="top-buttons" type="submit" name="category" value="20" style="background:#3D6793">
+                                情報と技術【5問】<br>［時間:11分15秒］
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="six cols">
+                    <div class="row">
+                        <div class="six mobile-two cols">
+                            <input type="hidden" name="user_id" value={{ user_id }} />
+                            <button class="top-buttons" type="submit" name="category" value="30" style="background:#219B9A">
+                                サービスバリュー・ストリーム<br>【5問】［時間:11分15秒］
+                            </button>
+                        </div>
+                        <div class="six mobile-two cols">
+                            <input type="hidden" name="user_id" value={{ user_id }} />
+                            <button class="top-buttons" type="submit" name="category" value="40" style="background:#902562">
+                                活動調整と調達【5問】<br>［時間:11分15秒］
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="main">
+            <div class="row">
+                <div class="six cols">
+                    <div class="row">
+                        <div class="six mobile-two cols">
+                        </div>
+                        <div class="six mobile-two cols">
+                            <button class="top-buttons" type="submit" name="category" value="60" style="background:#60B719">
+                                全領域から【10問】<br>［時間:22分30秒］
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr size="3" noshade="">
+        <div id="main">
+            <div class="row">
+                <div class="six cols">
+                    <div class="row">
+                        <div class="six mobile-two cols">
+{% if status >= 10 %}
+                            <button class="top-buttons" type="submit" name="category" value="70" style="background:#A0A0A0" >
+                                模擬試験【40問】<br>［時間：1時間30分］
+                            </button>
+                        </div>
+                        <div class="six mobile-two cols">
+    {% if status >= 30 %}
+        模擬試験で５回以上、合格することができました。修了試験に挑戦することができます。
+    {% else %}
+        模擬試験に挑戦できるようになりました。
+    {% endif %}
+{% else %}
+                            <button class="top-buttons" type="submit" name="category" value="01"
+                                    style="background:#A0A0A0;color:#D0D0D0"
+                                    onclick='alert("模擬試験に挑戦することはできません。");'>
+                                    模擬試験【40問】<br>［時間：1時間30分］
+                            </button>
+
+                        </div>
+                        <div class="six mobile-two cols">
+模擬試験には、まだ挑戦できません。
+</script>
+{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="six cols">
+                    <div class="row">
+                        <div class="six mobile-two cols">
+{% if 30 <= status%}
+                            <button class="top-buttons" type="submit" name="category" value="80" style="background:#D4AF37">
+                                修了試験【40問】<br>［時間：1時間30分］
+                            </button>
+                        </div>
+                        <div class="six mobile-two cols">
+
+    {% if status == 30 %}
+        修了試験に挑戦できるようになりました。２回連続で合格すると修了です。
+    {% elif status == 31 %}
+        合格することができました。連続してもう一度、合格すると修了です。
+    {% else %}
+        おめでとうございます。修了しました。
+    {% endif %}
+{% else %}
+                            <button class="top-buttons" type="submit" name="category" value="01"
+                                    style="background:#D4AF37;color:#D0D0D0"
+                                    onclick='alert("模擬試験に挑戦することはできません。");'>
+                                修了試験【40問】<br>［時間：1時間30分］
+                            </button>
+                        </div>
+                        <div class="six mobile-two cols">
+修了試験には、まだ挑戦できません。模擬試験に少なくとも5回合格が必要です。
+{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </form>
+            </div>
+        </div>
+
+<div class="buttonwrap" style="display:inline-flex">
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit"value="管理画面"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+
+
+<form action="/logout" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="submit" value="ログアウト"
+               style="background:#f2f2f2;color:black;border:1">
+</form>
+</div>
+</div></body>
+</html>

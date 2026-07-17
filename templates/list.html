@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8">
+<head>
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>結果表示画面</title>
+  <link rel="stylesheet" href="static/style.css?v=0220">
+
+  <script>
+      function confirmBooking(idx) {
+//          document.getElementByName('command').value = idx;
+          var command = "command" + idx.toString();
+          if(confirm('削除しても構いませんか？') == true) {
+              //elem = 1;
+              document.getElementById(command).value = "True";
+              //alert("its done: " + idx);
+              return True
+              }
+          else {
+              document.getElementById(command).value = "False";
+              return False;
+              }
+          }
+window.onload = initialize;
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+        <style> .item { border: 1px solid silver;
+                        background-color: #f0f0ff;
+                        padding: 1px; margin: 1px; } </style>
+</head>
+
+{% if user_id <= 5 %}
+<body bgcolor="#F8CBAD">
+{% else %}
+<body bgcolor="#CCFFCC">
+{% endif %}
+
+    <h3 style="text-align:center;">ユーザ・リスト</h3>
+<div class="buttonwrap">
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit"value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+</div>
+
+          {%  for id, lastname, address in user_list %}
+
+    <div class="item" style="display:inline-flex">
+     <table><td style="display:inline-flex">
+     <form action="display" method="POST">
+         <input type="hidden" name = "user_id" value="{{ user_id }}" >
+         <button type="submit" name="id" value="{{ id }}" style="color:black" >表示</button>
+     </form>
+
+    <form action="admin" method="POST" >
+     <input type="hidden" name = "user_id" value="{{ user_id }}" >
+     <input type="hidden" name = "command{{ id }}" id="command{{ id }}" >
+     <button type="submit" name="id" id="id" value="{{ id }}" onClick="confirmBooking({{ id }})" style="color:black">削除</button>
+    </form>
+
+    <form action="setpassword" method="POST" >
+        <input type="hidden" name = "user_id" value="{{ user_id }}" >
+        <button type="submit" name="id" value="{{ id }}" style="color:black">パスワード</button>
+    </form>
+
+    <form action="display" method="POST" >
+     <input type="hidden" name = "user_id" value="{{ user_id }}" >
+     <input type="hidden" name = "command" value="list" >
+     <button type="submit" name="id" id="id" value="{{ id }}" style="color:black">履歴</button>
+    </form>
+
+    <form action="display" method="POST" >
+     <input type="hidden" name = "user_id" value="{{ user_id }}" >
+     <input type="hidden" name = "command" value="status" >
+     <button type="submit" name="id" id="id" value="{{ id }}" style="color:black">状態</button>
+    </form>
+
+
+    <form action="display" method="POST" >
+     <input type="hidden" name = "user_id" value="{{ user_id }}" >
+     <input type="hidden" name = "command" value="rankup" >
+     <button type="submit" name="id" id="id" value="{{ id }}" style="color:black">修了試験</button>
+    </form>
+{{ id }}:{{ lastname }}({{ address}})
+    </td></table>
+</div>
+          {% endfor %}
+
+<div class="buttonwrap">
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit"value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+</div>
+
+</body>
+</html>

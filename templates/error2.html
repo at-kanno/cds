@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>エラー表示画面</title>
+  <link rel="stylesheet" href="static/style.css?v=0220">
+</head><body><div class="content">
+    <h2><b><ul>エラー表示画面</ul></b></h2>
+
+    <p>
+    {{ error_message }}
+    <br><br>
+<form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <button type="submit" class="btn btn-primary btn-block" name="category" value="99">
+            管理画面へ戻る</button><br></p>
+</form>
+<form action="/" >
+        <button type="submit" >ログアウト</button><br>
+</form>
+</div></body>
+</html>

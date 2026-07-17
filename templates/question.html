@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>演習問題編集</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<style>
+label {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;   /* ← ここで距離を調整 */
+}
+input[type="checkbox"] {
+    margin: 0;
+}
+</style>
+
+
+<script>
+//    window.onload = function() {
+function() {
+        var memo = document.getElementById('memo');
+        var main_check = document.getElementById('main_check');
+        var extraArea = document.getElementById("extra_area");
+        var sub1 = document.getElementById('sub1');
+        var cid1 = document.getElementById('cid1');
+        var comment1 = document.getElementById('comment1');
+        var sub2 = document.getElementById('sub2');
+        var cid2 = document.getElementById('cid2');
+        var comment2 = document.getElementById('comment2');
+        var sub3 = document.getElementById('sub3');
+        var cid3 = document.getElementById('cid3');
+        var comment3 = document.getElementById('comment3');
+
+        //    extraArea.style.display = "block"
+
+        memo.textContent = 'こんにちは！' + main_check.value + ', sub1:' + sub1.value  + ', sub2:' + sub2.value + ', sub3:' + sub3.value;
+        if (sub_check1=='1'){
+            sub1.checked = true;
+            cid1.style.backgroundColor = 'white';
+            cid1.disabled = false;
+            comment1.style.backgroundColor = 'white';
+            comment1.disabled = false;
+        }
+        else {
+            sub1.checked = false;
+            cid1.style.backgroundColor = 'lightgray';
+            cid1.disabled = true;
+            comment1.style.backgroundColor = 'lightgray';
+            comment1.disabled = true;
+        }
+
+        if (sub_check2=='2'){
+            sub2.checked = true;
+            cid2.style.backgroundColor = 'white';
+            cid2.disabled = false;
+            comment2.style.backgroundColor = 'white';
+            comment2.disabled = false;
+        }
+        else {
+            sub2.checked = false;
+            cid2.style.backgroundColor = 'lightgray';
+            cid2.disabled = true;
+            comment2.style.backgroundColor = 'lightgray';
+            comment2.disabled = true;
+        }
+
+        if (sub_check3=='3'){
+            sub3.checked = true;
+            cid3.style.backgroundColor = 'white';
+            cid3.disabled = false;
+            comment3.style.backgroundColor = 'white';
+            comment3.disabled = false;
+        }
+        else {
+            sub3.checked = false;
+            cid3.style.backgroundColor = 'lightgray';
+            cid3.disabled = true;
+            comment3.style.backgroundColor = 'lightgray';
+            comment3.disabled = true;
+        }
+
+    }
+</script>
+
+
+</head>
+<!--
+cid0 = {{ cid0 }}, cid0_invalid = {{ cid0_invalid }}, comment0_invalid = {{ comment0_invalid }}<br>
+cid1 = {{ cid1 }}, cid1_invalid = {{ cid1_invalid }}, comment1_invalid = {{ comment1_invalid }}<br>
+cid2 = {{ cid2 }}, cid2_invalid = {{ cid2_invalid }}, comment2_invalid = {{ comment2_invalid }}<br>
+cid3 = {{ cid3 }}, cid3_invalid = {{ cid3_invalid }}, comment3_invalid = {{ comment3_invalid }}<br>
+errorFlags = {{ errorFlags }},  comment0 = {{ comment0 }}
+old_cid = {{ old_cid0 }},{{ old_cid1 }},{{ old_cid2 }},{{ old_cid3 }}
+advice = {{ advice0 }}, {{ advice1 }}, {{ advice2 }}, {{ advice3 }}
+firstFlag={{ firstFlag }}, retrieveFlag={{ retrieveFlag }},  commentFlag = {{ commentFlag }}
+check = {{ main_check }}, {{ sub_check1 }}, {{ sub_check2 }}, {{ sub_check3 }}
+cid = {{ cid0 }}, {{ cid1 }},{{ cid2 }}, {{ cid3 }},
+-->
+
+{% if mode == 1 %}
+        <body bgcolor="#F8CBAD">
+{% else %}
+        <body bgcolor="#CCCCFF">
+{% endif %}
+
+    <center><h2><b><ul>
+{% if qid == 0 %}
+        演習問題編集（新規登録）
+{% else %}
+        演習問題編集（変更）
+{% endif %}
+    </ul></b></h2></center>
+    <!-- メニュー -->
+<center>
+    <div class="question" >
+        <form action="maintenance" method="POST" >
+<table>
+    <tr><input type="hidden" name="user_id" value={{user_id}} />
+    <td>問題番号</td><td>
+        <input type="number" name="qid" readonly="true" class="smallinput" value="{{qid}}"
+        style="background-color: lightgray;">&nbsp;&nbsp;（変更できません）<br>
+    </td></tr>
+
+    <tr><td><center>領域</center></td><td>
+        <input type="number" id="area" name="area" class="smallinput" value="{{area}}" /><br>
+        {% if area_invalid %}
+            <div style="color:red">1以上の整数[半角]を入力してください</div>
+        {% endif %}
+    </td></tr>
+
+    <tr><td><center>カテゴリ</center></td><td>
+        <input type="number" id="category" name="category" class="smallinput" value="{{category}}" /><br>
+        {% if category_invalid %}
+            <div style="color:red">1以上の整数[半角]を入力してください</div>
+        {% endif %}
+    </td></tr>
+    <tr><td><center>問題</center></td><td>
+        <textarea cols="40" width="500" id="question" name="question" >{{ question }}</textarea>
+        {% if question_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+    </td></tr>
+    <tr><td><center>正解</center></td><td>
+        <textarea cols="40" width="500" id="answer" name="answer">{{ answer }}</textarea>
+        {% if answer_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+    </td></tr>
+    <tr><td>選択肢１</td><td>
+        <textarea cols="40" width="500" id="choice1" name="choice1" >{{ choice1 }}</textarea>
+        {% if choice1_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+    </td></tr>
+    <tr><td>選択肢２</td><td>
+        <textarea cols="40" width="500" id="choice2" name="choice2" >{{ choice2 }}</textarea>
+        {% if choice2_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+    </td></tr>
+    <tr><td>選択肢３</td><td>
+        <textarea cols="40" width="500" id="choice3" name="choice3" >{{ choice3 }}</textarea>
+        {% if choice3_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+    </td></tr>
+
+    <tr><td>解説</td><td>
+            <label>番号<input type="number"
+            onkeydown="return ['e', 'E', '+', '-'].includes(event.key) ? false : true"
+             name="cid0" id="cid0" class="smallinput" placeholder="数字のみ" value="{{cid0}}"
+            {% if flag==0 %} disabled style="background-color: lightgray;"
+            {% else %} style="background-color: white;"{% endif %}
+            ></label><br>
+
+        {% if cid0_invalid %}
+            <div style="color:red">1001以上の整数[半角]を入力してください</div>
+        {% endif %}
+
+        {% if flag==99 %}
+        <label>解説文を入力しますか？
+        {% else %}
+        <label>解説文を更新しますか？
+        {% endif %}
+            <input type="checkbox" id="commentFlag" name="commentFlag" style="width:20px;"
+            {% if commentFlag=='on' %} checked {% endif %} ></label>
+        <br>
+        {% if flag==99 %}
+        （入力する場合はチェックする）
+        {% else %}
+        （更新する場合はチェックする）
+        {% endif %}
+
+
+        <div id="commentArea"
+    {% if commentFlag=='on' %}
+            style="display:block; margin-left:20px;">
+    {% else %}
+            style="display:none; margin-left:20px;">
+    {% endif %}
+
+         <textarea cols="40" width="500" name="comment0" id="comment0"
+                   style="background-color: white;">{% if comment0!='None' %}{{ comment0 }}{% endif %}</textarea><br>
+        {% if comment0_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+
+    </div>
+
+    <div id="optionArea"
+    {% if commentFlag=='on' %}
+            style="display:block; margin-left:20px;">
+    {% else %}
+            style="display:none; margin-left:20px;">
+    {% endif %}
+
+{% if qid == 0 %}
+        選択肢ごとに解説を追加しますか？
+{% else %}
+        選択肢ごとに解説を変更しますか？
+{% endif %}
+
+            <input type="checkbox" id="main_check" name="main_check" style="width:20px;"
+            {% if main_check==1 or main_check=='on' %} checked {% endif %} ></label>
+
+{% if qid == 0 %}
+        <br>（追加する場合はチェックする）
+{% else %}
+        <br>（変更の場合はチェックする）
+{% endif %}
+    </div>
+    <!-- 追加入力エリア（最初は非表示） -->
+    <div id="extra_area"
+         {% if main_check=='on' %}
+            style="display:block; margin-left:20px;">
+         {% else %}
+            style="display:none; margin-left:20px;">
+         {% endif %}
+{% if qid == 0 %}
+        <hr><label>選択肢１の解説を追加<input type="checkbox" name="sub_check1" id="sub1" style="width:20px;"
+            value="1" onchange="checkboxChanged(this)"
+            {% if sub_check1=='1' %} checked {% endif %} >：番号<input type="number"
+            onkeydown="return ['e', 'E', '+', '-'].includes(event.key) ? false : true"
+             name="cid1" id="cid1" class="smallinput" placeholder="数字のみ" value="{{cid1}}"
+            {% if sub_check1!='1' %} disabled style="background-color: lightgray;"
+            {% else %} style="background-color: white;"{% endif %}
+            ></label><br>
+        {% if cid1_invalid %}
+            <div style="color:red">1001以上の整数[半角]を入力してください</div>
+        {% endif %}
+
+        <textarea cols="40" width="500" name="comment1" id="comment1"
+            {% if sub_check1!='1' %} disabled style="background-color: lightgray;"
+        {% else %} style="background-color: white;"{% endif %}>{{ comment1 }}</textarea><br>
+<div style="color:navy">{{ advice1 }}</div>
+        {% if comment1_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+
+        <hr><label>選択肢２の解説を追加<input type="checkbox" name="sub_check2" id="sub2" style="width:20px;"
+            value="2" onchange="checkboxChanged(this)"
+            {% if sub_check2=='2' %} checked {% endif %} >：番号<input type="number"
+            onkeydown="return ['e', 'E', '+', '-'].includes(event.key) ? false : true"
+             name="cid2" id="cid2" class="smallinput" placeholder="数字のみ" value="{{cid2}}"
+            {% if sub_check2!='2' %} disabled style="background-color: lightgray;"
+            {% else %} style="background-color: white;"{% endif %}
+            ></label><br>
+        {% if cid2_invalid %}
+            <div style="color:red">1001以上の整数[半角]を入力してください</div>
+        {% endif %}
+
+        <textarea cols="40" width="500" name="comment2" id="comment2"
+            {% if sub_check2!='2' %} disabled style="background-color: lightgray;"
+        {% else %} style="background-color: white;"{% endif %}>{{ comment2 }}</textarea><br>
+<div style="color:navy">{{ advice2 }}</div>
+        {% if comment2_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+
+        <hr><label>選択肢３の解説を追加<input type="checkbox" name="sub_check3" id="sub3" style="width:20px;"
+            value="3" onchange="checkboxChanged(this)"
+            {% if sub_check3=='3' %} checked {% endif %} >：番号<input type="number"
+            onkeydown="return ['e', 'E', '+', '-'].includes(event.key) ? false : true"
+             name="cid3" id="cid3" class="smallinput" placeholder="数字のみ" value="{{cid3}}"
+            {% if sub_check3!='3' %} disabled style="background-color: lightgray;"
+            {% else %} style="background-color: white;"{% endif %}
+            ></label><br>
+        {% if cid3_invalid %}
+            <div style="color:red">1001以上の整数[半角]を入力してください</div>
+        {% endif %}
+
+        <textarea cols="40" width="500" name="comment3" id="comment3"
+            {% if sub_check3!='3' %} disabled style="background-color: lightgray;"
+        {else} style="background-color: white;"{% endif %}>{{ comment3 }}</textarea>
+<div style="color:navy"><br>{{ advice3 }}</div>
+        {% if comment3_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+
+        {% else %}
+        <hr><label>選択肢１の解説を変更<input type="checkbox" name="sub_check1" id="sub1" style="width:20px;"
+            value="1" onchange="checkboxChanged(this)"
+            {% if sub_check1=='1' %} checked {% endif %} >：番号<input type="number" onkeydown="return ['e', 'E', '+', '-'].includes(event.key) ? false : true"
+                        name="cid1" id="cid1" class="smallinput" placeholder="数字のみ" value="{{cid1}}"
+            {% if sub_check1!='1' %} disabled style="background-color: lightgray;"
+            {% else %} style="background-color: white;" {% endif %}
+            ></label><br>
+        {% if cid1_invalid %}
+            <div style="color:red">1001以上の整数[半角]を入力してください</div>
+        {% endif %}
+
+        <textarea cols="40" width="500" name="comment1" id="comment1"
+            {% if sub_check1!='1' %} disabled style="background-color: lightgray;"
+            {% else %} style="background-color: white;" {% endif %}
+        >{{ comment1 }}</textarea><br>
+<div style="color:navy">{{ advice1 }}</div>
+        {% if comment1_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+
+        <hr><label>選択肢２の解説を変更<input type="checkbox" name="sub_check2" id="sub2" style="width:20px;"
+            value="2" onchange="checkboxChanged(this)"
+            {% if sub_check2=='2' %} checked {% endif %} >：番号<input type="number" onkeydown="return ['e', 'E', '+', '-'].includes(event.key) ? false : true"
+                        name="cid2" id="cid2" class="smallinput" placeholder="数字のみ" value="{{cid2}}"
+            {% if sub_check2!='2' %} disabled style="background-color: lightgray;"
+            {% else %} style="background-color: white;" {% endif %}
+            ></label><br>
+        {% if cid2_invalid %}
+            <div style="color:red">1001以上の整数[半角]を入力してください</div>
+        {% endif %}
+
+        <textarea cols="40" width="500" name="comment2" id="comment2"
+            {% if sub_check2!='2' %} disabled style="background-color: lightgray;"
+            {% else %} style="background-color: white;" {% endif %}
+            >{{ comment2 }}</textarea><br>
+<div style="color:navy">{{ advice2 }}</div>
+        {% if comment2_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+
+        <hr><label>選択肢３の解説を変更<input type="checkbox" name="sub_check3" id="sub3" style="width:20px;"
+            value="3" onchange="checkboxChanged(this)"
+            {% if sub_check3=='3' %} checked {% endif %} >：番号<input type="number" onkeydown="return ['e', 'E', '+', '-'].includes(event.key) ? false : true"
+                        name="cid3" id="cid3" class="smallinput" placeholder="数字のみ" value="{{cid3}}"
+            {% if sub_check3!='3' %} disabled style="background-color: lightgray;"
+            {% else %} style="background-color: white;" {% endif %}
+            ></label><br>
+        {% if cid3_invalid %}
+            <div style="color:red">1001以上の整数[半角]を入力してください</div>
+        {% endif %}
+
+        <textarea cols="40" width="500" name="comment3" id="comment3"
+            {% if sub_check3!='3' %} disabled style="background-color: lightgray;"
+            {% else %} style="background-color: white;" {% endif %}
+            >{{ comment3 }}</textarea><br>
+<div style="color:navy">{{ advice3 }}</div>
+        {% if comment3_invalid %}
+            <div style="color:red">文字列を入力してください</div>
+        {% endif %}
+
+        {% endif %}
+        <input type="hidden" name="old_cid0" id="old_cid0" value="{{old_cid0}}" >
+        <input type="hidden" name="old_cid1" id="old_cid1" value="{{old_cid1}}" >
+        <input type="hidden" name="old_cid2" id="old_cid2" value="{{old_cid2}}" >
+        <input type="hidden" name="old_cid3" id="old_cid3" value="{{old_cid3}}" >
+        <input type="hidden" name="old_comment0" value="{{old_comment0}}" >
+        <input type="hidden" name="old_comment1" value="{{old_comment1}}" >
+        <input type="hidden" name="old_comment2" value="{{old_comment2}}" >
+        <input type="hidden" name="old_comment3" value="{{old_comment3}}" >
+        <input type="hidden" id="errorFlags" name="errorFlags" value={{errorFlags}} >
+        <input type="hidden" id="retrieveFlag" name="retrieveFlag" value={{retrieveFlag}} >
+        <input type="hidden" id="firstFlag" name="firstFlag" value={{firstFlag}} >
+        <input type="hidden" name="cid0" value="{{cid0}}" >
+        <input type="hidden" name="cid1" value="{{cid1}}" >
+        <input type="hidden" name="cid2" value="{{cid2}}" >
+        <input type="hidden" name="cid3" value="{{cid3}}" >
+<!--
+        <input type="hidden" name="cid1x" id="cid1x" value="{{cid1}}" >
+        <input type="hidden" name="cid2x" id="cid2x" value="{{cid2}}" >
+        <input type="hidden" name="cid3x" id="cid3x" value="{{cid3}}" >
+        <input type="hidden" name="comment0x" id="comment0x" value="{{comment0}}" >
+        <input type="hidden" name="comment1x" id="comment1x" value="{{comment1}}" >
+        <input type="hidden" name="comment2x" id="comment2x" value="{{comment2}}" >
+        <input type="hidden" name="comment3x" id="comment3x" value="{{comment3}}" >
+-->
+    </div>
+    </td></tr>
+    </div>
+
+　       <input type="hidden" name="command" value="confirm">
+    <td></td><td><input type="submit" width="140 " value="確認" onclick="validate()"></td>
+</table>
+        </form>
+
+
+    <div class="buttonwrap" style="display:inline-flex">
+{% if qid != 0 %}
+    <form action="maintenance" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} >
+　       <input type="hidden" name="command" value="delete">
+        <input type="hidden" name="qid" value="{{qid}}" >
+        <input type="hidden" name="category" value="{{category}}" >
+        <input type="hidden" name="area" value="{{area}}" >
+        <input type="hidden" name="cid0" value="{{cid0}}" >
+        <input type="hidden" name="question" value="{{question}}" >
+        <input type="hidden" name="answer" value="{{answer}}" >
+        <input type="hidden" name="choice1" value="{{choice1}}" >
+        <input type="hidden" name="choice2" value="{{choice2}}" >
+        <input type="hidden" name="choice3" value="{{choice3}}" >
+        <input type="hidden" name="comment0" value="{{comment0}}" >
+        <input type="hidden" name="comment1" value="{{comment1}}" >
+        <input type="hidden" name="comment2" value="{{comment2}}" >
+        <input type="hidden" name="comment3" value="{{comment3}}" >
+        <input type="hidden" name="cid1" value="{{cid1}}" >
+        <input type="hidden" name="cid2" value="{{cid2}}" >
+        <input type="hidden" name="cid3" value="{{cid3}}" >
+        <input type="submit" value="削除"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+{% endif %}
+    <form action="maintenance" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} />
+        <input type="hidden" name="command" value="restart" />
+        <input type="submit" value="番号入力へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit" value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+
+</div>
+
+</center>
+
+<script>
+
+    function toggleError(id, flag) {
+        // alert("Bye!" + flag)
+        document.getElementById(id).style.display =
+            flag ? "block" : "none";
+    }
+
+// CID1-3 の処理
+
+const commentFlag = document.getElementById("commentFlag");
+const commentArea = document.getElementById("commentArea");
+const optionArea = document.getElementById("optionArea");
+
+const mainCheck = document.getElementById("main_check");
+const extraArea = document.getElementById("extra_area");
+
+mainCheck.addEventListener("change", () => {
+    if (mainCheck.checked) {
+        extraArea.style.display = "block";
+    } else {
+        extraArea.style.display = "none";
+
+        // OFF時に値をクリア（任意）
+        extraArea.querySelectorAll("input").forEach(el => {
+            if (el.type === "checkbox") el.checked = false;
+            if (el.type === "text") el.value = "";
+        });
+    }
+});
+
+commentFlag.addEventListener("change", () => {
+    if (commentFlag.checked) {
+        commentArea.style.display = "block";
+        optionArea.style.display = "block";
+    } else {
+        commentArea.style.display = "none";
+        optionArea.style.display = "none";
+        extraArea.style.display = "none";
+
+        // OFF時に値をクリア（任意）
+        commentArea.querySelectorAll("input").forEach(el => {
+            if (el.type === "checkbox") el.checked = false;
+            if (el.type === "text") el.value = "";
+        });
+
+        let element = document.getElementById("main_check");
+        element.checked = false;
+    }
+});
+
+    // Flaskから渡されたルール
+    const firstClicked = {};   // key ごとの初回管理
+
+    function checkboxChanged(cb) {
+        const key = cb.value;
+        comment = "comment" + key;
+        cid = "cid" + key;
+        old_cid = "old_cid" + key;
+        data = document.getElementById( comment );
+        numberX = document.getElementById( cid );
+        old_cid0 = document.getElementById( old_cid0 );
+        old_cid1 = document.getElementById( old_cid1 );
+        old_cid2 = document.getElementById( old_cid2 );
+        old_cid3 = document.getElementById( old_cid3 );
+        firstFlag = document.getElementById( 'firstFlag' );
+        retrieveFlag = document.getElementById( 'retrieveFlag' );
+
+         // alert("firstFlag:" + firstFlag.value );
+         // alert("retrieveFlag:" + retrieveFlag.value );
+          a = 1;
+          if (!firstClicked[key]) {
+            // alert( 'First Click' + ',retrieveFlag:' + retrieveFlag.value);
+
+            // 初回だけ
+            firstClicked[key] = true;
+
+            // 初回特有の処理
+            // alert(data.value);
+
+        if (retrieveFlag.value != 1) {
+            if (cb.checked) {
+                data.value = '';
+                data.disabled = false;   // ★ 有効化
+                data.style.backgroundColor = 'white';
+                numberX.value = '';
+                numberX.disabled = false;
+                numberX.style.backgroundColor = 'white';
+            } else {
+                textInput.disabled = true;    // ★ 無効化
+                textInput.style.backgroundColor = 'lightgray';
+                textInput.value = '';
+                numberInput.disabled = true;
+                numberInput.style.backgroundColor = 'lightgray';
+                numberInput.value = '';
+                }
+            return;
+            }
+        }
+
+
+        const textInput = document.getElementById( comment );
+        const numberInput = document.getElementById( cid );
+
+        if (cb.checked) {
+            textInput.disabled = false;   // ★ 有効化
+            textInput.style.backgroundColor = 'white';
+            numberInput.disabled = false;
+            numberInput.style.backgroundColor = 'white';
+        } else {
+            textInput.disabled = true;    // ★ 無効化
+            textInput.style.backgroundColor = 'lightgray';
+            numberInput.disabled = true;
+            numberInput.style.backgroundColor = 'lightgray';
+            firstClicked[key] = true;
+            }
+
+    }
+
+    function validate() {
+
+ //       alert('validate Start')
+        const ERR_NONE  = 1 << 0; // 1
+        const ERR_DIGITAL = 1 << 1; // 2
+        const ERR_INVALID   = 1 << 2; // 4
+        const ERR_NUMBER_EMPTY = 1 << 0;
+        const ERR_NUMBER_INVALID = 1 << 1;
+        const ERR_AREA_EMPTY = 1 << 2;
+        const ERR_AREA_INVALID = 1 << 3;
+        const ERR_CATEGORY_EMPTY = 1 << 4;
+        const ERR_CATEGORY_INVALID = 1 << 5;
+        const ERR_Q_EMPTY = 1 << 6;
+        const ERR_A1_EMPTY = 1 << 7;
+        const ERR_A2_EMPTY = 1 << 8;
+        const ERR_A3_EMPTY = 1 << 9;
+        const ERR_A4_EMPTY = 1 << 10;
+        const ERR_CID_EMPTY = 1 << 11;
+        const ERR_CID_INVALID = 1 << 12;
+        const ERR_COMMENT_EMPTY = 1 << 13;
+        const ERR_CID1_EMPTY = 1 << 14;
+        const ERR_CID1_INVALID = 1 << 15;
+        const ERR_COMMENT1_EMPTY = 1 << 16;
+        const ERR_CID2_EMPTY = 1 << 17;
+        const ERR_CID2_INVALID = 1 << 18;
+        const ERR_COMMENT2_EMPTY = 1 << 19;
+        const ERR_CID3_EMPTY = 1 << 20;
+        const ERR_CID3_INVALID = 1 << 21;
+        const ERR_COMMENT3_EMPTY = 1 << 20;
+
+        let errorFlags = 0;
+
+        const category  = document.getElementById("category").value;
+        const area = document.getElementById("area").value;
+        const xxx = document.getElementById("question").value;
+        const answer = document.getElementById("answer").value;
+        const cid0 = document.getElementById("cid0").value;
+        const comment0 = document.getElementById("comment0").value;
+        document.getElementById("comment0").value = comment0;
+
+
+//        alert(cid0);
+
+//        const qid = document.getElementById("qid").value;
+        const choice1 = document.getElementById("choice1").value;
+        const choice2 = document.getElementById("choice2").value;
+        const choice3 = document.getElementById("choice3").value;
+
+        const commentFlag = document.getElementById("commentFlag").value;
+
+        const sub1 = document.getElementById("sub1").value;
+        const cid1 = document.getElementById("cid1").value;
+        const comment1 = document.getElementById("comment1").value;
+
+        if (category == null || category == "") {
+            errorFlags |= ERR_CATEGORY_EMPTY;
+        } else if (!/^[1-9][0-9]*$/.test(category)) {
+            errorFlags |= ERR_CATEGORY_INVALID;
+        }
+
+        if (area == null || area == "") {
+            errorFlags |= ERR_AREA_EMPTY;
+        } else if (!/^[1-9][0-9]*$/.test(area)) {
+            errorFlags |= ERR_AREA_INVALID;
+        }
+
+        if (question == null || question == "")
+            errorFlags |= ERR_Q_EMPTY;
+        if (answer == null || answer == "")
+            errorFlags |= ERR_A1_EMPTY;
+        if (choice1 == null || choice1 == "")
+            errorFlags |= ERR_A2_EMPTY;
+        if (choice2 == null || choice2 == "")
+            errorFlags |= ERR_A3_EMPTY;
+        if (choice3 == null || choice3 == "")
+            errorFlags |= ERR_A4_EMPTY;
+
+        if (cid0 == null || cid0 == "")
+            errorFlags |= ERR_CID_EMPTY;
+
+//        if( commentFlag == 'on' ) {
+//            if (comment0 == null || comment0 == "")
+//                errorFlags |= ERR_COMMENT_EMPTY;
+//                }
+
+//        alert('cidN + commentN check start!');
+
+        document.getElementById("errorFlags").value = errorFlags;
+//        alert('End:' + errorFlags);
+    }
+
+
+</script>
+</body></body>
+</html>

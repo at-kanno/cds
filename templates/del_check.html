@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>問題削除確認画面</title>
+  <link rel="stylesheet" href="static/style.css?v=0220">
+</head><body><div class="content">
+    <h2><b><ul>問題削除確認画面</ul></b></h2>
+    {{ message }}
+
+    <div class="buttonwrap" style="display:inline-flex">
+
+    <form action="maintenance" method="POST">
+
+    <table border="1" >
+        <tr><td width="150">問題番号({{ qid }})</td><td width="50">削除</td><td width="500">内容</td></tr>
+        <tr><td>問題</td><td width="50"><input type="checkbox" disabled checked /></td><td width="500" align="left">{{ question }}</td></tr>
+        <tr><td>正解</td><td width="50"><input type="checkbox" disabled checked /></td><td width="500" align="left">{{ answer }}</td></tr>
+        <tr><td>選択１</td><td width="50"><input type="checkbox" disabled checked /></td><td width="500" align="left">{{ choice1 }}</td></tr>
+        <tr><td>選択２</td><td width="50"><input type="checkbox" disabled checked /></td><td width="500" align="left">{{ choice2 }}</td></tr>
+        <tr><td>選択３</td><td width="50"><input type="checkbox" disabled checked /></td><td width="500" align="left">{{ choice3 }}</td></tr>
+        <tr><td>解説番号</td><td width="50"><input type="checkbox" disabled checked /></td><td width="500" align="left">{{ cid0 }}</td></tr>
+        <tr><td>解説</td><td width="50">
+            <input type="checkbox" name="option0" id="option0" checked /></td><td width="500" align="left">{{ comment0 }}</td></tr>
+        <tr><td>選択肢１の解説</td><td width="50">
+        {% if delCheck1 == 1 %}<input type="checkbox" name="option1" id="option1" />
+            {% else %}-{% endif %}</td>
+            <td align="left">{% if advice1 != '' %}{{ advice1 }}{% else %}{{ comment1 }}{% endif %}</td></tr>
+        <tr><td>選択肢２の解説</td><td width="50">
+        {% if delCheck2 == 1 %}<input type="checkbox" name="option2" id="option2" />
+            {% else %}-{% endif %}</td>
+            <td align="left">{% if advice2 != '' %}{{ advice2 }}{% else %}{{ comment2 }}{% endif %}</td></tr>
+        <tr><td>選択肢３の解説</td><td width="50">
+        {% if delCheck3 == 1 %}<input type="checkbox" name="option3" id="option3" />
+            {% else %}-{% endif %}</td>
+            <td align="left">{% if advice3 != '' %}{{ advice3 }}{% else %}{{ comment3 }}{% endif %}</td></tr>
+    </table>
+<br>
+    削除する解説をチェックしてください。本当に削除しますか？。
+<br>
+<table><td>
+        <input type="hidden" name="user_id" value={{user_id}} >
+        <input type="hidden" name="qid" value={{qid}} >
+        <input type="hidden" name="cid0" value={{cid0}} >
+        <input type="hidden" name="cid1" value={{cid1}} >
+        <input type="hidden" name="cid2" value={{cid2}} >
+        <input type="hidden" name="cid3" value={{cid3}} >
+　      <input type="hidden" name="command" value="deletey">
+        <input type="submit" value="はい"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+</td><td>
+    <input type="button" onclick="history.back()" value="いいえ"
+           style="background:#f2f2f2;color:black;border:1"></input>
+    </td></table>
+
+    </div>
+
+<script>
+const checkboxes = [
+    document.getElementById("option0"),
+    document.getElementById("option1"),
+    document.getElementById("option2"),
+    document.getElementById("option3")
+];
+
+function valueChange(id){
+    if (id==0){
+        if (checkbox0.checked){
+        checkbox0.checked = false;
+    } else {
+        checkbox0.checked = true;
+    }
+    }
+
+    if (id==1){
+        if (checkbox1.checked){
+        checkbox1.checked = false;
+    } else {
+        checkbox1.checked = true;
+    }
+}
+    if (id==2){
+        if (checkbox2.checked){
+        checkbox2.checked = false;
+    } else {
+        checkbox2.checked = true;
+    }
+}
+    if (id==3){
+        if (checkbox3.checked){
+        checkbox3.checked = false;
+    } else {
+        checkbox3.checked = true;
+    }
+}
+}
+
+checkboxes.forEach((cb, i) => {
+    cb.addEventListener('click', () => valueChange(i));
+});
+
+</script>
+
+
+
+
+</body>
+</html>

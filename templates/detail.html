@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>詳細結果</title>
+</head>
+
+<body>
+<!-- 受取情報 -->
+// USER_ID = {{ user_id }}<br>
+// EXAM_ID = {{ exam_id }}<br>
+// STARTTIME = {{ stime }} <br>
+// ANSWERLIST = {{ answerlist }}<br>
+// RESULTLIST = {{ resultlist }} <br>
+// NUM OF CORRECT = {{ correct }} <br>
+// RATE = {{ rate }}<br>
+
+ユーザID：{{ user_id }}
+演習問題番号：{{ exam_id }}
+実施日時：{{ sdate }}{{ stime }}
+<br>
+採点結果：{{ correct }}/{{ total }}
+正答率：{{ rate }} %
+合否：
+{% if rate >= 70 %}
+    合格
+{% else %}
+    不合格
+{% endif %}
+<br>
+
+<FORM action="analize">
+<!-- 結果詳細テーブル -->
+<TABLE cellSpacing=1 cellPadding=1 width=500 border=0>
+  <TBODY><TR><TD align=middle bgColor=blueviolet>
+
+<TABLE cellSpacing=1 cellPadding=1 width=720 border=0 height=36 vspace=0 >
+	<TBODY><TR bgColor=#ffffff >
+		<TD class=blackb width=120 bgColor=lavender>
+		    <center>カテゴリ</center></TD>
+	    <TD class=black width=40 bgColor=lavender>
+		    <center>採点結果</center></TD>
+	    <TD class=blackb width=56 bgColor=lavender>
+		    <center>正答率</center></TD>
+	    <TD class=blackb width=80 bgColor=lavender>
+			<center>正<font style="color:red">誤</font>リスト</center></TD>
+	    <TD class=blackb width=196 bgColor=lavender>
+		    <center>カテゴリ</center></TD>
+	    <TD class=black width=40 bgColor=lavender>
+		    <center>採点結果</center></TD>
+	    <TD class=blackb width=56 bgColor=lavender>
+		    <center>正答率</center></TD>
+	    <TD class=blackb width=92 bgColor=lavender>
+			<center>正<font style="color:red">誤</font>リスト</center></TD>
+	</TR></TBODY>
+
+	<!-- ============================================== -->
+
+	{% for i in range(6) %}
+	<TBODY>
+	    {% set j = areaname[i][1] %}
+		{% set l = loop.index0 %}
+	        <TR>
+		    <TH ROWSPAN="{{ j+1 }}" class=blackb width=196 bgColor=lavender >
+				<FORM><INPUT type="button" value="{{ areaname[l][0] }} "></FORM>
+		    </TH>
+	        <!-- 採点結果  -->
+	        <TH bgColor=#ffffff ROWSPAN="{{ j+1 }}">{{ areaname[i][2] }}</TH>
+	        <!-- 正答率  -->
+	        <TH bgColor=#ffffff ROWSPAN="{{ j+1 }}">{{ areaname[i][3] }}</TH>
+	        <!-- 誤答番号  -->
+	        <TH bgColor=#ffffff ROWSPAN="{{ j+1 }}">
+				{% if  areaname[i][4] %}
+				    {% if '*' in areaname[i][4] %}
+				     <font style="color:red">
+					{% endif %}
+				    <button type="button"><font style="color:red">{{ areaname[i][4] }}</font></button>
+				    {% if '*' in areaname[i][4] %}
+				     </font>
+					{% endif %}
+				{% endif %}
+			</TH>
+			</TR>
+        {% for k in range(j) %}
+     	    <TR bgColor=#ffffff >
+            <TD class=blackb width=196 bgColor=lavender >
+			<FORM style="height:24; margin:0px 0px 0px 0px">
+				<INPUT TYPE="button" VALUE="{{ practice[i][k] }}"　onClick="xxx()" style="color:royalblue; width:196; height:24"/>
+			</FORM>
+            </TD>
+	        <!-- 採点結果  -->
+            <TD class=black ><center>{{ practice2[i][k][0] }}</center></TD>
+	        <!-- 正答率  -->
+            <TD class=blackb ><center>{{ practice2[i][k][1] }}</center></TD>
+	        <!-- 正誤リスト  -->
+		    <TD class=blackb ><center>
+				{% set xxx = practice2[i][k][2].split(',') %}
+				    {% for m in range(5) %}
+				        {% if xxx[m] != "" %}
+				            <button type="button">xxx[m]</button>
+				        {% endif %}
+				    {% endfor %}
+
+				{% if practice2[i][k][2] %}
+				    <button type="button">
+				    {% if '*' in practice2[i][k][2] %}
+						<font style="color:red">{{ practice2[i][k][2] }}</font>
+				    {% else %}
+						<font style="color:black">{{ practice2[i][k][2] }}</font>
+					{% endif %}
+				    </button>
+				{% endif %}
+			</center></TD>
+
+		    <FORM action="analyze" >
+				<!--
+				<SUBMIT type="button" style="color:red;bgcolor:white">n</SUBMIT>
+				-->
+			</FORM>
+		    </TD>
+	        </TR>
+	    {% endfor %}
+    </TBODY>
+	{% endfor %}
+
+</TABLE>
+ </TD></TR>
+</TBODY></TABLE>
+</FORM>>
+
+<form action="summary" method="POST">
+    <input type="hidden" name="user_id" value={{ user_id }} />
+    <input type="hidden" name="exam_id" value={{ exam_id }} />
+    <input type="hidden" id="total" name="total" value={{ total }} />
+    <input type="hidden" name="examlist" value={{ examlist }} />
+    <input type="hidden" name="arealist" value={{ arealist }} />
+    <input type="hidden" name="resultlist" value={{ resultlist }} />
+    <input type="hidden" name="correct" value={{ correct }} />
+    <input type="hidden" name="stime" value={{ stime }} />
+
+
+        <button type="submit" class="btn btn-primary btn-block" name="command" value="40">問題解説</button>
+        <button type="submit" class="btn btn-primary btn-block" name="command" value="50">答案の分析結果</button>
+　　　　　<br>
+        <button type="submit" class="btn btn-primary btn-block" name="command" value="20">演習開始画面に戻る</button>
+</form>
+
+</body>
+</html>

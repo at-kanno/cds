@@ -1,0 +1,432 @@
+/* ================================================================
+   HTML5 Boilerplate styles - h5bp.com (generated via initializr.com)
+   Customized to include a flexible grid system, flexible image
+   ================================================================ */
+
+html,
+button,
+input,
+select,
+textarea {
+    color: #222;
+}
+
+body {
+    font-size: 1em;
+    line-height: 1.4;
+}
+
+::-moz-selection {
+    background: #b3d4fc;
+    text-shadow: none;
+}
+
+::selection {
+    background: #b3d4fc;
+    text-shadow: none;
+}
+
+fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+textarea {
+    resize: vertical;
+}
+
+
+
+/* ================================================================
+   Author's custom styles
+   ================================================================ */
+
+/* ボックスモデルの指定 */
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+/* ================================================================
+   Style.css (27-Aug-2022, A.Kanno)
+   ================================================================ */
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance:textfield;
+}
+
+button[type="submit"] {
+    -webkit-appearance: none;
+}
+input[type="button"],input[type="submit"], input[type="reset"] {
+    -webkit-appearance: none;
+    display:inline-block;
+    background:#d13415;
+    padding:10px;
+    text-align:center;
+    color:#FFF;
+    margin:5px;
+    border:1px solid;
+    cursor:pointer;
+    width: 150px;
+}
+
+form table{
+    border-spacing: 0;
+}
+form td{
+    padding: 3px;
+    border-bottom: 1px solid #EEE;
+}
+form th{
+    padding: 1px;
+    border-bottom: 1px solid #EEE;
+    text-align: left;
+    font-weight: normal;
+    vertical-align: top;
+    width: 9em;
+}
+.hissu,.ninni{
+    padding-right: 2em;
+    position: relative;
+}
+.hissu::after,.ninni::after{
+    content: "必須";
+    display: inline-block;
+    position: absolute;
+    right: 1px;
+    top: 5px;
+    border: 1px solid #CCC;
+    padding: 0 5px;
+    font-size: 85%;
+    background: #d40000;
+    color: #FFF;
+}
+.ninni::after{
+    content: "任意";
+    background: #d2e5ff;
+    color: #333;
+}
+form input[type="password"],form textarea{
+    background: #f2f2f2;
+    border: 1px solid #999;
+    margin: 0 5px;
+    width: 300px;
+    padding: 5px;
+    box-sizing: border-box;
+}
+form input[type="text"],form textarea{
+    background: #f2f2f2;
+    border: 1px solid #999;
+    margin: 0 5px;
+    width: 300px;
+    padding: 5px;
+    box-sizing: border-box;
+}
+.attention{
+    display: inline-block;
+}
+.middleinput{
+    width: 100px !important;
+}
+.smallinput{
+    width: 80px !important;
+}
+
+.buttonwrap{
+    text-align: center;
+    padding: 20px 0;
+}
+
+form input[type="button"],form input[type="submit"]{
+    display:inline-block;
+    background:#d13415;
+    padding:10px;
+    text-align:center;
+    color:#FFF;
+    margin:5px;
+    border:1px solid;
+    cursor:pointer;
+    width: 150px;
+}
+form input[type="button"]{
+    background: #f2f2f2;
+    color: #333;
+#   border: none;
+}
+
+form button[type="submit"]{
+    background: #f2f2f2;
+    border: 1px solid #999;
+    margin: 0 1px;
+#    width: 50px;
+    padding: 1px;
+    box-sizing: border-box;
+}
+
+.normalButton button {
+    -webkit-appearance: none;
+    display:inline-block;
+    background:#EEE;
+    padding:1px;
+    text-align:center;
+    color:black;
+    margin:5px;
+    border:1px solid;
+    cursor:pointer;
+    width: 150px;
+}
+
+
+.new {
+    margin: 20px;
+}
+
+@media (max-width:500px){
+    form table,form tr,form th,form td{
+        display: block;
+    }
+    form th{
+        width: auto;
+        border-bottom: none;
+        padding: 13px 10px 0 5em;
+    }
+    .hissu::after,.ninni::after{
+        right: auto;
+        left: 15px;
+    }
+    form input[type="text"],form textarea{
+        width: calc(100% - 10px);
+    }
+    form input[type="password"],form textarea{
+        width: calc(100% - 10px);
+    }
+}
+
+/* ================================================================
+   Flexible Grid Sytem
+   - Based on Foundation "The Grid" http://foundation.zurb.com/
+   ================================================================ */
+
+.row {
+  width: 1140px;
+  max-width: 100%;
+  min-width: 768px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.inline{
+  display:inline-block;
+}
+
+.inline-block{
+  display:inline-block;
+}
+
+.row .row {
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  margin: 0 -10px;
+}
+
+.cols {
+  min-height: 1px;
+  padding: 0 10px;
+  float: left;
+  position: relative;
+}
+
+/* カラムのpaddingをなくすcollapseクラス */
+.row.collapse .cols, .row.collapse .cols { padding: 0; }
+.row .row.collapse { margin: 0; }
+
+[class*="cols"] + [class*="cols"]:last-child { float: right; }
+[class*="cols"] + [class*="cols"].end { float: left; }
+
+.row .one { width: 8.33%; }
+.row .two { width: 16.66%; }
+.row .three { width: 25%; }
+.row .four { width: 33.33%; }
+.row .five { width: 41.66%; }
+.row .six { width: 50%; }
+.row .seven { width: 58.33%; }
+.row .eight { width: 66.66%; }
+.row .nine { width: 75%; }
+.row .ten { width: 83.33%; }
+.row .eleven { width: 91.66%; }
+.row .twelve { width: 100%; }
+
+/* PUSH & PULL */
+.push-two { left: 16.66%; }
+.pull-two { right: 16.66%; }
+.push-three { left: 25%; }
+.pull-three { right: 25%; }
+.push-four { left: 33.33%; }
+.pull-four { right: 33.33%; }
+.push-five { left: 41.66%; }
+.pull-five { right: 41.66%; }
+.push-six { left: 50%; }
+.pull-six { right: 50%; }
+.push-seven { left: 58.33%; }
+.pull-seven { right: 58.33%; }
+.push-eight { left: 66.66%; }
+.pull-eight { right: 66.66%; }
+.push-nine { left: 75%; }
+.pull-nine { right: 75%; }
+.push-ten { left: 83.33%; }
+.pull-ten { right: 83.33%; }
+
+@media screen and (max-width:49.25em){
+/* 788px以下向けのモバイル版グリッド・スタイル */
+  .cols {
+    width: auto !important;
+    height: 100%;
+    float: none;
+  }
+  .row { width: auto; min-width: 0; margin-left: 0; margin-right: 0; }
+  [class*="cols"] + [class*="cols"]:last-child { float: none; }
+  [class*="cols"] + [class*="cols"].end { float: none; }
+
+  /* PUSH & PULLの調整*/
+  .push-two, .push-three, .push-four, .push-five, .push-six, .push-seven, .push-eight, .push-nine, .push-ten { left: auto; }
+  .pull-two, .pull-three, .pull-four, .pull-five, .pull-six, .pull-seven, .pull-eight, .pull-nine, .pull-ten { right: auto; }
+
+  /* モバイル版4カラムグリッド */
+  .row .mobile-one { width: 25% !important; float: left; padding: 0 10px; }
+  .row .mobile-one:last-child { float: right; }
+  .row .mobile-one.end { float: left; }
+  .row.collapse .mobile-one { padding: 0; }
+
+  .row .mobile-two { width: 50% !important; float: left; padding: 0 10px; }
+  .row .mobile-two:last-child { float: right; }
+  .row .mobile-two.end { float: left; }
+  .row.collapse .mobile-two { padding: 0; }
+
+  .row .mobile-three { width: 75% !important; float: left; padding: 0 10px; }
+  .row .mobile-three:last-child { float: right; }
+  .row .mobile-three.end { float: left; }
+  .row.collapse .mobile-three { padding: 0; }
+
+  .row .mobile-four { width: 100% !important; float: left; padding: 0 10px; }
+  .row .mobile-four:last-child { float: right; }
+  .row .mobile-four.end { float: left; }
+  .row.collapse .mobile-four { padding: 0; }
+
+  /* モバイル用 PUSH & PULL */
+  .mobile-push-one { left: 25%; }
+  .mobile-pull-one { right: 25%; }
+  .mobile-push-two { left: 50%; }
+  .mobile-pull-two { right: 50%; }
+  .mobile-push-three { left: 75%; }
+  .mobile-pull-three { right: 75%; }
+
+  /* モバイル用collapseクラス */
+  .row.mobile-collapse .cols, .row.mobile-collapse .cols { padding: 0; }
+  .row .row.mobile-collapse { margin: 0; }
+  .row.mobile-collapse .mobile-one { padding: 0; }
+  .row.mobile-collapse .mobile-two { padding: 0; }
+  .row.mobile-collapse .mobile-three { padding: 0; }
+  .row.mobile-collapse .mobile-four { padding: 0; }
+}
+
+@media screen and (max-width:25em){
+/* 400px以下で強制的に1カラムにするクラス */
+  .row .cols.force-one {
+    float: none;
+    width: auto !important;
+    height: 100%;
+  }
+}
+
+/* ================================================================
+   共通ページ要素スタイル
+   ================================================================ */
+
+#main {
+  background: #fff;
+  padding-bottom: 0.2em;
+}
+
+#main h1 {
+  margin: 0.3em 0;
+  padding: 0.2em;
+  border-bottom: 1px solid #ddd;
+  font-size: 1.6em;
+}
+
+#main h2 {
+  margin: 0.3em 0;
+  padding: 0.2em 0.3em;
+  background: #ebddc7;
+  font-size: 1.2em;
+  color: #280e00;
+}
+
+#main p {
+  padding: 0 0 1em;
+}
+
+/* 基本テーブル */
+#main table {
+  width: 100%;
+  margin: 1em 0;
+  border-top: #997f66 1px solid;
+  border-left: #997f66 1px solid;
+  font-size: 0.95em;
+}
+#main th, #main td {
+  border-right: #997f66 1px solid;
+  border-bottom: #997f66 1px solid;
+  padding: 0.2em 0.5em;
+}
+#main th {
+  background: #f7ece1;
+}
+#main td {
+  background: #fff;
+}
+
+/* ----------
+   フォーム
+   ---------- */
+/* Select */
+input, select, textarea {
+  width: 94%;
+  margin-bottom: 0.4em;
+}
+
+/* ================================================================
+   個別ページ特有スタイル
+   ================================================================ */
+/* ----------
+   トップページ メインボタン
+   ---------- */
+#main .top-buttons {
+  margin: 0;
+}
+#main .top-buttons a, button {
+  display: block;
+  padding: 0.5em 0;
+  border-radius: 0.2em;
+/*  background: #37aa3a; */
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+}
+
+button {
+    width: 100%;
+    margin-bottom: 1em;
+    font-size: 1em;
+    border: 0
+}

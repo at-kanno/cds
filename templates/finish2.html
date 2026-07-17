@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>終了画面</title>
+</head>
+
+<body>
+<h3><b><ul>{{ title }}（終了）</ul></b></h3>
+<p>
+お疲れ様でした。{{ message | safe }}
+<br>
+</p>
+<div class="buttonwrap" style="display:inline-flex">
+    <form action="summary" >
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <button type="submit" style="margin:10px" class="btn btn-primary btn-block" name="category" value="99">
+            メインメニューへ戻る</button><br></p>
+    </form>
+</div>
+</body>
+</html>

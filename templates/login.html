@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
+  <title>{{ title }}</title>
+
+  <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+</head><body><div class="content">
+
+    <div style="text-align: center;">
+    <h2><b><ul>{{ title }}</ul></b></h2>
+    </div>
+
+    <div style="text-align: center;">
+    <form action="login" method="POST">
+        <table style="margin:auto;">
+        <tr>
+            <td><label>ログイン名</label>
+            <input type="text" name="id"></td>
+        </tr>
+        <tr>
+            <td><label>パスワード</label>
+            <input type="password" name="pw"></td>
+        </tr>
+        </table>
+        <input type="submit" value="ログイン">
+    </form>
+    </div>
+
+</div></body></html>

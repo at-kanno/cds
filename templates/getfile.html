@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8">
+<head>
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+{% if user_id <= 5 %}
+<body bgcolor="#F8CBAD">
+{% else %}
+<body bgcolor="#CCFFCC">
+{% endif %}
+
+    <h3 style="text-align:center;">{{ title }}</h3>
+
+<div class="buttonwrap">
+    <form action="/upload" method="POST"
+     enctype="multipart/form-data"
+     class="pure-form pure-form-stacked">
+      <fieldset>
+      <div class="fblock">
+          <label for="upfile">EXCELファイル</label>
+        <input type="file" name="upfile" id="upfile">
+      </div>
+      <input type="submit" value="更新">
+      </fieldset>
+      <input type="hidden" name="user_id" value={{ user_id }} />
+      <input type="hidden" name="title" value={{ title }} />
+    </form>
+
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit" value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+</div>
+
+【注意】更新前のデータは削除されます。必要に応じて「演習問題データ」や「コメントデータ」を抽出し保管しておいてください。<br>
+「管理画面」→「演習問題ダウンロード」→「はい」→「演習問題データ」または「コメントデータ」で抽出できます。
+</body>
+</html>

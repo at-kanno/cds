@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+
+  <style>
+    .horizontal-list {
+      overflow-x: scroll;
+      white-space: nowrap;
+    }
+
+    .item {
+      /* 横スクロール用 */
+      display: inline-block;
+      width: 100%;
+
+      /* 見た目調整*/
+      height: 100px;
+      margin: 16px;
+      font-size: 24px;
+      background: rgba(255, 0, 0, 0.4);
+    }
+  </style>
+
+</head>
+
+<SCRIPT LANGUAGE=javascript>
+// 解答送るのボタンが押されたときの処理
+	function testEnd(){
+	//本当に送ってよいか確かめる
+	//	var ret = confirm("Are you sure to send?");
+
+        var total = {{ total }};
+        if ( total != '40' ){
+			setAndGo("finish",0);
+			}
+	    else {
+		    var ret = confirm('終了しますか？' + "  ");
+  		    if ( ret == true ) {
+		    //yes..答案を送付
+			    setAndGo("finish",0);
+			    }else{
+		    //no..間違ってボタン押しました。テストを継続
+			    return;
+		    }
+	    }
+	}
+
+//戻り値セットとサブミット
+	function setAndGo(actStr,moveToNum) {
+		command = actStr;	//次のアクション
+        var now = {{ q_no }};
+        var marklist = document.getElementById("marklist").value;
+        var answerlist = document.getElementById("answerlist").value;
+        var q_no = {{ q_no }};
+        var total = {{ total }};
+
+		switch(command) {
+		    case 'previous':
+		        break;
+		    case 'next':
+		        break;
+		    case 'move':
+                document.getElementById("q_no").value = moveToNum;
+                break;
+		    case 'mark':
+		        s = "check" + moveToNum;
+		        if (moveToNum == 0){
+		            s = "check" + q_no;
+		            moveToNum = q_no;
+//		            moveToNum = document.getElementById("q_no").value;
+                    if(document.getElementById(s).checked == false)
+                        document.getElementById(s).checked = true;
+                    else
+                        document.getElementById(s).checked = false;
+                    }
+      		    if(document.getElementById(s).checked)
+		            marklist = marklist.slice(0,moveToNum-1) + "1" + marklist.slice(moveToNum,total);
+		        else
+		            marklist = marklist.slice(0,moveToNum-1) + "0" + marklist.slice(moveToNum,total);
+      		    document.getElementById("marklist").value = marklist;
+		        return;
+		    case 'finish':
+                break;
+		    case 'timeout':
+                break;
+		    default:
+                alert('others');
+		        return
+		    }
+
+//    alert('Loop start');
+
+	//現在選択されている解答選択肢の番号を取得
+ 	let elements = document.getElementsByName('selection');
+    let len = elements.length;
+    let checkValue = '';
+
+    for (let i = 0; i < len; i++){
+        if (elements.item(i).checked){
+            checkValue = elements.item(i).value;
+            }
+        }
+
+    if(checkValue != false)
+	    answerlist = answerlist.slice(0,now-1) + checkValue + answerlist.slice(now,total);
+    document.getElementById("answerlist").value = answerlist;
+    document.getElementById("command").value = command;
+    document.getElementById("timeH").value = hours;
+    document.getElementById("timeMin").value = minutes;
+    document.getElementById("timeSec").value = seconds;
+    document.getElementById("timePerQ").value = timePerQ;
+    document.selectionForm.submit();
+    }
+
+    function func(){
+
+        var total = {{ total }};
+        var q_no = {{ q_no }};
+        var marklist = "{{ marklist }}";
+        var answerlist = "{{ answerlist }}";
+        var n = 0;
+
+ 	    let elements = document.getElementsByName('selection');
+
+        // 選択ボタンの色の設定
+        for(i=0; i < total; i++){
+            n = n + 1;
+            if( answerlist[i] != '0'){
+                s = 'btn' + n;
+                document.getElementById(s).style.backgroundColor = "skyblue";
+                document.getElementById(s).style.border = "solid 1px black";
+                }
+            }
+
+        var answer = answerlist.slice(q_no-1,q_no);
+        if(answer>0 && answer<=total){
+            elements.item(answer).checked = true;
+            elements.item(answer).value = answer;
+            s = "btn" + q_no;
+            document.getElementById(s).style.backgroundColor = "salmon";
+            document.getElementById(s).style.border = "solid 1px black";
+            }
+
+        // チェックボックスの設定
+        for(i=0 ; i < total; i++){
+            if( marklist.atChar(i) == '1'){
+                s = "check" + str(i);
+                document.getElementById(s).checked = true;
+                }
+            }
+        }
+
+    function setActive(n){
+        s = "btn".concat(n);
+        document.getElementById(s).style.backgroundColor = "salmon";
+        document.getElementById(s).style.border = "solid 1px black";
+    }
+
+// 時間の処理
+    var total = {{ total }};
+    var min = {{ timeMin }};
+    var sec = {{ timeSec }};
+    var hour = {{ timeH }};
+    var timePerQ = {{ timePerQ }};
+    var elapsedTime = 0;
+    var flag = 0;
+    var mSec = 0;
+    var strH;
+    var strM;
+    var strS;
+    var hours=0;
+    var seconds=0;
+    var minutes=0;
+
+    plus = hour * 3600 + min * 60 + sec;
+    var nTime = (new Date().getTime()).toString().slice(0, 10);
+    var limit = total * timePerQ;
+
+    function countTime(){
+        rTime = (new Date().getTime()).toString().slice(0, 10);
+        elapsedTime = rTime - nTime + plus;
+        hours = Math.trunc(elapsedTime / 3600);
+        minutes = Math.trunc(elapsedTime / 60);
+        seconds = elapsedTime % 60;
+        if((elapsedTime > limit) && (flag == 0)){
+                flag ++;
+                }
+        minutes = minutes - hours * 60;
+        strH = hours;
+        strM = minutes;
+        strS = seconds;
+        if(minutes < 10) strM = "0" + strM;
+        if(seconds < 10) strS = "0" + strS;
+
+        if (hours == 0)
+            document.getElementById("time").value = strM  + ":" + strS;
+        else
+            document.getElementById("time").value = strH + ":" + strM  + ":" + strS;
+
+        if(flag >= 1){
+            alert('時間になりました。終了です。');
+            flag ++;
+            clearInterval(timer1);
+            setAndGo('timeout', 0);
+        }
+    }
+
+//window.onload = initialize;
+</SCRIPT>
+
+<h3><b><ul>{{ title }}</ul></b></h3>
+
+<body onload="timer1=setInterval('countTime()',1000);func()" style="background:white">
+<!-- 制御変数
+{{ timeH }}:{{ timeMin }}:{{ timeSec }}
+{{ timePerQ }}
+-->
+
+<form action="exercise" name="selectionForm">
+    <input type="hidden" name="user_id" value={{user_id}} >
+    <input type="hidden" name="title" value={{title}} >
+    <input type="hidden" name="exam_id" value={{exam_id}} >
+    <input type="hidden" id="total" name="total" value={{total}} >
+    <input type="hidden" name="examlist" value={{examlist}} >
+    <input type="hidden" name="arealist" value={{arealist}} >
+    <input type="hidden" id="q_no" name="q_no" value={{q_no}} >
+
+    <input type="hidden" id="command" name="command" value={{command}} >
+    <input type="hidden" name="selection" value={{selection}} >
+    <input type="hidden" name="next" value={{next}} >
+    <input type="hidden" id="marklist" name="marklist" value={{marklist}} >
+    <input type="hidden" id="answerlist" name="answerlist" value={{answerlist}} >
+
+    <input type="hidden" name="checkFlag" value={{selectStr}} >
+    <input type="hidden" id="timeH" name="timeH" value={{timeH}} >
+    <input type="hidden" id="timeMin" name="timeMin" value={{timeMin}} >
+    <input type="hidden" id="timeSec" name="timeSec" value={{timeSec}} >
+    <input type="hidden" id="timePerQ" name="timePerQ" value={{timePerQ}} >
+
+{% if total == 40  %}
+<DIV id=wrapper">
+  <!-- 横スクロール -->
+<DIV id="container">
+<ul class="horizontal-list" id="horizontal">
+{% endif %}
+
+    <table border="0"><tr>
+         {% for c in marklist %}
+          {% set i = loop.index0 + 1 %}
+               {% if i == 21 or i == 41  or i == 61 or i == 81 %}
+                  </tr><tr>
+               {% endif %}
+               <td><center><input type="checkbox" name="level" value="ok" id="check{{ i }}"
+                               onclick="parent.setAndGo('mark',{{ i }})"
+                               {% if c=='1' %}checked="checked" {% endif %}></center>
+                   <button type="button" id="btn{{ i }}" onclick="parent.setAndGo('move',{{ i }})">Q{{ i }} </button></td>
+         {% endfor %}
+    </tr></table>
+
+{% if total == 40  %}
+</TD></TABLE>
+  </ul></DIV>
+{% endif %}
+
+	<p></p>
+
+    	<div id="fixed-area">
+
+<TABLE style="margin:0;padding=0">
+    <TR><TD width="40">問題</TD><TD width="20">{{ q_no }}:</TD><TD>{{ question | safe }}</TD></TR>
+    <TR><TD width="40">
+    <input type="radio" name="selection" value="1" {{ selectStr[0] }} onclick="parent.setActive({{ q_no }})"/>
+    </TD><TD>A.</TD><TD>{{ selection1 }}</TD></TR>
+    <TR><TD width="40">
+    <input type="radio" name="selection" value="2" {{ selectStr[1] }} onclick="parent.setActive({{ q_no }})"/>
+    </TD><TD>B.</TD><TD>{{ selection2 }}</TD></TR>
+    <TR><TD width="40">
+    <input type="radio" name="selection" value="3" {{ selectStr[2] }} onclick="parent.setActive({{ q_no }})"/>
+    </TD><TD>C.</TD><TD>{{ selection3 }}</TD></TR>
+    <TR><TD width="40">
+    <input type="radio" name="selection" value="4" {{ selectStr[3] }} onclick="parent.setActive({{ q_no }})"/>
+    </TD><TD>D.</TD><TD>{{ selection4 }}</TD></TR></TABLE>
+    </div>
+
+  <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>
+
+	<p></p>
+<DIV STYLE="padding-left:100;">
+<TABLE border="0" ALIGN="top">
+	<TD align="center" width="90">
+	<input type="button" value="終了する" onClick="parent.testEnd()" />
+	</TD>
+<!-- 「前へ戻る」ボタン（第１問の時には表示しない） -->
+	<TD align="center" width="90">
+	<input type="button" value="前に戻る" style="background-color:#CCFFCC;border-width:thin;"
+		onClick="parent.setAndGo('previous', 0)" {{ backward }} />
+	</TD>
+<!--　「マークボタン」 -->
+	<TD align="center" width="90"><input type="button" value="マークする"
+           style="background-color:#FFCCCC;border-width:thin;"
+		onClick="parent.setAndGo('mark', 0 )" />
+    </TD>
+<!-- 「次へ進む」ボタン（最後の問題の時には表示しない） -->
+	<TD align="center" width="90">
+	<input type="button" value="次へ進む" style="background-color:#CCFFFF;border-width:thin;"
+		onClick="parent.setAndGo('next', 0)" {{ forward }} />
+	</TD>
+    </TR></TABLE>
+</DIV>
+</DIV>
+</form>
+    <form action="">
+    <H4>経過時間  <input type="text" id="time"
+                   style="border:0;font-size:large;width:100px;bgcolor:white;"/></H4>
+    </form>
+
+</body>
+
+</html>

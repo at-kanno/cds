@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>終了画面</title>
+</head>
+
+<body>
+
+<h3><b><ul>{{ title }}（終了）</ul></b></h3>
+
+<p>
+お疲れ様でした。
+<br><br>
+総出題数 {{ total }}問の中で、{{ correct }}問が正解です。<br>
+正答率は {{ rate }}%です。<br>
+    {% if flag == 1 %}
+        修了試験に挑戦できるようになりました。
+    {% endif %}
+</p>
+
+<div class="buttonwrap" style="display:inline-flex">
+    <form action="summary" >
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <button type="submit" style="margin:10px" class="btn btn-primary btn-block" name="category" value="99">
+            メインメニューへ戻る</button><br></p>
+    </form>
+<form action="summary" method="POST">
+    <input type="hidden" name="user_id" value={{ user_id }} />
+    <input type="hidden" name="title" value={{ title }} />
+    <input type="hidden" name="exam_id" value={{ exam_id }} />
+    <input type="hidden" id="total" name="total" value={{ total }} />
+    <input type="hidden" name="examlist" value={{ examlist }} />
+    <input type="hidden" name="arealist" value={{ arealist }} />
+    <input type="hidden" name="resultlist" value={{ resultlist }} />
+    <input type="hidden" name="correct" value={{ correct }} />
+    <input type="hidden" name="stime" value={{ stime }} />
+
+        <button type="submit" style="margin:10px" class="btn btn-primary btn-block" name="command" value="50">答案の分析結果</button>
+        <button type="submit" style="margin:10px" class="btn btn-primary btn-block" name="command" value="30">領域ごとの結果画面</button>
+　　　　　<br>
+</form>
+
+</div>
+</body>
+</html>　

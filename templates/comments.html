@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>分析結果</title>
+</head>
+
+<body>
+<!-- 受取情報
+ USER_ID = {{ user_id }}<br>
+ EXAM_ID = {{ exam_id }}<br>
+ STARTTIME = {{ stime }} <br>
+ ANSWERLIST = {{ answerlist }}<br>
+ AREALIST = {{ arealist }}<br>
+ CORRECTLIST = {{ correctlist }} <br>
+ NUM OF CORRECT = {{ correct }} <br>
+ RATE = {{ RATE }}<br>
+ RESULTLIST = {{ resultlist }}<br>
+ RESULT = {{ result }}<br>
+-->
+<h3><b><ul>{{ title }}（分析結果）</ul></b></h3>
+実施日時：{{ stime }}<br>
+採点結果：{{ rate }}   正答率：{{ correct }} / {{ total }}  合否： {{ result }}
+
+<br>
+{{ comments | safe }}
+<br>
+<div class="buttonwrap" style="display:inline-flex">
+<form action="summary" >
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <button type="submit" class="btn btn-primary btn-block" style="margin:10px" name="category" value="99">
+            メインメニューへ戻る</button><br></p>
+</form>
+<form action="summary" method="POST">
+    <input type="hidden" name="user_id" value={{ user_id }} />
+    <input type="hidden" name="exam_id" value={{ exam_id }} />
+    <input type="hidden" id="total" name="total" value={{ total }} />
+    <input type="hidden" name="examlist" value={{ examlist }} />
+    <input type="hidden" name="arealist" value={{ arealist }} />
+    <input type="hidden" name="correct" value={{ correct }} />
+    <input type="hidden" name="stime" value={{ stime }} />
+    <input type="hidden" name="resultlist" value={{ resultlist }} />
+    <input type="hidden" name="result" value={{ result }} />
+    <input type="hidden" name="title" value={{ title }} />
+
+        <button type="submit" class="btn btn-primary btn-block" style="margin:10px" name="command" value="30">領域ごとの結果画面</button>
+　　　　　<br>
+</form>
+</div>
+</body>
+</html>　

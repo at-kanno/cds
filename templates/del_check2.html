@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>コメント削除確認画面</title>
+  <link rel="stylesheet" href="static/style.css?v=0220">
+</head><body><div class="content">
+    <h2><b><ul>コメント削除確認画面</ul></b></h2>
+    {{ message }}
+    <table border="1">
+        <tr><td>コメント番号</td><td>{{ cid }}</td></tr>
+        <tr><td>コメント</td><td>{{ comment }}</td></tr>
+    </table>
+<br>
+    本当に削除しますか？。
+<br>
+    <div class="buttonwrap" style="display:inline-flex">
+
+    <form action="commentEditor" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} >
+        <input type="hidden" name="cid" value={{cid}} >
+　      <input type="hidden" name="command" value="deletey">
+        <input type="submit" value="はい"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+
+    <input type="button" onclick="history.back()" value="いいえ"
+           style="background:#f2f2f2;color:black;border:1">
+
+    </div>
+</body>
+</html>

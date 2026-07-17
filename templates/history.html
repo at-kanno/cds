@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8">
+<head>
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>結果表示画面</title>
+
+ <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+    <style> .item { border: 1px solid silver;
+                    background-color: #f0f0ff;
+                    padding: 1px; margin: 1px; }
+    </style>
+</head>
+{% if user_id <= 5 %}
+<body bgcolor="#F8CBAD">
+{% else %}
+<body bgcolor="#CCFFCC">
+{% endif %}
+    <h3 style="text-align:center;">ユーザ・リスト</h3>
+
+<div class="buttonwrap">
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit"value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+</div>
+
+   {% if(n == 0) %}
+       演習履歴はありません。
+   {% endif %}
+
+    {%  for lastname, total, total_r, total_p, start_time, exam_type, mail_adr in result_list %}
+
+    <div class="item" style="display:inline-flex">
+     <table><td style="display:inline-flex">
+         {{ lastname }}({{ mail_adr }})：{{ start_time }}【{{ exam_type }}】{{ total_r }}/{{ total }}[{{ total_p }}%]
+   {% if(total_p >= 70) %}
+         <font style="color:red">合格</font>
+   {% else %}
+         不合格
+   {% endif %}
+    </td></table>
+</div>
+          {% endfor %}
+
+<div class="buttonwrap">
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit"value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+</div>
+
+</body>
+</html>

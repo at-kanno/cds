@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>演習システム</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<!--
+  {{ correctlist }}
+-->
+<center><h2><b><ul>問題画面の説明</ul></b></h2></center>
+
+<img src="/static/exam.png"  width="700" height="360" border="1" alt="演習画面" title="演習画面">
+
+<br>
+<div class="buttonwrap" style="display:inline-flex">
+<form action="summary" >
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit"value="メインメニューへ戻る" style="background:#00E">
+</form>
+<form action="exercise" >
+    <input type="hidden" name="user_id" value={{ user_id }} />
+    <input type="hidden" name="title" value={{ title }} />
+    <input type="hidden" name="exam_id" value={{ exam_id }} />
+    <input type="hidden" id="total" name="total" value={{ total }} />
+    <input type="hidden" name="examlist" value={{ examlist }} />
+    <input type="hidden" name="arealist" value={{ arealist }} />
+    <input type="hidden" name="command" value="start">
+    <input type="submit" value="開始">
+</form>
+
+    </div>
+</body>
+</html>

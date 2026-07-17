@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ subject }} 一問一答</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<SCRIPT LANGUAGE=javascript>
+
+//戻り値セットとサブミット
+	function setAndGo(actStr,moveToNum) {
+		command = actStr;	//次のアクション
+//        alert(command);
+	//現在選択されている解答選択肢の番号を取得
+ 	let elements = document.getElementsByName('selection');
+    let len = elements.length;
+    let checkValue = '9';
+
+    for (let i = 0; i < len; i++){
+        if (elements.item(i).checked){
+            checkValue = elements.item(i).value;
+            }
+        }
+    document.getElementById("answer").value = checkValue;
+    document.getElementById("command").value = command;
+    document.selectionForm.submit();
+    }
+
+// 時間の処理
+    var elapsedTime = 0;
+    var flag = 0;
+    var hour = 0;
+    var min = 0;
+    var sec = 0;
+    var strH;
+    var strM;
+    var strS
+    var seconds=0;
+    var minutes=0;
+
+    var nTime = (new Date().getTime()).toString().slice(0, 10);
+
+    // 経過時間を表示する関数
+    function countTime(){
+        rTime = (new Date().getTime()).toString().slice(0, 10);
+        elapsedTime = rTime - nTime;
+        minutes = Math.trunc(elapsedTime / 60);
+        seconds = elapsedTime % 60;
+        if((elapsedTime > 90) && (flag == 0)){
+                flag ++;
+                }
+        strM = minutes;
+        strS = seconds;
+        if(minutes < 10) strM = "0" + strM;
+        if(seconds < 10) strS = "0" + strS;
+
+        document.getElementById("time").value = strM  + ":" + strS;
+        if(flag == 1){
+            alert('時間になりました。終了です。');
+            flag ++;
+            clearInterval(timer1);
+            setAndGo('timeout', 0);
+        }
+    }
+
+</script>
+
+<h3><b><ul>{{ area }}：一問一答（問題）</ul></b></h3>
+
+<body onload="timer1=setInterval('countTime()',1000);func()" style="background:white">
+<!-- 制御変数 -->
+<form action="makeExam3" name="selectionForm" method="POST">
+    <input type="hidden" name="user_id" value={{ user_id }} />
+    <input type="hidden" name="category" value={{ category }} />
+    <input type="hidden" name="area" value={{ area }} />
+
+    <input type="hidden" name="crct" value={{ crct }} />
+    <input type="hidden" name="cid" value={{ cid }} />
+    <input type="hidden" name="checkFlag" value={{ selectStr }} />
+    <input type="hidden" name="category" value="" />
+
+    <input type="hidden" id="command" name="command" value={{ command }} />
+    <input type="hidden" name="selection" value={{ selection }} />
+    <input type="hidden" name="answer" id="answer" value="" />
+    <input type="hidden" name="num" value={{ num }} />
+    <input type="hidden" name="permutation" value={{ permutation }} />
+
+<br><TABLE style="margin:0;padding=0">
+    <TR><TD width="40">問題</TD><TD width="20">:</TD><TD>{{ question | safe }}</TD></TR>
+<TR><TD><input type="radio" name="selection" value="1" {{ selectStr[0] }} onclick="parent.setActive({{ q_no }})"
+    /></TD><TD>A.</TD><TD>{{ selection1 }}</TD></TR>
+<TR><TD><input type="radio" name="selection" value="2" {{ selectStr[1] }} onclick="parent.setActive({{ q_no }})"
+    /></TD><TD>B.</TD><TD>{{ selection2 }}</TD></TR>
+<TR><TD><input type="radio" name="selection" value="3" {{ selectStr[2] }} onclick="parent.setActive({{ q_no }})"
+    /></TD><TD>C.</TD><TD>{{ selection3 }}</TD></TR>
+<TR><TD><input type="radio" name="selection" value="4" {{ selectStr[3] }} onclick="parent.setActive({{ q_no }})"
+    /></TD><TD>D.</TD><TD>{{ selection4 }}</TD></TR>
+</TABLE><BR>
+
+<div class="buttonwrap" >
+	<input type="button" value="解答を見る" onClick="setAndGo('check',0)" style="color:white;background:#d13415;"/>
+</div>
+</form>
+
+<table><td>
+<form>
+    <H4>経過時間<input type="text" id="time" value="00:00"
+                   style="border:0;font-size:large;width:100px;bgcolor:white;"/></H4>
+</form></td><td>解答時間は1分30秒/1問です。</td></table>
+</body>
+
+</html>

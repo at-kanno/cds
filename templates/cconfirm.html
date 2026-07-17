@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>コメント登録（変更）確認</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+{% if mode == 1 %}
+        <body bgcolor="#F8CBAD">
+{% else %}
+        <body bgcolor="#CCCCFF">
+{% endif %}
+
+<center><h2><b><ul>
+{% if cid == 0 %}
+        コメント登録内容確認
+{% else %}
+        コメント変更内容確認
+{% endif %}
+    </ul></b></h2></center>
+
+<center>
+{% if cid != 0 %}
+        <p>下表のようにコメントを変更します。</p>
+    <table border="1" style="border-collapse: collapse">
+        <tr><td width="100">コメント番号</td><td width="420">{{cid}}</td></tr>
+        {% if comment != old_comment %}
+            <tr><td>現コメント</td><td>{{ old_comment }}</td></tr>
+            <tr><td>新コメント</td><td>{{ comment }}</td></tr>
+        {% else %}
+            <tr><td>コメント</td><td>{{ comment }}</td></tr>
+        {% endif %}
+{% else %}
+    <p>下表のようにコメントを登録します。</p>
+    <table border="1" style="border-collapse: collapse">
+        <tr><td width="100">コメント番号</td><td width="420">{{new_cid}}</td></tr>
+        <tr><td>コメント</td><td>{{ comment }}</td></tr>
+{% endif %}
+    </table>
+{% if cid != 0 %}
+        {% if comment == old_comment %}
+                <span style="color:navy;">コメント内容に変更はありません</span>
+        {% endif %}
+{% endif %}
+
+<br>
+<div class="normalButton">
+        <form action="commentEditor" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} >
+        <input type="hidden" name="comment" readonly="true" value="{{comment}}" >
+        <input type="hidden" name="flag" value={{flag}} >
+        <input type="hidden" name="command" value="update">
+{% if cid != 0 %}
+        <input type="submit" value="更新">
+        <input type="hidden" name="cid" readonly="true" value={{cid}} >
+{% else %}
+        <input type="submit" value="新規登録">
+        <input type="hidden" name="cid" readonly="true" value={{new_cid}} >
+{% endif %}
+        </form>
+
+    <div class="buttonwrap" style="display:inline-flex">
+    <button onclick="history.back()" width="250px" padding="100"
+           cursor="pointer">
+        コメントデータ<br>編集画面へ戻る</button>
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit" value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+</div>
+</div>
+
+</center>
+</body></body>
+</html>

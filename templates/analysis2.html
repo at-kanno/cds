@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{ subject }} 一問一答</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<h3><b><ul>{{ area }}：一問一答（解説）</ul></b></h3>
+<body>
+<!-- 受取情報
+ USER_ID = {{ user_id }}<br>
+ EXAM_ID = {{ exam_id }}<br>
+ STARTTIME = {{ stime }} <br>
+ ANSWERLIST = {{ answerlist }}<br>
+ AREALIST = {{ arealist }}<br>
+ CORRECTLIST = {{ correctlist }} <br>
+ NUM OF CORRECT = {{ correct }} <br>
+ RATE = {{ rate }}<br>
+ RERULTLIST = {{ resultlist }}<br>
+ RERULT = {{ result }}<br>
+-->
+<br>
+{{ correct }}<br>
+<br><TABLE style="margin:0;padding=0">
+    <TR><TD width=40">問題</TD><TD>{{ q | safe }}</TD></TR>
+<TR><TD>A.</TD><TD>{{ a1 }}</TD></TR>
+<TR><TD>B.</TD><TD>{{ a2 }}</TD></TR>
+<TR><TD>C.</TD><TD>{{ a3 }}</TD></TR>
+<TR><TD>D.</TD><TD>{{ a4 }}</TD></TR>
+</TABLE><BR>
+正解は 「{{ answer }}」です。
+<br><br>
+<font color="red">
+    {{ comment | safe }}</font>
+<br>
+<div class="buttonwrap" style="display:inline-flex">
+    <form action="makeExam3" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="command" value="exit" />
+        <input type="submit" value="終了する"
+        style="background:#f2f2f2;color:black;border:1">
+    </form>
+
+    <form action="makeExam3" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="category" value={{ category }} />
+        <input type="hidden" name="command" value="continue" />
+        <input type="submit" value="続ける" >
+    </form>
+</div>
+</body>
+</html>

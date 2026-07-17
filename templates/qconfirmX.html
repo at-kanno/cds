@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>メンテナンス</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+{% if mode == 1 %}
+        <body bgcolor="#F8CBAD">
+{% else %}
+        <body bgcolor="#CCCCFF">
+{% endif %}
+
+<center><h2><b><ul>
+{% if firstFlag == '1' %}
+        登録内容確認
+{% else %}
+        変更内容確認
+{% endif %}
+    </ul></b></h2></center>
+<!--
+old_comment = {{ old_comment0 }}, {{ old_comment1 }}, {{ old_comment2 }}, {{ old_comment0 }}
+old_cid = {{ old_cid0 }}, {{ old_cid1 }}, {{ old_cid2 }}, {{ old_cid3 }}
+firstFlag={{ firstFlag }}, retrieveFlag={{ retrieveFlag }},  commentFlag = {{ commentFlag }}
+check = {{ main_check }}, {{ sub_check1 }}, {{ sub_check2 }}, {{ sub_check3 }}
+comment = {{ comment0 }},<br>1:{{ comment1 }}<br>2:{{ comment2 }}<br>3:{{ comment3 }}
+cid = {{ cid0 }},{{ cid1 }},{{ cid2 }},{{ cid3 }}
+advice = {{ advice0 }}, {{ advice1 }}, {{ advice2 }}, {{ advice3 }}
+-->
+
+<center>
+{% if firstFlag == '1' %}
+    <p>下表の問題を登録します。</p>
+{% else %}
+    <p>問題を下表のように変更します。</p>
+{% endif %}
+
+    <table border="1" style="border-collapse: collapse">
+{% if firstFlag != '1' %}
+        <tr><td width="80">問題番号</td><td width="420">{{ qid }}</td></tr>
+{% else %}
+        <tr><td width="80">問題番号</td><td width="420">問題番号はシステムが割り当てます。</td></tr>
+{% endif %}
+        <tr><td>領域</td><td>{{ area }}</td></tr>
+        <tr><td>カテゴリ</td><td>{{ category }}</td></tr>
+        <tr><td>問題</td><td>{{ question }}</td></tr>
+        <tr><td>正解</td><td>{{ answer }}</td></tr>
+        <tr><td>選択１</td><td>{{ choice1 }}</td></tr>
+        <tr><td>選択２</td><td>{{ choice2 }}</td></tr>
+        <tr><td>選択３</td><td>{{ choice3 }}</td></tr>
+    </table>
+<br>
+
+    <table border="1" style="border-collapse: collapse">
+        {% if firstFlag != '1' %}
+      <tr><td rowspan="2" width="90">解説番号</td><td width="50">{{ old_cid0 }}</td>
+        <td width="80">現在の<br>解説文</td>
+            <td width="280" style="color:black">{{ old_comment0 }}</td>
+      </tr><tr>
+    {% else %}
+      <tr><td width="90">解説番号</td>
+    {% endif %}
+        <td width="50">{{ cid0 }}</td>
+        <td width="80">リンクする解説文</td>
+        <td width="280" style="color:black">{{ old_comment0 }}{{ advice0 }}</td>
+        {% if advice0 != '' %}<br><font style="color:red">{{ advice0 }}</font>{% endif %}
+       </td></tr>
+    </table>
+
+
+
+{% if (main_check=='on') and ((sub_check1!=None) or (sub_check2!=None) or (sub_check3!=None)) %}
+    <br>この問題は選択肢によって解説文が変わります。
+    <table border="1" style="border-collapse: collapse">
+
+{% if (sub_check1 != False) and (sub_check1 != None)  %}
+    {% if firstFlag != '1' %}
+      <tr><td rowspan="2" width="90">選択肢１の<br>解説番号</td><td width="50">{{ old_cid1 }}</td>
+        <td width="80">現在の<br>解説文</td>
+            <td width="280" style="color:black">{{ old_comment1 }}</td>
+      </tr><tr>
+    {% else %}
+      <tr><td width="90">選択肢１の<br>解説番号</td>
+    {% endif %}
+        <td width="50">{{ cid1 }}</td>
+        <td width="80">登録する<br>解説文</td>
+        <td width="280" style="color:black">{{ comment1 }}{{ advice1 }}</td>
+        {% if advice1 != '' %}<br><font style="color:red">{{ advice1 }}</font>{% endif %}
+       </td></tr>
+{% else %}
+    <tr><td rowspan="2" width="90">選択肢１</td><td width="50">{{ cid1 }}</td><td colspan="2"  style="color:navy">変更はありません</td></tr>
+        <tr><td colspan="3" >{{ old_comment1 }}</td></tr>
+{% endif %}
+
+{% if (sub_check2 != False) and (sub_check2 != None) %}
+    {% if firstFlag != '1' %}
+      <tr><td rowspan="2" width="90">選択肢２の<br>解説番号</td><td width="50">{{ old_cid2 }}</td>
+        <td width="80">現在の<br>解説文</td>
+        <td width="280" style="color:black">{{ old_comment2 }}</td>
+      </tr><tr>
+    {% else %}
+      <tr><td width="90">選択肢２の<br>解説番号</td>
+    {% endif %}
+        <td width="50">{{ cid2 }}</td>
+        <td width="80">登録する<br>解説文</td>
+        <td width="280" style="color:black">{{ comment2 }}</td>
+        </td></tr>
+{% else %}
+    <tr><td rowspan="2" width="90">選択肢２</td><td width="50">{{ cid2 }}</td><td colspan="2"  style="color:navy">変更はありません</td></tr>
+        <tr><td colspan="3" >{{ old_comment2 }}</td></tr>
+{% endif %}
+
+{% if (sub_check3 != False) and (sub_check3 != None) %}
+    {% if firstFlag != '1' %}
+    　　<tr><td rowspan="2" width="90">選択肢３の<br>解説番号</td><td width="50">{{ old_cid3 }}</td>
+        <td width="80">現在の<br>解説文</td>
+            <td width="280" style="color:black">{{ old_comment3 }}</td>
+      　</tr><tr>
+    {% else %}
+      <tr><td width="90">選択肢３の<br>解説番号</td>
+    {% endif %}
+        <td width="50">{{ cid3 }}</td>
+        <td width="80">登録する<br>解説文</td>
+        <td width="280" style="color:black">{{ comment3 }}</td>
+        </td></tr>
+{% else %}
+    <tr><td rowspan="2" width="90">選択肢３</td><td width="50">{{ cid3 }}</td><td colspan="2"  style="color:navy">変更はありません</td></tr>
+        <tr><td colspan="3" >{{ old_comment3 }}</td></tr>
+{% endif %}
+{% endif %}
+    </table>
+
+    {% if old_comment0 == '' %}
+        <span style="color:red">解説番号に対応する解説文が登録されていません。よろしいですか？</span>
+    {% endif %}
+
+    <br>
+<div class="normalButton">
+    <table><tr><td>
+        <form action="maintenance" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} >
+        <input type="hidden" name="qid" readonly value="{{qid}}"} >
+        <input type="hidden" name="category" readonly value="{{category}}" >
+        <input type="hidden" name="area" readonly value="{{area}}" >
+        <input type="hidden" name="question" readonly value="{{question}}" >
+        <input type="hidden" name="answer" readonly value="{{answer}}" >
+        <input type="hidden" name="choice1" readonly value="{{choice1}}" >
+        <input type="hidden" name="choice2" readonly value="{{choice2}}" >
+        <input type="hidden" name="choice3" readonly value="{{choice3}}" >
+        <input type="hidden" name="cid0" readonly value="{{cid0}}" >
+        <input type="hidden" name="comment0" readonly value="{{comment0}}" >
+        <input type="hidden" name="commentFlag" value={{commentFlag}} >
+        <input type="hidden" name="cid1" readonly value="{{cid1}}" >
+        <input type="hidden" name="cid2" readonly value="{{cid2}}" >
+        <input type="hidden" name="cid3" readonly value="{{cid3}}" >
+        <input type="hidden" name="comment1" readonly value="{{comment1}}" >
+        <input type="hidden" name="comment2" readonly value="{{comment2}}" >
+        <input type="hidden" name="comment3" readonly value="{{comment3}}" >
+        <input type="hidden" name="advice0" readonly value="{{advice0}}" >
+        <input type="hidden" name="advice1" readonly value="{{advice1}}" >
+        <input type="hidden" name="advice2" readonly value="{{advice2}}" >
+        <input type="hidden" name="advice3" readonly value="{{advice3}}" >
+        <input type="hidden" name="main_check" readonly value="{{main_check}}" >
+        <input type="hidden" name="sub_check1" readonly value="{{sub_check1}}" >
+        <input type="hidden" name="sub_check2" readonly value="{{sub_check2}}" >
+        <input type="hidden" name="sub_check3" readonly value="{{sub_check3}}" >
+        <input type="hidden" name="old_cid0" readonly value="{{old_cid0}}" >
+        <input type="hidden" name="old_cid1" readonly value="{{old_cid1}}" >
+        <input type="hidden" name="old_cid2" readonly value="{{old_cid2}}" >
+        <input type="hidden" name="old_cid3" readonly value="{{old_cid3}}" >
+        <input type="hidden" name="old_comment0" readonly value="{{old_comment0}}" >
+        <input type="hidden" name="old_comment1" readonly value="{{old_comment1}}" >
+        <input type="hidden" name="old_comment2" readonly value="{{old_comment2}}" >
+        <input type="hidden" name="old_comment3" readonly value="{{old_comment3}}" >
+        <input type="hidden" name="commentFlag" value={{commentFlag}} >
+        <input type="hidden" name="command" value="update">
+{% if qid != 0 %}
+        <input type="submit" value="更新">
+{% else %}
+        <input type="submit" value="新規登録">
+{% endif %}
+        </form>
+    </td><td>
+        <form action="maintenance" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} >
+        <input type="hidden" name="qid" readonly value="{{qid}}" >
+        <input type="hidden" name="category" readonly value="{{category}}" >
+        <input type="hidden" name="area" readonly value="{{area}}" >
+        <input type="hidden" name="question" readonly value="{{question}}" >
+        <input type="hidden" name="answer" readonly value="{{answer}}" >
+        <input type="hidden" name="choice1" readonly value="{{choice1}}" >
+        <input type="hidden" name="choice2" readonly value="{{choice2}}" >
+        <input type="hidden" name="choice3" readonly value="{{choice3}}" >
+        <input type="hidden" name="cid0" readonly value={{cid0}} >
+        <input type="hidden" name="comment0" readonly value="{{comment0}}" >
+        <input type="hidden" name="commentFlag" value={{commentFlag}} >
+        <input type="hidden" name="cid1" readonly value="{{cid1}}" >
+        <input type="hidden" name="cid2" readonly value="{{cid2}}" >
+        <input type="hidden" name="cid3" readonly value="{{cid3}}" >
+        <input type="hidden" name="comment1" readonly value="{{comment1}}" >
+        <input type="hidden" name="comment2" readonly value="{{comment2}}" >
+        <input type="hidden" name="comment3" readonly value="{{comment3}}" >
+        <input type="hidden" name="main_check" readonly value="{{main_check}}" >
+        <input type="hidden" name="sub_check1" readonly value="{{sub_check1}}" >
+        <input type="hidden" name="sub_check2" readonly value="{{sub_check2}}" >
+        <input type="hidden" name="sub_check3" readonly value="{{sub_check3}}" >
+        <input type="hidden" name="old_cid0" readonly value="{{old_cid0}}" >
+        <input type="hidden" name="old_cid1" readonly value="{{old_cid1}}" >
+        <input type="hidden" name="old_cid2" readonly value="{{old_cid2}}" >
+        <input type="hidden" name="old_cid3" readonly value="{{old_cid3}}" >
+        <input type="hidden" name="old_comment0" readonly value="{{old_comment0}}" >
+        <input type="hidden" name="old_comment1" readonly value="{{old_comment1}}" >
+        <input type="hidden" name="old_comment2" readonly value="{{old_comment2}}" >
+        <input type="hidden" name="old_comment3" readonly value="{{old_comment3}}" >
+        <input type="hidden" name="retrieveFlag" readonly value={{retrieveFlag}} >
+        <input type="hidden" name="firstFlag" readonly value={{firstFlag}} >
+        <input type="hidden" name="errorFlags" readonly value={{errorFlags}} >
+        <input type="hidden" name="command" value="redraw">
+        <input type="hidden" name="advice0" readonly value="{{advice0}}" >
+        <input type="hidden" name="advice1" readonly value="{{advice1}}" >
+        <input type="hidden" name="advice2" readonly value="{{advice2}}" >
+        <input type="hidden" name="advice3" readonly value="{{advice3}}" >
+        <input type="submit" value="編集画面に戻る">
+        </form>
+    </td></tr><tr><td>
+    <form action="maintenance" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} />
+        <input type="hidden" name="command" value="restart" />
+        <input type="submit" value="番号入力へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form></td><td>
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} />
+        <input type="hidden" name="main_check" value={{main_check}} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit" value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+    </td></tr></table>
+    </div>
+
+</div>
+
+</center>>
+</body></body>
+</html>

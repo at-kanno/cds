@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8">
+<head>
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+{% if mode == 1 %}
+    {% if user_id <= 5 %}
+        <body bgcolor="#F8CBAD">
+    {% else %}
+        <body bgcolor="#CCFFCC">
+    {% endif %}
+{% else %}
+    {% if user_id <= 5 %}
+        <body bgcolor="#CCCCFF">
+    {% else %}
+        <body bgcolor="#CCFFFF">
+    {% endif %}
+{% endif %}
+
+    <center><h2><b><ul>ダウンロード確認画面</ul></b></h2></center>
+
+    <p>
+    <center>クリックすると演習問題や解説のデータを</center>
+    <center>ダウンロードすることができます。</center>
+    </p>
+
+
+<center><p><a href="{{ url_for('static', filename='questions.xlsx') }}" download="questions.xlsx">演習問題データ</a></p></center>
+<center><p><a href="{{ url_for('static', filename='comments.xlsx') }}" download="comments.xlsx">コメントデータ</a></p></center>
+
+<div class="buttonwrap">
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit" value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+</div>
+
+</body>
+</html>

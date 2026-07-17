@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8">
+<head>
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>結果表示画面</title>
+
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style> .item { border: 1px solid silver;
+                        background-color: #f0f0ff;
+                        padding: 1px; margin: 1px; } </style>
+</head>
+
+{% if user_id <= 5 %}
+<body bgcolor="#F8CBAD">
+{% else %}
+<body bgcolor="#CCFFCC">
+{% endif %}
+
+    <h2 style="text-align:center;">現在のステータス</h2>
+
+    【ステータス】{{ grade }}
+
+    <h3 style="text-align:center;">模擬試験の履歴</h3>
+
+   {% if(n == 0) %}
+         模擬試験の履歴はありません。
+   {% endif %}
+
+    {%  for lastname, status, total, total_r, total_p, start_time, exam_type, mail_adr in result_list1 %}
+
+    <div class="item" style="display:inline-flex">
+     <table><td style="display:inline-flex">
+         {{ lastname }}({{ mail_adr }})：{{ start_time }}【{{ exam_type }}】{{ total_r }}/{{ total }}[{{ total_p }}%]
+   {% if total_p >= passscore %}
+         <font style="color:red">合格</font>
+   {% else %}
+         不合格
+   {% endif %}
+    </td></table>
+</div>
+          {% endfor %}
+<p><br></p>
+    <h3 style="text-align:center;">修了試験の履歴</h3>
+
+   {% if(m == 0) %}
+         修了試験の履歴はありません。
+   {% endif %}
+
+    {%  for lastname, status, total_p, start_time, exam_type, mail_adr in result_list2 %}
+
+    <div class="item" style="display:inline-flex">
+     <table><td style="display:inline-flex">
+         {{ lastname }}({{ mail_adr }})：{{ start_time }}【{{ exam_type }}】
+   {% if total_p >= passscore %}
+         <font style="color:red">合格</font>
+   {% else %}
+         不合格
+   {% endif %}
+    </td></table>
+</div>
+          {% endfor %}
+<p><br></p>
+
+
+<div class="buttonwrap" style="display:inline-flex">
+<form action="summary" >
+    <input type="hidden" name="user_id" value="{{ user_id }}" />
+    <input type="hidden" name="category" value="99">
+    <input type="submit"value="メインメニューへ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+</form>
+<form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit"value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+</form>
+
+{% if user_id < 4 or priv == 2 or priv == 3 %}
+<input type="button" onclick="history.back()" value="リストへ戻る"></input>
+{% endif %}
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>コメントデータ編集</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+{% if mode == 1 %}
+        <body bgcolor="#F8CBAD">
+{% else %}
+        <body bgcolor="#CCCCFF">
+{% endif %}
+
+    <center><h2><b><ul>
+{% if flag == 0 %}
+        コメントデータ編集（新規登録）
+{% else %}
+        コメントデータ編集（変更）
+{% endif %}
+    </ul></b></h2></center>
+    <!-- メニュー -->
+<center>
+    <div class="question" >
+        <form action="commentEditor" method="POST">
+<table>
+    <tr><input type="hidden" name="user_id" value={{user_id}} />
+{% if flag == 0 %}
+    <td>コメント番号<br>(数字のみ)</td><td>
+        <input type="number" name="new_cid" pattern="[0-9]+" inputmode="numeric" required
+               class="smallinput" value="" ><br>
+            <input type="hidden" name="cid" readonly="true" class="smallinput" value={{cid}} ><br>
+{% else %}
+    <td>コメント番号</td><td>
+        <input type="number" name="cid" readonly="true" class="smallinput" value={{cid}} >（変更できません）<br>
+{% endif %}
+        <span style="color:red;">{{advice0}}</span>
+    </td></tr>
+    <tr><td><center>コメント</center></td><td>
+         <textarea cols="40" width="500" name="comment" >{{comment}}</textarea>
+        <span style="color:red;">{{advice1}}</span>
+    </td></tr>
+　       <input type="hidden" name="command" value="confirm">
+    <td></td><td><input type="submit" width="140 " value="確認"></td>
+</table>
+        <input type="hidden" name="old_comment" value="{{comment}}" >
+        </form>
+    </div>
+
+    <div class="buttonwrap" style="display:inline-flex">
+{% if flag != 0 %}
+    <form action="commentEditor" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} >
+　       <input type="hidden" name="command" value="delete">
+        <input type="hidden" name="cid" value={{cid}} >
+        <input type="hidden" name="comment" value="{{comment}}" >
+        <input type="submit" value="削除"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+{% endif %}
+    <form action="database" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} />
+        <input type="hidden" name="command" value="comment" />
+        <input type="submit" value="番号入力へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit" value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+
+</div>
+</center>
+</body></body>
+</html>

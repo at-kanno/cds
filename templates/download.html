@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns="http://www.w3.org/1999/html"><head><meta charset="UTF-8">
+<head>
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+{% if mode == 1 %}
+    {% if user_id <= 5 %}
+        <body bgcolor="#F8CBAD">
+    {% else %}
+        <body bgcolor="#CCFFCC">
+    {% endif %}
+{% else %}
+    {% if user_id <= 5 %}
+        <body bgcolor="#CCCCFF">
+    {% else %}
+        <body bgcolor="#CCFFFF">
+    {% endif %}
+{% endif %}
+
+    <center><h2><b><ul>データ抽出確認画面</ul></b></h2></center>
+
+    <p>
+    <center>演習問題および解説のデータを抽出します。</center>
+    <center>実行しますか？</center>
+    </p>
+
+<center>
+    <div class="buttonwrap" style="display:inline-flex">
+    <form action="/download" method="POST">
+      <input type="submit" value="はい">
+      <input type="hidden" name="user_id" value={{ user_id }} />
+      <input type="hidden" name="title" value={{ title }} />
+    </form>
+
+
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        <input type="hidden" name="category" value="99">
+        <input type="submit" value="いいえ"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+</div>
+</center>
+
+</body>
+</html>

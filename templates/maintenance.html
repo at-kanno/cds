@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <title>メンテナンス</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<script>
+function checkForm(){
+    if(document.form1.number.value == ""){
+        alert("問題番号を入力して下さい。");
+	return false;
+    }else{
+	return true;
+    }
+}
+</script>
+
+</head>
+
+{% if mode == 1 %}
+        <body bgcolor="#F8CBAD">
+{% else %}
+        <body bgcolor="#CCCCFF">
+{% endif %}
+
+    <center><h2><b><ul>演習問題管理（トップ）</ul></b></h2>
+    <!-- メニュー -->
+    <div class="buttonwrap" style="display:inline-flex">
+    <form action="maintenance" name="form1" method="POST">
+        <input type="hidden" name="user_id" value={{ user_id }} />
+        問題番号（登録済みの場合）<br>
+        <input type="number" name="number" margin-left="50" class="smallinput"/>
+        <input type="hidden" name="command" value="retrieve">
+        <input type="submit" value="検索" onclick="return checkForm();">
+    </form>
+    </div>
+<br>新規登録の場合、画面上の問題番号は無視されます。<br>
+    <form action="maintenance" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} >
+        <input type="hidden" name="command" value="new">
+        <input type="submit" value="新規登録">
+    </form>
+    <div class="buttonwrap" style="display:inline-flex">
+    <form action="makeExam" method="POST">
+        <input type="hidden" name="user_id" value={{user_id}} >
+        <input type="hidden" name="category" value="99">
+        <input type="submit" value="管理画面へ戻る"
+               style="background:#f2f2f2;color:black;border:1">
+    </form>
+</div>
+</body>
+</html>
