@@ -48,7 +48,7 @@ def build_main_menu(user_id: int) -> dict[str, Any]:
             },
             {
                 "id": "area_quiz",
-                "title": "領域別確認問題",
+                "title": "分野別確認問題",
                 "items": [
                     _item(10, "makeExam", "組織と人材【5問】", "時間:11分15秒", "#642852"),
                     _item(20, "makeExam", "情報と技術【5問】", "時間:11分15秒", "#3D6793"),

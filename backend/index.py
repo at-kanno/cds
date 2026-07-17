@@ -1,7 +1,9 @@
 from constant import PLATFORM, return1, return2, prefec, DefaultStatus
 import constant
 from flask import Flask, session, render_template, request
+from flask_cors import CORS
 import logging
+from api_routes import api_module
 from users import check_login, setStage, getUserList, deleteUser, getUserInfo,\
     getStatus, checkPeriod, user_module, setStatus, getPrivilege
 from resultDB import getUserResultList, getUserResultList1, getUserResultList2
@@ -13,6 +15,7 @@ from sql import database_module
 from maintenance import maintenance_module
 
 app = Flask(__name__, static_folder='./static')
+CORS(app)
 app.secret_key = '9KStWezD'  # セッション情報を暗号化するための鍵
 # 日本語を使えるように
 app.config['JSON_AS_ASCII'] = False
@@ -25,6 +28,7 @@ app.register_blueprint(exec_module)
 app.register_blueprint(result_module)
 app.register_blueprint(maintenance_module)
 app.register_blueprint(database_module)
+app.register_blueprint(api_module)
 
 # アプリケーションごとに変わる定数を読み込む (2026/2/4)
 constant.readConstant()
@@ -379,9 +383,14 @@ def display():
                                error_no=error_no,
                                )
 
-# PLATFORM & SSL
-if __name__ == '__main__' and PLATFORM == 0:
-    context = ('fullchain.pem', 'privkey.pem')
-    app.run(host='0.0.0.0', port=443, ssl_context=context)
-else:
-    app.run(debug=True, host='0.0.0.0')
+# Use app.py as the entry point for local development and Flutter API support.
+if __name__ == '__main__':
+    import os
+
+    port = int(os.environ.get("PORT", 8080))
+    debug = os.environ.get("FLASK_DEBUG", "1") == "1"
+    if PLATFORM == 0:
+        context = ('fullchain.pem', 'privkey.pem')
+        app.run(host='0.0.0.0', port=443, ssl_context=context)
+    else:
+        app.run(debug=debug, host='0.0.0.0', port=port)

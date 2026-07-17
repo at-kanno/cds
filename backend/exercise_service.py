@@ -2,11 +2,14 @@ import datetime
 import sqlite3
 from typing import Any, Optional, Tuple
 
+import constant
 from constant import (
     DIFF_JST_FROM_UTC,
     FAIL_MESSAGE,
-    PASS1_MASSAGE,
-    PASS2_MASSAGE,
+    FAIL_MESSAGE_ON_SCREEN,
+    PASS1_MESSAGE,
+    PASS_MESSAGE_IN_MAIL,
+    PASS_MESSAGE_ON_SCREEN,
     PassScore1,
     PassScore2,
     db_path,
@@ -294,29 +297,35 @@ def _finish_exercise(
 
     old_status = getStatus(user_id)
     flag = 0
-    if rate >= PassScore2 and total == 40:
+    if rate >= PassScore2 and total == constant.MaxQuestions:
         _, flag = rankUp(user_id, 2, exam_type)
-    elif rate >= PassScore1 and total == 40:
+    elif rate >= PassScore1 and total == constant.MaxQuestions:
         _, flag = rankUp(user_id, 1, exam_type)
 
-    if old_status == 31 and exam_type == "修了試験(40問)" and rate < PassScore2:
+    if old_status == 31 and exam_type == constant.examType12 and rate < PassScore2:
         rankDown(user_id)
         flag = 4
 
     message = f"Correct: {correct}/{total} ({rate}%)"
-    if old_status >= 30 and exam_type == "修了試験(40問)":
+    if old_status >= 30 and exam_type == constant.examType12:
         if rate < PassScore2:
-            message = FAIL_MESSAGE if old_status < 40 else "不合格でした。"
+            message = FAIL_MESSAGE if old_status < 40 else FAIL_MESSAGE_ON_SCREEN
         elif old_status == 30:
-            message = PASS1_MASSAGE
+            message = PASS1_MESSAGE
         elif old_status == 31:
-            message = PASS2_MASSAGE
+            message = (
+                constant.PASS2_MESSAGE_1
+                + constant.PASS2_MESSAGE_2
+                + constant.PASS2_MESSAGE_3
+                + constant.PASS2_MESSAGE_4
+                + constant.PASS2_MESSAGE_5
+            )
             user_info = getMailadress(user_id)
             if user_info:
                 username = f"{user_info[0][0]} {user_info[0][1]}"
-                sendMail(username, str(user_info[0][2]), "合格です。")
+                sendMail(username, str(user_info[0][2]), PASS_MESSAGE_IN_MAIL)
         else:
-            message = "合格です。おめでとうございます。"
+            message = PASS_MESSAGE_ON_SCREEN
 
     return {
         "finished": True,

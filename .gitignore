@@ -1,0 +1,9 @@
+backend/.venv/
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/DEBUG.log
+frontend/.dart_tool/
+frontend/build/
+frontend/all
+frontend/android/local.properties
