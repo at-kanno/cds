@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '../models/exam_analysis.dart';
 import '../models/exercise_session.dart';
 import '../models/single_question_session.dart';
 
@@ -24,7 +25,9 @@ class ExamService {
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;
     if (response.statusCode != 200) {
-      throw Exception(body['message'] as String? ?? 'Failed to start exam.');
+      throw Exception(
+        body['message'] as String? ?? 'Failed to start exam.',
+      );
     }
 
     return ExerciseSession.fromJson(body);
@@ -99,5 +102,76 @@ class ExamService {
     }
 
     return SingleQuestionResult.fromJson(body);
+  }
+
+  Future<AreaResultsData> fetchAreaResults(Map<String, dynamic> payload) async {
+    final response = await http
+        .post(
+          Uri.parse(ApiConfig.examSummaryAreaEndpoint),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        )
+        .timeout(const Duration(seconds: 30));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(body['message'] as String? ?? 'Failed to load area results.');
+    }
+    return AreaResultsData.fromJson(body);
+  }
+
+  Future<CommentsAnalysisData> fetchCommentsAnalysis(
+    Map<String, dynamic> payload,
+  ) async {
+    final response = await http
+        .post(
+          Uri.parse(ApiConfig.examSummaryCommentsEndpoint),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        )
+        .timeout(const Duration(seconds: 30));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(
+        body['message'] as String? ?? 'Failed to load answer analysis.',
+      );
+    }
+    return CommentsAnalysisData.fromJson(body);
+  }
+
+  Future<QuestionAnalysisData> fetchQuestionAnalysis(
+    Map<String, dynamic> payload,
+  ) async {
+    final response = await http
+        .post(
+          Uri.parse(ApiConfig.examAnalyzeEndpoint),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        )
+        .timeout(const Duration(seconds: 30));
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(
+        body['message'] as String? ?? 'Failed to analyze question.',
+      );
+    }
+    return QuestionAnalysisData.fromJson(body);
+  }
+
+  Future<void> returnToMainMenu(int userId) async {
+    final response = await http
+        .post(
+          Uri.parse(ApiConfig.examReturnMenuEndpoint),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'user_id': userId}),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      throw Exception(body['message'] as String? ?? 'Failed to return to menu.');
+    }
   }
 }

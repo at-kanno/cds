@@ -101,42 +101,52 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
       appBar: AppBar(
         title: Text(session.title),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text('経過時間 $_elapsedLabel'),
-                const Text('解答時間は2分15秒/1問です。'),
-                const SizedBox(height: 16),
-                Text(
-                  '問題:',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(_stripHtml(session.question)),
-                const SizedBox(height: 16),
-                for (final entry in [
-                  (1, 'A', session.selection1),
-                  (2, 'B', session.selection2),
-                  (3, 'C', session.selection3),
-                  (4, 'D', session.selection4),
-                ])
-                  RadioListTile<int>(
-                    value: entry.$1,
-                    groupValue: _selectedAnswer,
-                    onChanged: (value) => setState(() => _selectedAnswer = value),
-                    title: Text('${entry.$2}. ${_stripHtml(entry.$3)}'),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                children: [
+                  Text('経過時間 $_elapsedLabel'),
+                  const Text('解答時間は2分15秒/1問です。'),
+                  const SizedBox(height: 16),
+                  Text(
+                    '問題:',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                const SizedBox(height: 16),
-                FilledButton(
+                  const SizedBox(height: 8),
+                  Text(_stripHtml(session.question)),
+                  const SizedBox(height: 16),
+                  for (final entry in [
+                    (1, 'A', session.selection1),
+                    (2, 'B', session.selection2),
+                    (3, 'C', session.selection3),
+                    (4, 'D', session.selection4),
+                  ])
+                    RadioListTile<int>(
+                      value: entry.$1,
+                      groupValue: _selectedAnswer,
+                      onChanged: (value) => setState(() => _selectedAnswer = value),
+                      title: Text('${entry.$2}. ${_stripHtml(entry.$3)}'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                ],
+              ),
+      ),
+      bottomNavigationBar: _isLoading
+          ? null
+          : SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: FilledButton(
                   onPressed: _submitAnswer,
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFFD13415),
+                    minimumSize: const Size.fromHeight(48),
                   ),
                   child: const Text('解答を見る'),
                 ),
-              ],
+              ),
             ),
     );
   }

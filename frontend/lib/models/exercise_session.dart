@@ -26,6 +26,9 @@ class ExerciseSession {
     this.resultlist,
     this.message,
     this.flag,
+    this.stime,
+    this.passed,
+    this.result,
   });
 
   factory ExerciseSession.fromJson(Map<String, dynamic> json) {
@@ -56,6 +59,9 @@ class ExerciseSession {
       resultlist: json['resultlist'] as String?,
       message: json['message'] as String?,
       flag: json['flag'] as int?,
+      stime: json['stime'] as String?,
+      passed: json['passed'] as bool?,
+      result: json['result'] as String?,
     );
   }
 
@@ -85,6 +91,22 @@ class ExerciseSession {
   final String? resultlist;
   final String? message;
   final int? flag;
+  final String? stime;
+  final bool? passed;
+  final String? result;
+
+  Map<String, dynamic> toSummaryPayload() {
+    return {
+      'user_id': userId,
+      'exam_id': examId,
+      'title': title,
+      'total': total,
+      'correct': correct ?? 0,
+      'resultlist': resultlist ?? '',
+      'arealist': arealist,
+      'stime': stime ?? '',
+    };
+  }
 
   Map<String, dynamic> toActionPayload({
     required String command,

@@ -10,16 +10,7 @@ from constant import (
     PASS1_MESSAGE,
     PASS_MESSAGE_IN_MAIL,
     PASS_MESSAGE_ON_SCREEN,
-    PassScore1,
-    PassScore2,
     db_path,
-    examTitle1,
-    examTitle10,
-    examTitle11,
-    examTitle12,
-    examTitle2,
-    examTitle3,
-    examTitle4,
 )
 from examDB import getCorrectList, getQuestion, makeExam2, saveExam
 from mail import sendMail
@@ -29,13 +20,13 @@ from users import getMailadress, getStage, getStatus, rankDown, rankUp, setStage
 
 def _category_config(category: int) -> Optional[Tuple[int, str]]:
     mapping = {
-        10: (5, examTitle1),
-        20: (5, examTitle2),
-        30: (5, examTitle3),
-        40: (5, examTitle4),
-        60: (10, examTitle10),
-        70: (40, examTitle11),
-        80: (40, examTitle12),
+        10: (5, constant.examTitle1),
+        20: (5, constant.examTitle2),
+        30: (5, constant.examTitle3),
+        40: (5, constant.examTitle4),
+        60: (10, constant.examTitle10),
+        70: (40, constant.examTitle11),
+        80: (40, constant.examTitle12),
     }
     return mapping.get(category)
 
@@ -58,7 +49,10 @@ def _question_payload(
     time_min: int,
     time_sec: int,
 ) -> dict[str, Any]:
-    question = getQuestion(examlist, q_no)
+    q_obj, conn, _cursor = getQuestion(examlist, q_no)
+    if q_obj is None:
+        raise ValueError(f"Question {q_no} not found.")
+    conn.close()
     selected = int(answerlist[q_no - 1]) if answerlist[q_no - 1].isdigit() else 0
 
     return {
@@ -70,11 +64,11 @@ def _question_payload(
         "q_no": q_no,
         "examlist": examlist,
         "arealist": arealist,
-        "question": question.q,
-        "selection1": question.a1,
-        "selection2": question.a2,
-        "selection3": question.a3,
-        "selection4": question.a4,
+        "question": q_obj.q,
+        "selection1": q_obj.a1,
+        "selection2": q_obj.a2,
+        "selection3": q_obj.a3,
+        "selection4": q_obj.a4,
         "marklist": marklist,
         "answerlist": answerlist,
         "selected_answer": selected,
@@ -161,11 +155,17 @@ def _begin_exercise(
     )
 
 
-def _apply_selection(answerlist: str, q_no: int, selection: Optional[int]) -> str:
-    if selection is None or selection < 1 or selection > 4:
+def _apply_selection(answerlist: str, q_no: int, selection: Any) -> str:
+    if selection is None:
+        return answerlist
+    try:
+        selected = int(selection)
+    except (TypeError, ValueError):
+        return answerlist
+    if selected < 1 or selected > 4:
         return answerlist
     index = q_no - 1
-    return answerlist[:index] + str(selection) + answerlist[index + 1:]
+    return answerlist[:index] + str(selected) + answerlist[index + 1:]
 
 
 def _toggle_mark(marklist: str, q_no: int) -> str:
@@ -184,8 +184,14 @@ def process_exercise(data: dict[str, Any]) -> dict[str, Any]:
     examlist = data.get("examlist", "")
     arealist = data.get("arealist", "")
     q_no = int(data.get("q_no", 1))
-    marklist = data.get("marklist", "0" * total)
-    answerlist = data.get("answerlist", "0" * total)
+    marklist = str(data.get("marklist", "0" * total))
+    answerlist = str(data.get("answerlist", "0" * total))
+    if len(marklist) < total:
+        marklist = marklist + ("0" * (total - len(marklist)))
+    if len(answerlist) < total:
+        answerlist = answerlist + ("0" * (total - len(answerlist)))
+    marklist = marklist[:total]
+    answerlist = answerlist[:total]
     time_min = int(data.get("time_min", 0))
     time_sec = int(data.get("time_sec", 0))
     selection = data.get("selected_answer")
@@ -264,11 +270,14 @@ def _finish_exercise(
     time_sec: int,
 ) -> dict[str, Any]:
     setStage(user_id, 4)
+    answerlist = (answerlist + "0" * total)[:total]
     correctlist = getCorrectList(examlist)
     correct = 0
     resultlist = ""
-    for index, answer in enumerate(answerlist):
-        if answer == correctlist[index]:
+    for index in range(total):
+        answer = answerlist[index]
+        expected = correctlist[index] if index < len(correctlist) else "0"
+        if answer == expected:
             correct += 1
             resultlist += "1"
         else:
@@ -280,9 +289,9 @@ def _finish_exercise(
     used_time = int(time_sec) + int(time_min) * 60
     total_time = total * 90
     cursor.execute(
-        "UPDATE EXAM_TABLE SET RESULTLIST = ?, SCORE = ?, USED_TIME = ?, "
+        "UPDATE EXAM_TABLE SET ANSWERLIST = ?, RESULTLIST = ?, SCORE = ?, USED_TIME = ?, "
         "TOTAL_TIME = ?, RATE = ? WHERE EXAM_ID = ?",
-        (resultlist, correct, used_time, total_time, rate, exam_id),
+        (answerlist, resultlist, correct, used_time, total_time, rate, exam_id),
     )
     cursor.execute(
         "SELECT START_TIME, EXAM_TYPE FROM EXAM_TABLE WHERE EXAM_ID = ?",
@@ -290,6 +299,7 @@ def _finish_exercise(
     )
     row = cursor.fetchone()
     exam_type = row[1] if row else ""
+    stime = row[0] if row else ""
     conn.commit()
     conn.close()
 
@@ -297,18 +307,18 @@ def _finish_exercise(
 
     old_status = getStatus(user_id)
     flag = 0
-    if rate >= PassScore2 and total == constant.MaxQuestions:
+    if rate >= constant.PassScore2 and total == constant.MaxQuestions:
         _, flag = rankUp(user_id, 2, exam_type)
-    elif rate >= PassScore1 and total == constant.MaxQuestions:
+    elif rate >= constant.PassScore1 and total == constant.MaxQuestions:
         _, flag = rankUp(user_id, 1, exam_type)
 
-    if old_status == 31 and exam_type == constant.examType12 and rate < PassScore2:
+    if old_status == 31 and exam_type == constant.examType12 and rate < constant.PassScore2:
         rankDown(user_id)
         flag = 4
 
     message = f"Correct: {correct}/{total} ({rate}%)"
     if old_status >= 30 and exam_type == constant.examType12:
-        if rate < PassScore2:
+        if rate < constant.PassScore2:
             message = FAIL_MESSAGE if old_status < 40 else FAIL_MESSAGE_ON_SCREEN
         elif old_status == 30:
             message = PASS1_MESSAGE
@@ -337,6 +347,11 @@ def _finish_exercise(
         "rate": rate,
         "resultlist": resultlist,
         "answerlist": answerlist,
+        "arealist": arealist,
+        "examlist": examlist,
+        "stime": stime,
+        "passed": rate >= constant.PassScore1,
+        "result": "合格" if rate >= constant.PassScore1 else "不合格",
         "message": message,
         "flag": flag,
     }

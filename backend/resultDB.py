@@ -22,11 +22,15 @@ def putResult(user_id, exam_id, amount, arealist, answerlist, resultlist, correc
 
 # 領域ごとに採点する
     for i, c in enumerate(arealist):
-        if resultlist[i] == '1':
+        if i >= len(resultlist):
+            flag = 0
+        elif resultlist[i] == '1':
             flag = 1
         else:
             flag = 0
         n = categoryCode.find(c)
+        if n == -1:
+            continue
         categoryNumber[n] += 1
         categoryScore[n] = categoryScore[n] + flag
         if n < constant.NumOfCategory1:
@@ -63,15 +67,19 @@ def putResult(user_id, exam_id, amount, arealist, answerlist, resultlist, correc
             areaPercent[i] = round(areaScore[i] / areaNumber[i] * 100, 2)
 
     half1 = half2 = 0
-    length =  round(len(resultlist)/2)
-    for i in range(length):
-        if resultlist[i] == '1' :
-            half1 += 1
-    for i in range(length,len(resultlist)):
-        if resultlist[i] == '1':
-            half2 += 1
-    half1 = round(half1 / length * 100, 2)                      # 正答率（前半）
-    half2 = round(half2 / (len(resultlist) - length) * 100, 2)  # 正答率（後半）
+    length = round(len(resultlist) / 2)
+    if length > 0:
+        for i in range(length):
+            if resultlist[i] == '1':
+                half1 += 1
+        for i in range(length, len(resultlist)):
+            if resultlist[i] == '1':
+                half2 += 1
+        half1 = round(half1 / length * 100, 2)
+        second_len = len(resultlist) - length
+        half2 = round(half2 / second_len * 100, 2) if second_len > 0 else 0.0
+    else:
+        half1 = half2 = 0.0
 
     res = res_correct = 0
 

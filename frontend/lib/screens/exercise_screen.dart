@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/exercise_session.dart';
 import '../services/exam_service.dart';
-import 'main_menu_screen.dart';
+import 'exam_analysis_screen.dart';
 
 class ExerciseScreen extends StatefulWidget {
   const ExerciseScreen({
@@ -61,6 +61,20 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     return '$minutes:$seconds';
   }
 
+  void _toggleMark(int qNo) {
+    final index = qNo - 1;
+    if (index < 0 || index >= _session.total) {
+      return;
+    }
+
+    final marks = _session.marklist.padRight(_session.total, '0').split('');
+    marks[index] = marks[index] == '1' ? '0' : '1';
+
+    setState(() {
+      _session = _session.copyWith(marklist: marks.join());
+    });
+  }
+
   Future<void> _submitAction(
     String command, {
     int? targetQNo,
@@ -89,6 +103,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       }
 
       if (result.finished) {
+        _timer?.cancel();
         await Navigator.of(context).pushReplacement(
           MaterialPageRoute<void>(
             builder: (_) => ExamFinishScreen(
@@ -101,7 +116,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       }
 
       setState(() {
-        _session = result;
+        _session = result.copyWith(marklist: _session.marklist);
         _selectedAnswer =
             result.selectedAnswer > 0 ? result.selectedAnswer : null;
       });
@@ -153,46 +168,52 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       appBar: AppBar(
         title: Text(_session.title),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text('経過時間 $_elapsedLabel'),
-                const SizedBox(height: 12),
-                _QuestionNavigator(
-                  session: _session,
-                  onJump: (qNo) => _submitAction('move', targetQNo: qNo),
-                  onToggleMark: (qNo) {
-                    if (qNo == _session.qNo) {
-                      _submitAction('mark');
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '問題 ${_session.qNo}:',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(_stripHtml(_session.question)),
-                const SizedBox(height: 16),
-                for (final entry in [
-                  (1, 'A', _session.selection1),
-                  (2, 'B', _session.selection2),
-                  (3, 'C', _session.selection3),
-                  (4, 'D', _session.selection4),
-                ])
-                  RadioListTile<int>(
-                    value: entry.$1,
-                    groupValue: _selectedAnswer,
-                    onChanged: (value) => setState(() => _selectedAnswer = value),
-                    title: Text('${entry.$2}. ${_stripHtml(entry.$3)}'),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                children: [
+                  Text('経過時間 $_elapsedLabel'),
+                  const SizedBox(height: 12),
+                  _QuestionNavigator(
+                    session: _session,
+                    onJump: (qNo) => _submitAction('move', targetQNo: qNo),
+                    onToggleMark: _toggleMark,
                   ),
-                const SizedBox(height: 16),
-                Wrap(
+                  const SizedBox(height: 16),
+                  Text(
+                    '問題 ${_session.qNo}:',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(_stripHtml(_session.question)),
+                  const SizedBox(height: 16),
+                  for (final entry in [
+                    (1, 'A', _session.selection1),
+                    (2, 'B', _session.selection2),
+                    (3, 'C', _session.selection3),
+                    (4, 'D', _session.selection4),
+                  ])
+                    RadioListTile<int>(
+                      value: entry.$1,
+                      groupValue: _selectedAnswer,
+                      onChanged: (value) => setState(() => _selectedAnswer = value),
+                      title: Text('${entry.$2}. ${_stripHtml(entry.$3)}'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                ],
+              ),
+      ),
+      bottomNavigationBar: _isLoading
+          ? null
+          : SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
+                  alignment: WrapAlignment.center,
                   children: [
                     OutlinedButton(
                       onPressed: _confirmFinish,
@@ -204,19 +225,15 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                           : null,
                       child: const Text('前に戻る'),
                     ),
-                    OutlinedButton(
-                      onPressed: () => _submitAction('mark'),
-                      child: const Text('マークする'),
-                    ),
                     FilledButton(
                       onPressed: _session.canGoForward
                           ? () => _submitAction('next')
                           : null,
-                      child: const Text('次へ進む'),
+                      child: const Text('次へ'),
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
     );
   }
@@ -242,38 +259,39 @@ class _QuestionNavigator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final marklist = session.marklist.padRight(session.total, '0');
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
       children: [
-        Wrap(
-          spacing: 8,
-          children: [
-            for (var i = 0; i < session.total; i++)
-              FilterChip(
-                label: Text('Mark ${i + 1}'),
-                selected: session.marklist.length > i && session.marklist[i] == '1',
-                onSelected: (_) {
-                  if (i + 1 == session.qNo) {
-                    onToggleMark(i + 1);
-                  }
-                },
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (var i = 0; i < session.total; i++)
-              OutlinedButton(
-                onPressed: () => onJump(i + 1),
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: _buttonColor(session, i + 1),
+        for (var i = 0; i < session.total; i++)
+          SizedBox(
+            width: 52,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: 28,
+                  child: Checkbox(
+                    value: marklist[i] == '1',
+                    onChanged: (_) => onToggleMark(i + 1),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
                 ),
-                child: Text('Q${i + 1}'),
-              ),
-          ],
-        ),
+                OutlinedButton(
+                  onPressed: () => onJump(i + 1),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(48, 36),
+                    padding: EdgeInsets.zero,
+                    backgroundColor: _buttonColor(session, i + 1),
+                  ),
+                  child: Text('Q${i + 1}'),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -287,60 +305,5 @@ class _QuestionNavigator extends StatelessWidget {
       return Colors.lightBlue;
     }
     return null;
-  }
-}
-
-class ExamFinishScreen extends StatelessWidget {
-  const ExamFinishScreen({
-    super.key,
-    required this.session,
-    required this.email,
-  });
-
-  final ExerciseSession session;
-  final String email;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('試験結果'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              session.title,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 16),
-            Text('Correct: ${session.correct}/${session.total}'),
-            Text('Score: ${session.rate?.toStringAsFixed(1)}%'),
-            const SizedBox(height: 16),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Text(session.message ?? 'Exam finished.'),
-              ),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute<void>(
-                    builder: (_) => MainMenuScreen(
-                      userId: session.userId,
-                      email: email,
-                    ),
-                  ),
-                  (_) => false,
-                );
-              },
-              child: const Text('メインメニューへ戻る'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

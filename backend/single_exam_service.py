@@ -61,7 +61,7 @@ def start_single_exam(user_id: int, category: int) -> dict[str, Any]:
 
     start, end, area = config
     result = getQuestionFromCategory(start, end)
-    if result is False:
+    if result is False or not isinstance(result, tuple):
         raise ValueError("No questions available for this category.")
 
     question, a1, a2, a3, a4, crct, cid, num, permutation = result
@@ -99,14 +99,24 @@ def check_single_answer(
     else:
         result_message = "誤りです。"
 
-    question, a1, a2, a3, a4, comment_id = getQuestionFromNum(num, permutation)
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
+    fetched = getQuestionFromNum(num, permutation)
+    if fetched is False:
+        raise ValueError("Question not found.")
+
+    question, a1, a2, a3, a4, cid0, cid1, cid2, cid3, conn, _cursor = fetched
+    if answer != 9 and 1 <= answer <= 4:
+        comment_id = [cid0, cid1, cid2, cid3][answer - 1]
+    else:
+        comment_id = cid
+
+    db_conn = sqlite3.connect(db_path)
+    cursor = db_conn.cursor()
     cursor.execute(
         "SELECT COMMENT FROM COMMENTS_TABLE WHERE COMMENT_ID = ?",
-        (comment_id if comment_id else cid,),
+        (comment_id,),
     )
     row = cursor.fetchone()
+    db_conn.close()
     conn.close()
     comment = row[0] if row else ""
 

@@ -17,6 +17,12 @@ from admin_service import (
 )
 from exercise_service import process_exercise, start_exam
 from menu_service import build_main_menu
+from result_service import (
+    build_area_results,
+    build_comments_analysis,
+    build_question_analysis,
+    return_to_main_menu,
+)
 from single_exam_service import check_single_answer, start_single_exam
 from users import check_login, checkPeriod, getStatus, setStage
 
@@ -116,10 +122,61 @@ def exam_action() -> tuple[Any, int]:
         payload = process_exercise(data)
     except PermissionError as exc:
         return jsonify({"message": str(exc)}), 403
-    except Exception:
-        return jsonify({"message": "Failed to process exam action."}), 500
+    except Exception as exc:
+        return jsonify({"message": f"Failed to process exam action: {exc}"}), 500
 
     return jsonify(payload), 200
+
+
+@api_module.post("/api/exam/summary/area")
+def exam_summary_area() -> tuple[Any, int]:
+    data = request.get_json(silent=True) or {}
+    required = ("user_id", "exam_id", "total", "correct", "resultlist", "arealist")
+    if any(data.get(field) is None for field in required):
+        return jsonify({"message": "Missing required fields for area results."}), 400
+    try:
+        return jsonify(build_area_results(data)), 200
+    except PermissionError as exc:
+        return jsonify({"message": str(exc)}), 403
+    except Exception:
+        return jsonify({"message": "Failed to build area results."}), 500
+
+
+@api_module.post("/api/exam/summary/comments")
+def exam_summary_comments() -> tuple[Any, int]:
+    data = request.get_json(silent=True) or {}
+    required = ("user_id", "exam_id", "total", "correct", "resultlist", "arealist")
+    if any(data.get(field) is None for field in required):
+        return jsonify({"message": "Missing required fields for answer analysis."}), 400
+    try:
+        return jsonify(build_comments_analysis(data)), 200
+    except PermissionError as exc:
+        return jsonify({"message": str(exc)}), 403
+    except Exception:
+        return jsonify({"message": "Failed to build answer analysis."}), 500
+
+
+@api_module.post("/api/exam/analyze")
+def exam_analyze_question() -> tuple[Any, int]:
+    data = request.get_json(silent=True) or {}
+    required = ("user_id", "exam_id", "total", "correct", "q_no")
+    if any(data.get(field) is None for field in required):
+        return jsonify({"message": "Missing required fields for question analysis."}), 400
+    try:
+        return jsonify(build_question_analysis(data)), 200
+    except PermissionError as exc:
+        return jsonify({"message": str(exc)}), 403
+    except Exception:
+        return jsonify({"message": "Failed to analyze question."}), 500
+
+
+@api_module.post("/api/exam/return-menu")
+def exam_return_menu() -> tuple[Any, int]:
+    data = request.get_json(silent=True) or {}
+    user_id = data.get("user_id")
+    if not user_id:
+        return jsonify({"message": "user_id is required."}), 400
+    return jsonify(return_to_main_menu(int(user_id))), 200
 
 
 @api_module.post("/api/single-exam/start")

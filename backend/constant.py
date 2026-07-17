@@ -368,3 +368,6 @@ def readConstant():
     GradeMessage3a = config["DEFAULT"]["GradeMessage3a"]
     GradeMessage4 = config["DEFAULT"]["GradeMessage4"]
     StatusSetupMessage = config["DEFAULT"]["StatusSetupMessage"]
+
+
+readConstant()
