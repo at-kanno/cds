@@ -17,7 +17,7 @@
     <h3 style="text-align:center;">{{ title }}</h3>
 
 <div class="buttonwrap">
-    <form action="/upload" method="POST"
+    <form action="{{ url_for('database.upload') }}" method="POST"
      enctype="multipart/form-data"
      class="pure-form pure-form-stacked">
       <fieldset>

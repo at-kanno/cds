@@ -31,7 +31,7 @@
 
 <center>
     <div class="buttonwrap" style="display:inline-flex">
-    <form action="/download" method="POST">
+    <form action="{{ url_for('database.download') }}" method="POST">
       <input type="submit" value="はい">
       <input type="hidden" name="user_id" value={{ user_id }} />
       <input type="hidden" name="title" value={{ title }} />

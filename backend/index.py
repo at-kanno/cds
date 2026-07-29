@@ -383,6 +383,10 @@ def display():
                                error_no=error_no,
                                )
 
+from middleware import apply_middleware
+
+apply_middleware(app)
+
 # Use app.py as the entry point for local development and Flutter API support.
 if __name__ == '__main__':
     import os

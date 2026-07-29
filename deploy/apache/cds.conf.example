@@ -1,0 +1,40 @@
+# Apache configuration for https://traveltokio.com/cds
+#
+# Goal:
+#   /           -> existing homepage (Apache DocumentRoot)
+#   /cds/...    -> CDS Flask app (Gunicorn on 127.0.0.1:8080)
+#
+# Setup on EC2:
+#   1. Enable modules:
+#        sudo a2enmod proxy proxy_http ssl rewrite
+#   2. Copy/adapt this file to /etc/apache2/sites-available/cds.conf
+#   3. Disable full-site proxy if present (ProxyPass / http://127.0.0.1:8080/)
+#   4. Set SCRIPT_NAME=/cds in cds.service (see cds.service.example)
+#   5. sudo a2ensite cds && sudo systemctl reload apache2
+
+<VirtualHost *:443>
+    ServerName traveltokio.com
+
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/traveltokio.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/traveltokio.com/privkey.pem
+    Include /etc/letsencrypt/options-ssl-apache.conf
+
+    # Homepage stays at /. Do NOT ProxyPass / to Gunicorn.
+
+    # /cds without trailing slash -> /cds/
+    RedirectMatch permanent ^/cds$ /cds/
+
+    ProxyPreserveHost On
+    ProxyPass /cds/ http://127.0.0.1:8080/
+    ProxyPassReverse /cds/ http://127.0.0.1:8080/
+
+    ErrorLog ${APACHE_LOG_DIR}/cds-error.log
+    CustomLog ${APACHE_LOG_DIR}/cds-access.log combined
+</VirtualHost>
+
+# Optional: redirect HTTP to HTTPS (if not already in 000-default.conf)
+# <VirtualHost *:80>
+#     ServerName traveltokio.com
+#     Redirect permanent / https://traveltokio.com/
+# </VirtualHost>

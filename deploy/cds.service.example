@@ -1,0 +1,20 @@
+[Unit]
+Description=CDS Flask Backend
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/cds/backend
+Environment="PATH=/home/ubuntu/cds/backend/.venv/bin"
+EnvironmentFile=/home/ubuntu/cds/backend/.env
+# Required when served at https://example.com/cds/
+Environment="SCRIPT_NAME=/cds"
+ExecStart=/home/ubuntu/cds/backend/.venv/bin/gunicorn \
+  --bind 127.0.0.1:8080 \
+  --workers 2 \
+  --timeout 120 \
+  "index:app"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
