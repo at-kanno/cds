@@ -121,8 +121,8 @@
   "CDS": {
     "SUBJECT": "CDS",
     "APP_TITLE": "CDS 研修ログイン",
-    "LOGIN_URL": "https://ark-seminar.co.jp:5001/",
-    "PORT_NO": "5001/",
+    "LOGIN_URL": "https://traveltokio.com/cds/",
+    "PORT_NO": "/cds/",
     "NumOfHeader": 6,
     "AreaDataStart": 120,
     "NumOfArea": 4,
