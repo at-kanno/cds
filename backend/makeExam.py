@@ -7,7 +7,7 @@ from examDB import makeExam2, getQuestionFromCategory, getQuestionFromNum, saveE
 
 
 def _login_path() -> str:
-    prefix = os.environ.get("SCRIPT_NAME", "").rstrip("/")
+    prefix = request.script_root.rstrip("/")
     return f"{prefix}/" if prefix else "/"
 
 
