@@ -5,6 +5,12 @@ import sqlite3, os
 from users import getStage, setStage, getStatus, getPrivilege
 from examDB import makeExam2, getQuestionFromCategory, getQuestionFromNum, saveExam, getCorrectList
 
+
+def _login_path() -> str:
+    prefix = request.script_root.rstrip("/")
+    return f"{prefix}/" if prefix else "/"
+
+
 exam_module = Blueprint("exam", __name__, static_folder='./static')
 
 # 基本概念を選択
@@ -16,15 +22,15 @@ def makeExam():
     #        return """
     #        <h1>異常を検出しました。<br>
     #        ログインし直してください。</h1>
-    #        <p><a href="/">→ログインする</a></p>
+    #        <p><a href="{_login_path()}">→ログインする</a></p>
     #        """
     if (stage == 1):
         setStage(user_id, 2)
 
     if not is_login():
-        return """
+        return f"""
         <h1>ログインしてください</h1>
-        <p><a href="/">→ログインする</a></p>
+        <p><a href="{_login_path()}">→ログインする</a></p>
         """
     if request.method == 'POST':
         category = request.form['category']
@@ -182,9 +188,9 @@ def makeExam3():
             setStage(user_id, 2)
 
         if not is_login():
-            return """
+            return f"""
             <h1>ログインしてください</h1>
-            <p><a href="/">→ログインする</a></p>
+            <p><a href="{_login_path()}">→ログインする</a></p>
             """
 
         #        category = request.form['category']
