@@ -7,7 +7,8 @@ User=ubuntu
 WorkingDirectory=/home/ubuntu/cds/backend
 Environment="PATH=/home/ubuntu/cds/backend/.venv/bin"
 EnvironmentFile=/home/ubuntu/cds/backend/.env
-# Do NOT set SCRIPT_NAME here. Apache sends X-Forwarded-Prefix: /cds instead.
+# Set APP_PROFILE in .env (e.g. APP_PROFILE=CDS or APP_PROFILE=TOEIC).
+# Apache sends X-Forwarded-Prefix per subject path; do NOT set SCRIPT_NAME here.
 ExecStart=/home/ubuntu/cds/backend/.venv/bin/gunicorn \
   --bind 127.0.0.1:8080 \
   --workers 2 \

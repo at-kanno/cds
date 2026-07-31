@@ -161,7 +161,265 @@
     "Area_Base": 741,
     "Category_Base": 751,
     "FIRST_MAIL": "【アーク】ITIL_CDS　修了試験（合格）のお知らせ",
-    "LAST_MAIL": "【アーク】ITIL_CDS 模擬試験システム　ログイン名とパスワードのご案内"
+    "LAST_MAIL": "【アーク】ITIL_CDS 模擬試験システム　ログイン名とパスワードのご案内",
+    "areas": [
+      {
+        "name": "組織と人材",
+        "abbrev": "組織",
+        "categories": [11, 12, 13],
+        "practices": ["組織の文化", "シフトレフト", "要員の計画と管理"]
+      },
+      {
+        "name": "情報と技術",
+        "abbrev": "技術",
+        "categories": [21],
+        "practices": ["新たな技術"]
+      },
+      {
+        "name": "サービスバリュー・ストリーム",
+        "abbrev": "SVS",
+        "categories": [31, 32, 33, 34],
+        "practices": [
+          "新サービス導入のバリューストリーム",
+          "新サービス導入に貢献するプラクティス",
+          "ユーザサポートのバリューストリーム",
+          "ユーザサポートに貢献するプラクティス"
+        ]
+      },
+      {
+        "name": "活動の調整とリソースの調達",
+        "abbrev": "活動調整・調達",
+        "categories": [41, 42],
+        "practices": ["活動の調整方法", "調達の手段"]
+      }
+    ],
+    "exam_catalog": {
+      "91": {
+        "mode": "single",
+        "action": "makeExam3",
+        "area_index": 0,
+        "category_range": [11, 19],
+        "time_limit_seconds": 135
+      },
+      "92": {
+        "mode": "single",
+        "action": "makeExam3",
+        "area_index": 1,
+        "category_range": [21, 29],
+        "time_limit_seconds": 135
+      },
+      "93": {
+        "mode": "single",
+        "action": "makeExam3",
+        "area_index": 2,
+        "category_range": [31, 39],
+        "time_limit_seconds": 135
+      },
+      "94": {
+        "mode": "single",
+        "action": "makeExam3",
+        "area_index": 3,
+        "category_range": [41, 49],
+        "time_limit_seconds": 135
+      },
+      "10": {
+        "mode": "multi",
+        "action": "makeExam",
+        "amount": 5,
+        "title": "組織：確認問題",
+        "time_limit_seconds": 675
+      },
+      "20": {
+        "mode": "multi",
+        "action": "makeExam",
+        "amount": 5,
+        "title": "技術：確認問題",
+        "time_limit_seconds": 675
+      },
+      "30": {
+        "mode": "multi",
+        "action": "makeExam",
+        "amount": 5,
+        "title": "SVS：確認問題",
+        "time_limit_seconds": 675
+      },
+      "40": {
+        "mode": "multi",
+        "action": "makeExam",
+        "amount": 5,
+        "title": "活動調整・調達：確認問題",
+        "time_limit_seconds": 675
+      },
+      "60": {
+        "mode": "multi",
+        "action": "makeExam",
+        "amount": 10,
+        "title": "確認問題(全領域)",
+        "time_limit_seconds": 1350
+      },
+      "70": {
+        "mode": "multi",
+        "action": "makeExam",
+        "amount": 40,
+        "title": "模擬試験",
+        "time_limit_seconds": 5400,
+        "requires_status_min": 10
+      },
+      "80": {
+        "mode": "multi",
+        "action": "makeExam",
+        "amount": 40,
+        "title": "修了試験",
+        "time_limit_seconds": 5400,
+        "requires_status_min": 30
+      },
+      "99": {
+        "mode": "admin",
+        "action": "makeExam"
+      }
+    },
+    "status_rules": {
+      "mock_exam": {
+        "min_status": 10,
+        "completed_min_status": 30,
+        "messages": {
+          "locked": "模擬試験には、まだ挑戦できません。",
+          "unlocked": "模擬試験に挑戦できるようになりました。",
+          "completed": "模擬試験で５回以上、合格することができました。修了試験に挑戦することができます。"
+        }
+      },
+      "final_exam": {
+        "min_status": 30,
+        "passed_once_status": 31,
+        "messages": {
+          "locked": "修了試験には、まだ挑戦できません。模擬試験に少なくとも5回合格が必要です。",
+          "unlocked": "修了試験に挑戦できるようになりました。２回連続で合格すると修了です。",
+          "passed_once": "合格することができました。連続してもう一度、合格すると修了です。",
+          "completed": "おめでとうございます。修了しました。"
+        }
+      }
+    },
+    "menu": {
+      "title": "メインメニュー",
+      "sections": [
+        {
+          "id": "single_question",
+          "title": "一問一答",
+          "items": [
+            {
+              "category": 91,
+              "action": "makeExam3",
+              "label": "組織と人材",
+              "subtitle": "時間:2分15秒 / 1問",
+              "color": "#A46892"
+            },
+            {
+              "category": 92,
+              "action": "makeExam3",
+              "label": "情報と技術",
+              "subtitle": "時間:2分15秒 / 1問",
+              "color": "#7DA7D3"
+            },
+            {
+              "category": 93,
+              "action": "makeExam3",
+              "label": "サービスバリュー・ストリーム",
+              "subtitle": "時間:2分15秒 / 1問",
+              "color": "#51CBCA"
+            },
+            {
+              "category": 94,
+              "action": "makeExam3",
+              "label": "活動調整と調達",
+              "subtitle": "時間:2分15秒 / 1問",
+              "color": "#D065A2"
+            }
+          ]
+        },
+        {
+          "id": "area_quiz",
+          "title": "分野別確認問題",
+          "items": [
+            {
+              "category": 10,
+              "action": "makeExam",
+              "label": "組織と人材【5問】",
+              "subtitle": "時間:11分15秒",
+              "color": "#642852"
+            },
+            {
+              "category": 20,
+              "action": "makeExam",
+              "label": "情報と技術【5問】",
+              "subtitle": "時間:11分15秒",
+              "color": "#3D6793"
+            },
+            {
+              "category": 30,
+              "action": "makeExam",
+              "label": "サービスバリュー・ストリーム【5問】",
+              "subtitle": "時間:11分15秒",
+              "color": "#219B9A"
+            },
+            {
+              "category": 40,
+              "action": "makeExam",
+              "label": "活動調整と調達【5問】",
+              "subtitle": "時間:11分15秒",
+              "color": "#902562"
+            },
+            {
+              "category": 60,
+              "action": "makeExam",
+              "label": "全領域から【10問】",
+              "subtitle": "時間:22分30秒",
+              "color": "#60B719"
+            }
+          ]
+        },
+        {
+          "id": "mock_exam",
+          "title": "模擬試験",
+          "status_rule": "mock_exam",
+          "items": [
+            {
+              "category": 70,
+              "action": "makeExam",
+              "label": "模擬試験【40問】",
+              "subtitle": "時間：1時間30分",
+              "color": "#A0A0A0"
+            }
+          ]
+        },
+        {
+          "id": "final_exam",
+          "title": "修了試験",
+          "status_rule": "final_exam",
+          "items": [
+            {
+              "category": 80,
+              "action": "makeExam",
+              "label": "修了試験【40問】",
+              "subtitle": "時間：1時間30分",
+              "color": "#D4AF37"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "admin",
+          "label": "管理画面",
+          "action": "makeExam",
+          "category": 99
+        },
+        {
+          "id": "logout",
+          "label": "ログアウト",
+          "action": "logout"
+        }
+      ]
+    }
   },
   "DSV": {
     "SUBJECT": "DSV",
@@ -384,5 +642,158 @@
   },
   "PMP": {
     "APP_TITLE": "PMP 研修ログイン"
+  },
+  "TOEIC": {
+    "SUBJECT": "TOEIC",
+    "APP_TITLE": "TOEIC 模擬試験",
+    "LOGIN_URL": "https://traveltokio.com/toeic/",
+    "PORT_NO": "/toeic/",
+    "PassScore1": 600,
+    "PassScore2": 700,
+    "MaxQuestions": 200,
+    "TimePerQuestion": 30,
+    "NumOfHeader": 6,
+    "NumOfArea": 2,
+    "NumOfCategory": 4,
+    "NumOfCategory1": 2,
+    "NumOfCategory2": 4,
+    "NumOfCategory3": 4,
+    "NumOfCategory4": 4,
+    "NumOfCategory5": 4,
+    "NumOfCategory6": 4,
+    "NumOfCategory7": 4,
+    "NumOfCategory8": 4,
+    "examType1": "リスニング(20問)",
+    "examType2": "リーディング(20問)",
+    "examType3": "",
+    "examType4": "",
+    "examType5": "",
+    "examType6": "",
+    "examType7": "",
+    "examType8": "",
+    "examTitle1": "リスニング：確認問題",
+    "examTitle2": "リーディング：確認問題",
+    "examTitle3": "",
+    "examTitle4": "",
+    "examTitle5": "",
+    "examTitle6": "",
+    "examTitle7": "",
+    "examTitle8": "",
+    "examEntry6": "110",
+    "examEntry7": "120",
+    "examEntry8": "130",
+    "examEntry10": "60",
+    "examEntry11": "70",
+    "examEntry12": "80",
+    "Comment_Base": 1000,
+    "Area_Base": 1100,
+    "Category_Base": 1200,
+    "FIRST_MAIL": "【TOEIC】模擬試験 合格のお知らせ",
+    "LAST_MAIL": "【TOEIC】模擬試験システム ログイン情報",
+    "areas": [
+      {
+        "name": "リスニング",
+        "abbrev": "L",
+        "categories": [11, 12, 13, 14, 15, 16],
+        "practices": ["Part 1", "Part 2", "Part 3", "Part 4"]
+      },
+      {
+        "name": "リーディング",
+        "abbrev": "R",
+        "categories": [21, 22, 23],
+        "practices": ["Part 5", "Part 6", "Part 7"]
+      }
+    ],
+    "exam_catalog": {
+      "10": {
+        "mode": "multi",
+        "action": "makeExam",
+        "amount": 20,
+        "title": "リスニング 確認問題",
+        "time_limit_seconds": 600
+      },
+      "20": {
+        "mode": "multi",
+        "action": "makeExam",
+        "amount": 20,
+        "title": "リーディング 確認問題",
+        "time_limit_seconds": 900
+      },
+      "70": {
+        "mode": "multi",
+        "action": "makeExam",
+        "amount": 200,
+        "title": "TOEIC 模擬試験",
+        "time_limit_seconds": 7200,
+        "requires_status_min": 0
+      },
+      "99": {
+        "mode": "admin",
+        "action": "makeExam"
+      }
+    },
+    "status_rules": {
+      "mock_exam": {
+        "min_status": 0,
+        "completed_min_status": 999,
+        "messages": {
+          "locked": "",
+          "unlocked": "模擬試験を受験できます。",
+          "completed": "模擬試験を複数回受験済みです。"
+        }
+      }
+    },
+    "menu": {
+      "title": "TOEIC メニュー",
+      "sections": [
+        {
+          "id": "part_practice",
+          "title": "パート別練習",
+          "items": [
+            {
+              "category": 10,
+              "action": "makeExam",
+              "label": "リスニング【20問】",
+              "subtitle": "制限時間 10分",
+              "color": "#2563EB"
+            },
+            {
+              "category": 20,
+              "action": "makeExam",
+              "label": "リーディング【20問】",
+              "subtitle": "制限時間 15分",
+              "color": "#059669"
+            }
+          ]
+        },
+        {
+          "id": "mock_exam",
+          "title": "本番形式",
+          "status_rule": "mock_exam",
+          "items": [
+            {
+              "category": 70,
+              "action": "makeExam",
+              "label": "TOEIC 模擬試験【200問】",
+              "subtitle": "制限時間 2時間",
+              "color": "#DC2626"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "admin",
+          "label": "管理画面",
+          "action": "makeExam",
+          "category": 99
+        },
+        {
+          "id": "logout",
+          "label": "ログアウト",
+          "action": "logout"
+        }
+      ]
+    }
   }
 }

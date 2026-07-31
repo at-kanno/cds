@@ -241,6 +241,14 @@ GradeMessage3a = None
 GradeMessage4 = None
 StatusSetupMessage = None
 
+def _profile_value(profile: dict, default: dict, key: str, fallback=None):
+    if key in profile:
+        return profile[key]
+    if key in default:
+        return default[key]
+    return fallback
+
+
 def readConstant():
     global SUBJECT, APP_TITLE, PassScore1, PassScore2, TimePerQuestion, LOGIN_URL, \
         NEW_ACCOUNT_MESSAGE1_1,  NEW_ACCOUNT_MESSAGE1_2, NEW_ACCOUNT_MESSAGE1_3, \
@@ -263,111 +271,133 @@ def readConstant():
         examEntry6s, examEntry7s, examEntry8s, NumOfQuestions1, NumOfQuestions2, \
         Comment_Base, Area_Base, Category_Base, FIRST_MAIL, LAST_MAIL, \
         GradeMessage1, GradeMessage2, GradeMessage3, GradeMessage3a, GradeMessage4, \
-        StatusSetupMessage
+        StatusSetupMessage, abbreviation, areaname, practice, practice2, categoryNumber
 
-        # アプリケーションごとに変わる定数を読み込む (2026/2/4)
-    with open(json_path, encoding="utf-8") as f:
-        config = json.load(f)
+    from config_loader import build_area_globals, get_default_section, get_profile_section
 
-    SUBJECT = config["CDS"]["SUBJECT"]
-    APP_TITLE = config["CDS"]["APP_TITLE"]
-    PassScore1 = config["DEFAULT"]["PassScore1"]
-    PassScore2 = config["DEFAULT"]["PassScore2"]
-    TimePerQuestion = config["DEFAULT"]["TimePerQuestion"]
-    LOGIN_URL = config["CDS"]["LOGIN_URL"]
-    PORT_NO = config["CDS"]["PORT_NO"]
-    MaxQuestions = config["DEFAULT"]["MaxQuestions"]
-    THRESHOLD_HIGH = config["DEFAULT"]["THRESHOLD_HIGH"]
-    THRESHOLD_LOW = config["DEFAULT"]["THRESHOLD_LOW"]
-    NumOfHeader = config["DEFAULT"]["NumOfHeader"]
-    NumOfArea = config["CDS"]["NumOfArea"]
-    NumOfCategory = config["CDS"]["NumOfCategory"]
-    NumOfCategory1 = config["CDS"]["NumOfCategory1"]
-    NumOfCategory2 = config["CDS"]["NumOfCategory2"]
-    NumOfCategory3 = config["CDS"]["NumOfCategory3"]
-    NumOfCategory4 = config["CDS"]["NumOfCategory4"]
-    NumOfCategory5 = config["CDS"]["NumOfCategory5"]
-    NumOfCategory6 = config["CDS"]["NumOfCategory6"]
-    NumOfCategory7 = config["CDS"]["NumOfCategory7"]
-    NumOfCategory8 = config["CDS"]["NumOfCategory8"]
-    examType1 = config["CDS"]["examType1"]
-    examType2 = config["CDS"]["examType2"]
-    examType3 = config["CDS"]["examType3"]
-    examType4 = config["CDS"]["examType4"]
-    examType5 = config["CDS"]["examType5"]
-    examType6 = config["CDS"]["examType6"]
-    examType7 = config["CDS"]["examType7"]
-    examType8 = config["CDS"]["examType8"]
-    examType10 = config["DEFAULT"]["examType10"]
-    examType11 = config["DEFAULT"]["examType11"]
-    examType12 = config["DEFAULT"]["examType12"]
-    examType99 = config["DEFAULT"]["examType99"]
-    examTitle1 = config["CDS"]["examTitle1"]
-    examTitle2 = config["CDS"]["examTitle2"]
-    examTitle3 = config["CDS"]["examTitle3"]
-    examTitle4 = config["CDS"]["examTitle4"]
-    examTitle5 = config["CDS"]["examTitle5"]
-    examTitle6 = config["CDS"]["examTitle6"]
-    examTitle7 = config["CDS"]["examTitle7"]
-    examTitle8 = config["CDS"]["examTitle8"]
-    examTitle10 = config["DEFAULT"]["examTitle10"]
-    examTitle11 = config["DEFAULT"]["examTitle11"]
-    examTitle12 = config["DEFAULT"]["examTitle12"]
-    NumOfQuestions1 = config["DEFAULT"]["NumOfQuestions1"]
-    NumOfQuestions2 = config["DEFAULT"]["NumOfQuestions2"]
-    examEntry =config["DEFAULT"]["examEntry"]
-    examEntry1 = config["DEFAULT"]["examEntry1"]
-    examEntry2 = config["DEFAULT"]["examEntry2"]
-    examEntry3 = config["DEFAULT"]["examEntry3"]
-    examEntry4 = config["DEFAULT"]["examEntry4"]
-    examEntry5 = config["DEFAULT"]["examEntry5"]
-    examEntry6 = config["CDS"]["examEntry6"]
-    examEntry7 = config["CDS"]["examEntry7"]
-    examEntry8 = config["CDS"]["examEntry8"]
-    examEntry10 = config["CDS"]["examEntry10"]
-    examEntry11 = config["CDS"]["examEntry11"]
-    examEntry12 = config["CDS"]["examEntry12"]
-    examEntry1s = config["DEFAULT"]["examEntry1s"]
-    examEntry2s = config["DEFAULT"]["examEntry2s"]
-    examEntry3s = config["DEFAULT"]["examEntry3s"]
-    examEntry4s = config["DEFAULT"]["examEntry4s"]
-    examEntry5s = config["DEFAULT"]["examEntry5s"]
-    examEntry6s = config["DEFAULT"]["examEntry6s"]
-    examEntry7s = config["DEFAULT"]["examEntry7s"]
-    examEntry8s = config["DEFAULT"]["examEntry8s"]
-    NEW_ACCOUNT_MESSAGE1_1 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE1_1"]
-    NEW_ACCOUNT_MESSAGE1_2 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE1_2"]
-    NEW_ACCOUNT_MESSAGE1_3 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE1_3"]
-    NEW_ACCOUNT_MESSAGE2_1 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE2_1"]
-    NEW_ACCOUNT_MESSAGE2_2 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE2_2"]
-    NEW_ACCOUNT_MESSAGE2_3 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE2_3"]
-    NEW_ACCOUNT_MESSAGE2_4 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE2_4"]
-    NEW_ACCOUNT_MESSAGE2_5 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE2_5"]
-    NEW_ACCOUNT_MESSAGE2_6 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE2_6"]
-    NEW_ACCOUNT_MESSAGE2_7 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE2_7"]
-    NEW_ACCOUNT_MESSAGE2_8 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE2_8"]
-    NEW_ACCOUNT_MESSAGE2_9 = config["DEFAULT"]["NEW_ACCOUNT_MESSAGE2_9"]
-    PASS2_MESSAGE_1 = config["DEFAULT"]["PASS2_MESSAGE_1"]
-    PASS2_MESSAGE_2 = config["DEFAULT"]["PASS2_MESSAGE_2"]
-    PASS2_MESSAGE_3 = config["DEFAULT"]["PASS2_MESSAGE_3"]
-    PASS2_MESSAGE_4 = config["DEFAULT"]["PASS2_MESSAGE_4"]
-    PASS2_MESSAGE_5 = config["DEFAULT"]["PASS2_MESSAGE_5"]
-    PASS3_MESSAGE_1 = config["DEFAULT"]["PASS3_MESSAGE_1"]
-    PASS3_MESSAGE_2 = config["DEFAULT"]["PASS3_MESSAGE_2"]
-    PASS3_MESSAGE_3 = config["DEFAULT"]["PASS3_MESSAGE_3"]
-    PASS3_MESSAGE_4 = config["DEFAULT"]["PASS3_MESSAGE_4"]
-    PASS3_MESSAGE_5 = config["DEFAULT"]["PASS3_MESSAGE_5"]
-    Comment_Base = config["CDS"]["Comment_Base"]
-    Area_Base = config["CDS"]["Area_Base"]
-    Category_Base = config["CDS"]["Category_Base"]
-    FIRST_MAIL = config["CDS"]["FIRST_MAIL"]
-    LAST_MAIL = config["CDS"]["LAST_MAIL"]
-    GradeMessage1 = config["DEFAULT"]["GradeMessage1"]
-    GradeMessage2 = config["DEFAULT"]["GradeMessage2"]
-    GradeMessage3 = config["DEFAULT"]["GradeMessage3"]
-    GradeMessage3a = config["DEFAULT"]["GradeMessage3a"]
-    GradeMessage4 = config["DEFAULT"]["GradeMessage4"]
-    StatusSetupMessage = config["DEFAULT"]["StatusSetupMessage"]
+    default = get_default_section()
+    profile = get_profile_section()
+
+    SUBJECT = profile["SUBJECT"]
+    APP_TITLE = profile["APP_TITLE"]
+    PassScore1 = _profile_value(profile, default, "PassScore1")
+    PassScore2 = _profile_value(profile, default, "PassScore2")
+    TimePerQuestion = _profile_value(profile, default, "TimePerQuestion")
+    LOGIN_URL = profile["LOGIN_URL"]
+    PORT_NO = profile["PORT_NO"]
+    MaxQuestions = _profile_value(profile, default, "MaxQuestions")
+    THRESHOLD_HIGH = _profile_value(profile, default, "THRESHOLD_HIGH")
+    THRESHOLD_LOW = _profile_value(profile, default, "THRESHOLD_LOW")
+    NumOfHeader = _profile_value(profile, default, "NumOfHeader")
+    NumOfArea = profile["NumOfArea"]
+    NumOfCategory = profile["NumOfCategory"]
+    NumOfCategory1 = profile["NumOfCategory1"]
+    NumOfCategory2 = profile["NumOfCategory2"]
+    NumOfCategory3 = profile["NumOfCategory3"]
+    NumOfCategory4 = profile["NumOfCategory4"]
+    NumOfCategory5 = profile["NumOfCategory5"]
+    NumOfCategory6 = profile["NumOfCategory6"]
+    NumOfCategory7 = profile["NumOfCategory7"]
+    NumOfCategory8 = profile["NumOfCategory8"]
+    examType1 = profile["examType1"]
+    examType2 = profile["examType2"]
+    examType3 = profile["examType3"]
+    examType4 = profile["examType4"]
+    examType5 = profile["examType5"]
+    examType6 = profile["examType6"]
+    examType7 = profile["examType7"]
+    examType8 = profile["examType8"]
+    examType10 = _profile_value(profile, default, "examType10")
+    examType11 = _profile_value(profile, default, "examType11")
+    examType12 = _profile_value(profile, default, "examType12")
+    examType99 = _profile_value(profile, default, "examType99")
+    examTitle1 = profile["examTitle1"]
+    examTitle2 = profile["examTitle2"]
+    examTitle3 = profile["examTitle3"]
+    examTitle4 = profile["examTitle4"]
+    examTitle5 = profile["examTitle5"]
+    examTitle6 = profile["examTitle6"]
+    examTitle7 = profile["examTitle7"]
+    examTitle8 = profile["examTitle8"]
+    examTitle10 = _profile_value(profile, default, "examTitle10")
+    examTitle11 = _profile_value(profile, default, "examTitle11")
+    examTitle12 = _profile_value(profile, default, "examTitle12")
+    NumOfQuestions1 = _profile_value(profile, default, "NumOfQuestions1")
+    NumOfQuestions2 = _profile_value(profile, default, "NumOfQuestions2")
+    examEntry = _profile_value(profile, default, "examEntry")
+    examEntry1 = _profile_value(profile, default, "examEntry1")
+    examEntry2 = _profile_value(profile, default, "examEntry2")
+    examEntry3 = _profile_value(profile, default, "examEntry3")
+    examEntry4 = _profile_value(profile, default, "examEntry4")
+    examEntry5 = _profile_value(profile, default, "examEntry5")
+    examEntry6 = profile["examEntry6"]
+    examEntry7 = profile["examEntry7"]
+    examEntry8 = profile["examEntry8"]
+    examEntry9 = _profile_value(profile, default, "examEntry9")
+    examEntry10 = profile["examEntry10"]
+    examEntry11 = profile["examEntry11"]
+    examEntry12 = profile["examEntry12"]
+    examEntry1s = _profile_value(profile, default, "examEntry1s")
+    examEntry2s = _profile_value(profile, default, "examEntry2s")
+    examEntry3s = _profile_value(profile, default, "examEntry3s")
+    examEntry4s = _profile_value(profile, default, "examEntry4s")
+    examEntry5s = _profile_value(profile, default, "examEntry5s")
+    examEntry6s = _profile_value(profile, default, "examEntry6s")
+    examEntry7s = _profile_value(profile, default, "examEntry7s")
+    examEntry8s = _profile_value(profile, default, "examEntry8s")
+    NEW_ACCOUNT_MESSAGE1_1 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE1_1")
+    NEW_ACCOUNT_MESSAGE1_2 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE1_2")
+    NEW_ACCOUNT_MESSAGE1_3 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE1_3")
+    NEW_ACCOUNT_MESSAGE2_1 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE2_1")
+    NEW_ACCOUNT_MESSAGE2_2 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE2_2")
+    NEW_ACCOUNT_MESSAGE2_3 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE2_3")
+    NEW_ACCOUNT_MESSAGE2_4 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE2_4")
+    NEW_ACCOUNT_MESSAGE2_5 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE2_5")
+    NEW_ACCOUNT_MESSAGE2_6 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE2_6")
+    NEW_ACCOUNT_MESSAGE2_7 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE2_7")
+    NEW_ACCOUNT_MESSAGE2_8 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE2_8")
+    NEW_ACCOUNT_MESSAGE2_9 = _profile_value(profile, default, "NEW_ACCOUNT_MESSAGE2_9")
+    PASS2_MESSAGE_1 = _profile_value(profile, default, "PASS2_MESSAGE_1")
+    PASS2_MESSAGE_2 = _profile_value(profile, default, "PASS2_MESSAGE_2")
+    PASS2_MESSAGE_3 = _profile_value(profile, default, "PASS2_MESSAGE_3")
+    PASS2_MESSAGE_4 = _profile_value(profile, default, "PASS2_MESSAGE_4")
+    PASS2_MESSAGE_5 = _profile_value(profile, default, "PASS2_MESSAGE_5")
+    PASS3_MESSAGE_1 = _profile_value(profile, default, "PASS3_MESSAGE_1")
+    PASS3_MESSAGE_2 = _profile_value(profile, default, "PASS3_MESSAGE_2")
+    PASS3_MESSAGE_3 = _profile_value(profile, default, "PASS3_MESSAGE_3")
+    PASS3_MESSAGE_4 = _profile_value(profile, default, "PASS3_MESSAGE_4")
+    PASS3_MESSAGE_5 = _profile_value(profile, default, "PASS3_MESSAGE_5")
+    Comment_Base = profile["Comment_Base"]
+    Area_Base = profile["Area_Base"]
+    Category_Base = profile["Category_Base"]
+    FIRST_MAIL = profile["FIRST_MAIL"]
+    LAST_MAIL = profile["LAST_MAIL"]
+    GradeMessage1 = _profile_value(profile, default, "GradeMessage1")
+    GradeMessage2 = _profile_value(profile, default, "GradeMessage2")
+    GradeMessage3 = _profile_value(profile, default, "GradeMessage3")
+    GradeMessage3a = _profile_value(profile, default, "GradeMessage3a")
+    GradeMessage4 = _profile_value(profile, default, "GradeMessage4")
+    StatusSetupMessage = _profile_value(profile, default, "StatusSetupMessage")
+
+    areas = profile.get("areas", [])
+    if areas:
+        (
+            abbreviation,
+            areaname,
+            practice,
+            practice2,
+            categoryNumber,
+        ) = build_area_globals(areas)
 
 
+def _load_env() -> None:
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(os.path.join(base_path, ".env"))
+    except ImportError:
+        pass
+
+
+_load_env()
 readConstant()

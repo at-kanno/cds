@@ -1,8 +1,9 @@
 import datetime
 import sqlite3
-from typing import Any, Optional, Tuple
+from typing import Any
 
 import constant
+from config_loader import get_exam_entry
 from constant import (
     DIFF_JST_FROM_UTC,
     FAIL_MESSAGE,
@@ -18,21 +19,17 @@ from resultDB import putResult
 from users import getMailadress, getStage, getStatus, rankDown, rankUp, setStage
 
 
-def _category_config(category: int) -> Optional[Tuple[int, str]]:
-    mapping = {
-        10: (5, constant.examTitle1),
-        20: (5, constant.examTitle2),
-        30: (5, constant.examTitle3),
-        40: (5, constant.examTitle4),
-        60: (10, constant.examTitle10),
-        70: (40, constant.examTitle11),
-        80: (40, constant.examTitle12),
-    }
-    return mapping.get(category)
-
-
-def _init_lists(total: int) -> tuple[str, str]:
-    return "0" * total, "0" * total
+def _exam_time_limit_seconds(exam_id: int, total: int) -> int:
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT CATEGORY FROM EXAM_TABLE WHERE EXAM_ID = ?", (exam_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        entry = get_exam_entry(int(row[0]))
+        if entry and entry.get("time_limit_seconds"):
+            return int(entry["time_limit_seconds"])
+    return total * constant.TimePerQuestion
 
 
 def _question_payload(
@@ -76,21 +73,34 @@ def _question_payload(
         "time_sec": time_sec,
         "can_go_back": q_no > 1,
         "can_go_forward": q_no < total,
-        "time_limit_seconds": total * 135,
+        "time_limit_seconds": _exam_time_limit_seconds(exam_id, total),
     }
 
 
+def _init_lists(total: int) -> tuple[str, str]:
+    return "0" * total, "0" * total
+
+
 def start_exam(user_id: int, category: int) -> dict[str, Any]:
-    config = _category_config(category)
-    if config is None:
+    entry = get_exam_entry(category)
+    if entry is None or entry.get("mode") != "multi":
         raise ValueError("Unsupported exam category.")
 
-    amount, title = config
+    amount = int(entry["amount"])
+    title = entry["title"]
+    time_limit = int(entry.get("time_limit_seconds", amount * constant.TimePerQuestion))
+
+    required_status = entry.get("requires_status_min")
+    if required_status is not None:
+        status = getStatus(user_id)
+        if status is False or status < required_status:
+            raise PermissionError("Exam not available for current status.")
+
     stage = getStage(user_id)
     if stage == 1:
         setStage(user_id, 2)
 
-    examlist, arealist = makeExam2(user_id, amount, category, 1, 900, "")
+    examlist, arealist = makeExam2(user_id, amount, category, 1, time_limit, "")
     exam_id = saveExam(user_id, str(category), 1, amount, examlist, arealist)
     marklist, answerlist = _init_lists(amount)
 
