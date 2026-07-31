@@ -15,19 +15,19 @@ jobs:
     name: Deploy to EC2
     runs-on: ubuntu-latest
     steps:
-      - name: Validate deploy secrets
+      - name: Validate deploy credentials
         env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_HOST: ${{ secrets.EC2_HOST != '' && secrets.EC2_HOST || vars.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER != '' && secrets.EC2_USER || vars.EC2_USER }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           missing=0
           if [ -z "$EC2_HOST" ]; then
-            echo "::error::Missing secret EC2_HOST"
+            echo "::error::Missing EC2_HOST (set as Secret or Variable)"
             missing=1
           fi
           if [ -z "$EC2_USER" ]; then
-            echo "::error::Missing secret EC2_USER"
+            echo "::error::Missing EC2_USER (set as Secret or Variable)"
             missing=1
           fi
           if [ -z "$EC2_SSH_KEY" ]; then
@@ -35,55 +35,34 @@ jobs:
             missing=1
           fi
           if [ "$missing" -ne 0 ]; then
-            echo "Add secrets under GitHub → Settings → Secrets and variables → Actions"
+            echo "EC2_HOST / EC2_USER: Secrets or Variables tab"
+            echo "EC2_SSH_KEY: Secrets tab only"
             exit 1
           fi
 
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          host: ${{ secrets.EC2_HOST != '' && secrets.EC2_HOST || vars.EC2_HOST }}
+          username: ${{ secrets.EC2_USER != '' && secrets.EC2_USER || vars.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 30m
           script_stop: true
-          envs: APP_DIR,HEALTHCHECK_URL
           script: |
             set -euo pipefail
-            APP_DIR="${APP_DIR:-/home/ubuntu/cds}"
-            HEALTHCHECK_URL="${HEALTHCHECK_URL:-https://traveltokio.com/cds/api/health}"
-
+            APP_DIR="${{ secrets.EC2_APP_PATH != '' && secrets.EC2_APP_PATH || vars.EC2_APP_PATH }}"
+            HEALTHCHECK_URL="${{ secrets.HEALTHCHECK_URL != '' && secrets.HEALTHCHECK_URL || vars.HEALTHCHECK_URL }}"
+            export APP_DIR="${APP_DIR:-/home/ubuntu/cds}"
+            export HEALTHCHECK_URL="${HEALTHCHECK_URL:-https://traveltokio.com/cds/api/health}"
+            if [ -z "$APP_DIR" ]; then export APP_DIR=/home/ubuntu/cds; fi
+            if [ -z "$HEALTHCHECK_URL" ]; then export HEALTHCHECK_URL=https://traveltokio.com/cds/api/health; fi
             cd "$APP_DIR"
+            # Bootstrap: update repo before running deploy script (handles stale deploy-backend.sh).
             git fetch origin main
             git checkout main
-
-            # exam.sqlite records live results and is always modified on the server.
-            # Protect it from git deploy; backups are handled separately.
             if git ls-files --error-unmatch backend/exam.sqlite >/dev/null 2>&1; then
               git update-index --skip-worktree backend/exam.sqlite
             fi
             git checkout -- backend/static/config.json 2>/dev/null || true
             git reset --hard origin/main
-
-            cd backend
-            if [ ! -d .venv ]; then
-              python3 -m venv .venv
-            fi
-            .venv/bin/pip install --upgrade pip
-            .venv/bin/pip install -r requirements.txt
-
-            if [ -f .env.example ] && [ ! -f .env ]; then
-              cp .env.example .env
-              echo "Created backend/.env from .env.example"
-            fi
-            if [ -f .env ] && ! grep -q '^APP_PROFILE=' .env; then
-              echo 'APP_PROFILE=CDS' >> .env
-              echo "Added APP_PROFILE=CDS to backend/.env"
-            fi
-
-            sudo systemctl restart cds
-            sudo systemctl is-active cds
-            curl -fsS "$HEALTHCHECK_URL"
-            echo "Deploy completed successfully."
-        env:
-          APP_DIR: ${{ secrets.EC2_APP_PATH }}
-          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+            SKIP_GIT_SYNC=1 bash deploy/deploy-backend.sh

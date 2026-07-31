@@ -37,3 +37,15 @@ git update-index --skip-worktree backend/exam.sqlite
 git ls-files -v backend/exam.sqlite
 # 先頭が S なら skip-worktree 有効
 ```
+
+## sudo（Deploy Actions 用）
+
+GitHub Actions から `systemctl restart` するには、ubuntu ユーザーが **パスワードなし sudo** できる必要があります。EC2 で1回:
+
+```bash
+sudo visudo -f /etc/sudoers.d/cds-deploy
+```
+
+```
+ubuntu ALL=(ALL) NOPASSWD: /bin/systemctl restart cds, /bin/systemctl is-active cds
+```
