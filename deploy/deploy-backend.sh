@@ -10,7 +10,17 @@ cd "$APP_DIR"
 echo "==> Fetch and checkout ${BRANCH}"
 git fetch origin "${BRANCH}"
 git checkout "${BRANCH}"
-git pull --ff-only origin "${BRANCH}"
+
+if [ -f backend/exam.sqlite ]; then
+  cp backend/exam.sqlite /tmp/exam.sqlite.deploy-backup
+fi
+
+git checkout -- backend/static/config.json 2>/dev/null || true
+git reset --hard "origin/${BRANCH}"
+
+if [ -f /tmp/exam.sqlite.deploy-backup ]; then
+  cp /tmp/exam.sqlite.deploy-backup backend/exam.sqlite
+fi
 
 echo "==> Install backend dependencies"
 cd backend

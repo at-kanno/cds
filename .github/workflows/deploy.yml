@@ -55,7 +55,19 @@ jobs:
             cd "$APP_DIR"
             git fetch origin main
             git checkout main
-            git pull --ff-only origin main
+
+            # Keep production DB across deploys (may differ from git).
+            if [ -f backend/exam.sqlite ]; then
+              cp backend/exam.sqlite /tmp/exam.sqlite.deploy-backup
+            fi
+
+            # Discard local edits to tracked files; git main is deploy source of truth.
+            git checkout -- backend/static/config.json 2>/dev/null || true
+            git reset --hard origin/main
+
+            if [ -f /tmp/exam.sqlite.deploy-backup ]; then
+              cp /tmp/exam.sqlite.deploy-backup backend/exam.sqlite
+            fi
 
             cd backend
             if [ ! -d .venv ]; then
