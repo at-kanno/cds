@@ -1,19 +1,10 @@
 import sqlite3
-from typing import Any, Optional, Tuple
+from typing import Any
 
-from constant import abbreviation, db_path
+from config_loader import get_areas, get_exam_entry
+from constant import db_path
 from examDB import getQuestionFromCategory, getQuestionFromNum
 from users import getStage, setStage
-
-
-def _category_range(category: int) -> Optional[Tuple[int, int, str]]:
-    mapping = {
-        91: (11, 19, abbreviation[0]),
-        92: (21, 29, abbreviation[1]),
-        93: (31, 39, abbreviation[2]),
-        94: (41, 49, abbreviation[3]),
-    }
-    return mapping.get(category)
 
 
 def _question_response(
@@ -30,6 +21,7 @@ def _question_response(
     cid: int,
     num: str,
     permutation: str,
+    time_limit_seconds: int,
 ) -> dict[str, Any]:
     return {
         "mode": "single",
@@ -46,20 +38,32 @@ def _question_response(
         "cid": cid,
         "num": str(num),
         "permutation": str(permutation),
-        "time_limit_seconds": 135,
+        "time_limit_seconds": time_limit_seconds,
     }
 
 
 def start_single_exam(user_id: int, category: int) -> dict[str, Any]:
-    config = _category_range(category)
-    if config is None:
+    entry = get_exam_entry(category)
+    if entry is None or entry.get("mode") != "single":
         raise ValueError("Unsupported single-question category.")
+
+    category_range = entry.get("category_range")
+    if not category_range or len(category_range) != 2:
+        raise ValueError("Single-question category is missing category_range.")
+
+    area_index = entry.get("area_index", 0)
+    areas = get_areas()
+    if area_index >= len(areas):
+        raise ValueError("Single-question category has invalid area_index.")
+
+    area = areas[area_index]["abbrev"]
+    time_limit = int(entry.get("time_limit_seconds", 135))
 
     stage = getStage(user_id)
     if stage == 1:
         setStage(user_id, 2)
 
-    start, end, area = config
+    start, end = int(category_range[0]), int(category_range[1])
     result = getQuestionFromCategory(start, end)
     if result is False or not isinstance(result, tuple):
         raise ValueError("No questions available for this category.")
@@ -78,6 +82,7 @@ def start_single_exam(user_id: int, category: int) -> dict[str, Any]:
         cid=cid,
         num=num,
         permutation=permutation,
+        time_limit_seconds=time_limit,
     )
 
 

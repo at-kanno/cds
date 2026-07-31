@@ -64,6 +64,15 @@ jobs:
             .venv/bin/pip install --upgrade pip
             .venv/bin/pip install -r requirements.txt
 
+            if [ -f .env.example ] && [ ! -f .env ]; then
+              cp .env.example .env
+              echo "Created backend/.env from .env.example"
+            fi
+            if [ -f .env ] && ! grep -q '^APP_PROFILE=' .env; then
+              echo 'APP_PROFILE=CDS' >> .env
+              echo "Added APP_PROFILE=CDS to backend/.env"
+            fi
+
             sudo systemctl restart cds
             sudo systemctl is-active cds
             curl -fsS "$HEALTHCHECK_URL"

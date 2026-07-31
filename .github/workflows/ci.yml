@@ -32,7 +32,14 @@ jobs:
           pip install -r requirements.txt
 
       - name: Verify imports
+        env:
+          APP_PROFILE: CDS
         run: python -c "from index import app; print('Flask app import OK')"
+
+      - name: Run unit tests
+        env:
+          APP_PROFILE: CDS
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
 
   frontend:
     name: Frontend

@@ -20,6 +20,13 @@ fi
 .venv/bin/pip install --upgrade pip
 .venv/bin/pip install -r requirements.txt
 
+if [ -f .env.example ] && [ ! -f .env ]; then
+  echo "WARNING: backend/.env is missing. Copy .env.example and set APP_PROFILE."
+fi
+if [ -f .env ] && ! grep -q '^APP_PROFILE=' .env; then
+  echo "WARNING: APP_PROFILE is not set in backend/.env (defaults to CDS at runtime)."
+fi
+
 echo "==> Restart CDS service"
 sudo systemctl restart cds
 sudo systemctl is-active cds
