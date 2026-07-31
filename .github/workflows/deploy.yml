@@ -56,18 +56,13 @@ jobs:
             git fetch origin main
             git checkout main
 
-            # Keep production DB across deploys (may differ from git).
-            if [ -f backend/exam.sqlite ]; then
-              cp backend/exam.sqlite /tmp/exam.sqlite.deploy-backup
+            # exam.sqlite records live results and is always modified on the server.
+            # Protect it from git deploy; backups are handled separately.
+            if git ls-files --error-unmatch backend/exam.sqlite >/dev/null 2>&1; then
+              git update-index --skip-worktree backend/exam.sqlite
             fi
-
-            # Discard local edits to tracked files; git main is deploy source of truth.
             git checkout -- backend/static/config.json 2>/dev/null || true
             git reset --hard origin/main
-
-            if [ -f /tmp/exam.sqlite.deploy-backup ]; then
-              cp /tmp/exam.sqlite.deploy-backup backend/exam.sqlite
-            fi
 
             cd backend
             if [ ! -d .venv ]; then

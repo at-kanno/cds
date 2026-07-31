@@ -11,16 +11,12 @@ echo "==> Fetch and checkout ${BRANCH}"
 git fetch origin "${BRANCH}"
 git checkout "${BRANCH}"
 
-if [ -f backend/exam.sqlite ]; then
-  cp backend/exam.sqlite /tmp/exam.sqlite.deploy-backup
+# exam.sqlite is live data (always dirty). Deploy must not touch it.
+if git ls-files --error-unmatch backend/exam.sqlite >/dev/null 2>&1; then
+  git update-index --skip-worktree backend/exam.sqlite
 fi
-
 git checkout -- backend/static/config.json 2>/dev/null || true
 git reset --hard "origin/${BRANCH}"
-
-if [ -f /tmp/exam.sqlite.deploy-backup ]; then
-  cp /tmp/exam.sqlite.deploy-backup backend/exam.sqlite
-fi
 
 echo "==> Install backend dependencies"
 cd backend
