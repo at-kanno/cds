@@ -389,24 +389,35 @@ def saveExam(user, category, level, amount, examlist, arealist):
 
     c.execute(sql)
 
-    if category == '10':
-        examType = constant.examType1
-    elif category == '20':
-        examType = constant.examType2
-    elif category == '30':
-        examType = constant.examType3
-    elif category == '40':
-        examType = constant.examType4
-    elif category == '50':
-        examType = constant.examType5
-    elif category == '60':
-        examType = constant.examType10
-    elif category == '70':
-        examType = constant.examType11
-    elif category == '80':
-        examType = constant.examType12
-    else:
-        examType = constant.examType99
+    examType = None
+    try:
+        from config_loader import get_exam_entry
+
+        entry = get_exam_entry(int(category))
+        if entry:
+            examType = entry.get("exam_type") or entry.get("title")
+    except Exception:
+        examType = None
+
+    if not examType:
+        if category == '10':
+            examType = constant.examType1
+        elif category == '20':
+            examType = constant.examType2
+        elif category == '30':
+            examType = constant.examType3
+        elif category == '40':
+            examType = constant.examType4
+        elif category == '50':
+            examType = constant.examType5
+        elif category == '60':
+            examType = constant.examType10
+        elif category == '70':
+            examType = constant.examType11
+        elif category == '80':
+            examType = constant.examType12
+        else:
+            examType = constant.examType99
 
     answerlist = '0' * amount
 
@@ -560,6 +571,25 @@ def GetRandom():
 def assignQuestions(amount, assign, category:int):
     if (amount > constant.MaxQuestions or amount < 0):
         return -1
+
+    # Prefer exam_catalog.assign_categories from the active APP_PROFILE.
+    try:
+        from config_loader import get_exam_entry
+
+        entry = get_exam_entry(category)
+        if entry and entry.get("assign_categories"):
+            categories = entry["assign_categories"]
+            if len(categories) != amount:
+                print(
+                    f"assign_categories length {len(categories)} "
+                    f"!= amount {amount} for category {category}"
+                )
+                return -1
+            for i, cat in enumerate(categories):
+                assign[i] = int(cat)
+            return amount
+    except Exception as exc:
+        print(f"assign_categories lookup failed: {exc}")
 
 # CDS (2022.12.27)
     if category == 10:

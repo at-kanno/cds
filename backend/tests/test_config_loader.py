@@ -69,6 +69,31 @@ class ConfigLoaderTests(unittest.TestCase):
         assert entry is not None
         self.assertEqual(entry["amount"], 200)
 
+    def test_spanish4_profile(self) -> None:
+        os.environ["APP_PROFILE"] = "SPANISH4"
+        clear_config_cache()
+        menu = get_menu_template()
+        self.assertEqual(menu["title"], "スペイン語検定4級 メニュー")
+        section_ids = [section["id"] for section in menu["sections"]]
+        self.assertEqual(
+            section_ids,
+            ["single_question", "area_quiz", "mock_exam"],
+        )
+        mock = get_exam_entry(70)
+        self.assertIsNotNone(mock)
+        assert mock is not None
+        self.assertEqual(mock["amount"], 35)
+        self.assertEqual(mock["time_limit_seconds"], 3600)
+        self.assertEqual(len(mock["assign_categories"]), 35)
+        single = get_exam_entry(91)
+        self.assertIsNotNone(single)
+        assert single is not None
+        self.assertEqual(single["time_limit_seconds"], 60)
+        areas = get_profile_section()["areas"]
+        self.assertEqual(len(areas), 6)
+        _, _, _, _, category_number = build_area_globals(areas)
+        self.assertEqual(category_number, [11, 21, 31, 41, 51, 61])
+
 
 class MenuServiceTests(unittest.TestCase):
     def setUp(self) -> None:
