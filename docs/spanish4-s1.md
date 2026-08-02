@@ -1,7 +1,8 @@
 # スペイン語検定4級 — S1（骨格）
 
 `APP_PROFILE=SPANISH4` で起動する科目プロファイルです。  
-問題データ（`exam.sqlite`）の投入は運用側で行います。
+問題データは **`exam-SPANISH4.sqlite`**（CDS とは別ファイル）に投入してください。  
+詳細: `docs/per-subject-database.md`
 
 ---
 
@@ -42,11 +43,11 @@ APP_PROFILE=SPANISH4 .venv/bin/python -c \
 本番（別パス）:
 
 ```
-https://traveltokio.com/spanish4/  → APP_PROFILE=SPANISH4 + 専用 exam.sqlite
+https://traveltokio.com/spanish4/  → APP_PROFILE=SPANISH4 + exam-SPANISH4.sqlite
+https://traveltokio.com/cds/       → APP_PROFILE=CDS      + exam-CDS.sqlite (or exam.sqlite)
 ```
 
-Flutter は同じアプリでサーバー URL を  
-`https://traveltokio.com/spanish4` に変更するだけです。
+Flutter は同じアプリでサーバー URL を変更するだけです。
 
 ---
 

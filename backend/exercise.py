@@ -354,10 +354,8 @@ def exercise():
                                flag=flag,
                                )
 
-base_path = os.path.dirname(__file__)
-db_path = base_path + '/exam.sqlite'
-
 def getDelta(exam_id, now):
+    from constant import db_path
 
     conn = sqlite3.connect(db_path)
     c = conn.cursor()

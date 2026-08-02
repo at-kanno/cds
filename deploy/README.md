@@ -20,24 +20,17 @@ Spanish Level 4 S1 notes: `docs/spanish4-s1.md`
 
 See `deploy/apache/cds-proxy-snippet.conf` for the Apache proxy pattern.
 
-## exam.sqlite（本番 DB）
+## 科目ごとの DB（exam-{PROFILE}.sqlite）
 
-- 受験結果などが記録されるため、**サーバー上では常に変更がある**ファイルとして扱う。
-- **deploy ではバックアップも上書きもしない**（バックアップは別途、運用側で管理）。
-- git 管理下に残っている EC2 では、deploy 時に `skip-worktree` を設定し、`git reset` しても `exam.sqlite` を触らない。
-
-初回セットアップ（EC2 で1回だけ）:
+- 科目ごとに **別ファイル**（利用者・問題・履歴を分離）。詳細: `docs/per-subject-database.md`
+- 例: `exam-CDS.sqlite` / `exam-SPANISH4.sqlite`（CDS は従来の `exam.sqlite` も可）
+- **deploy では上書きしない**（バックアップは別途運用）
 
 ```bash
 cd ~/cds
-git update-index --skip-worktree backend/exam.sqlite
-```
-
-確認:
-
-```bash
-git ls-files -v backend/exam.sqlite
-# 先頭が S なら skip-worktree 有効
+git update-index --skip-worktree backend/exam.sqlite 2>/dev/null || true
+git update-index --skip-worktree backend/exam-CDS.sqlite 2>/dev/null || true
+git update-index --skip-worktree backend/exam-SPANISH4.sqlite 2>/dev/null || true
 ```
 
 ## sudo（Deploy Actions 用）

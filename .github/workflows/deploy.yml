@@ -60,9 +60,11 @@ jobs:
             # Bootstrap: update repo before running deploy script (handles stale deploy-backend.sh).
             git fetch origin main
             git checkout main
-            if git ls-files --error-unmatch backend/exam.sqlite >/dev/null 2>&1; then
-              git update-index --skip-worktree backend/exam.sqlite
-            fi
+            for db in backend/exam.sqlite backend/exam-*.sqlite; do
+              if [ -f "$db" ] && git ls-files --error-unmatch "$db" >/dev/null 2>&1; then
+                git update-index --skip-worktree "$db"
+              fi
+            done
             git checkout -- backend/static/config.json 2>/dev/null || true
             git reset --hard origin/main
             SKIP_GIT_SYNC=1 bash deploy/deploy-backend.sh

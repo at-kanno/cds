@@ -10,6 +10,7 @@ from config_loader import (
     get_profile_name,
     get_profile_section,
 )
+from constant import resolve_db_path
 
 
 class ConfigLoaderTests(unittest.TestCase):
@@ -68,6 +69,12 @@ class ConfigLoaderTests(unittest.TestCase):
         self.assertIsNotNone(entry)
         assert entry is not None
         self.assertEqual(entry["amount"], 200)
+
+    def test_resolve_db_path_uses_profile_name(self) -> None:
+        os.environ["APP_PROFILE"] = "SPANISH4"
+        os.environ.pop("EXAM_DB_PATH", None)
+        path = resolve_db_path()
+        self.assertTrue(path.endswith("exam-SPANISH4.sqlite"))
 
     def test_spanish4_profile(self) -> None:
         os.environ["APP_PROFILE"] = "SPANISH4"

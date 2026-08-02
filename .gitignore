@@ -4,6 +4,7 @@ backend/*.pyc
 backend/.env
 backend/DEBUG.log
 backend/exam.sqlite
+backend/exam-*.sqlite
 frontend/.dart_tool/
 frontend/build/
 frontend/all

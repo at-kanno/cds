@@ -17,10 +17,13 @@ if [ "${SKIP_GIT_SYNC:-0}" != "1" ]; then
   git fetch origin "${BRANCH}"
   git checkout "${BRANCH}"
 
-  # exam.sqlite is live data (always dirty). Deploy must not overwrite it.
-  if git ls-files --error-unmatch backend/exam.sqlite >/dev/null 2>&1; then
-    git update-index --skip-worktree backend/exam.sqlite
-  fi
+  # Per-subject DBs (exam-CDS.sqlite, exam-SPANISH4.sqlite, legacy exam.sqlite)
+  # are live data. Deploy must not overwrite them.
+  for db in backend/exam.sqlite backend/exam-*.sqlite; do
+    if [ -f "$db" ] && git ls-files --error-unmatch "$db" >/dev/null 2>&1; then
+      git update-index --skip-worktree "$db"
+    fi
+  done
   git checkout -- backend/static/config.json 2>/dev/null || true
   git reset --hard "origin/${BRANCH}"
 fi

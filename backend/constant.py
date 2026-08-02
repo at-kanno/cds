@@ -2,10 +2,36 @@ import os, json
 
 # データベースのパスを特定
 base_path = os.path.dirname(__file__)
-db_path = base_path + '/exam.sqlite'
 form_path = base_path + '/templates'
 FILES_DIR = base_path + '/static'
 json_path = base_path + '/static/config.json'
+
+
+def resolve_db_path() -> str:
+    """Return the sqlite path for the active subject.
+
+    Priority:
+    1. EXAM_DB_PATH environment variable (absolute or relative)
+    2. exam-{APP_PROFILE}.sqlite (e.g. exam-SPANISH4.sqlite)
+    3. exam.sqlite when APP_PROFILE=CDS (legacy production file)
+    4. otherwise exam-{APP_PROFILE}.sqlite (even if not created yet)
+    """
+    override = os.environ.get("EXAM_DB_PATH", "").strip()
+    if override:
+        return override if os.path.isabs(override) else os.path.join(base_path, override)
+
+    profile = os.environ.get("APP_PROFILE", "CDS").upper()
+    profile_db = os.path.join(base_path, f"exam-{profile}.sqlite")
+    legacy_db = os.path.join(base_path, "exam.sqlite")
+
+    if os.path.isfile(profile_db):
+        return profile_db
+    if profile == "CDS" and os.path.isfile(legacy_db):
+        return legacy_db
+    return profile_db
+
+
+db_path = resolve_db_path()
 
 # 実行環境制御スイッチ
 # 0: Linux, 1: Windows
@@ -400,4 +426,5 @@ def _load_env() -> None:
 
 
 _load_env()
+db_path = resolve_db_path()
 readConstant()
