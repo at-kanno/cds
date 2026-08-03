@@ -82,11 +82,8 @@ def login():
 #        login_user(user)
         session['login'] = id
         setStage(user_id, 1)
-        status = getStatus(user_id)
-        return render_template('main-menu.html',
-                               user_id=user_id,
-                               status=status,
-                               )
+        from menu_view import render_main_menu_page
+        return render_main_menu_page(user_id)
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():

@@ -108,11 +108,8 @@ def summary():
                                    error_message='すでにログアウトしています。')
 
         setStage(user_id, 1)
-        status = getStatus(user_id)
-        return render_template('main-menu.html',
-                               user_id=user_id,
-                               status=status,
-                               )
+        from menu_view import render_main_menu_page
+        return render_main_menu_page(user_id)
 
     rate = correct / total * 100
     result = ""
@@ -320,11 +317,8 @@ def summary():
                                )
     else:
         setStage(user_id, 1)
-        status = getStatus(user_id)
-        return render_template('main-menu.html',
-                               user_id=user_id,
-                               status=status,
-                               )
+        from menu_view import render_main_menu_page
+        return render_main_menu_page(user_id)
 
 
 # 分析結果をフィードバックする

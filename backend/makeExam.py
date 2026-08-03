@@ -38,11 +38,8 @@ def makeExam():
 
         level = 1
         if (category == constant.examEntry):
-            status = getStatus(user_id)
-            return render_template('main-menu.html',
-                                   user_id=user_id,
-                                   status=status,
-                                   )
+            from menu_view import render_main_menu_page
+            return render_main_menu_page(user_id)
         elif (category == constant.examEntry10):
             amount = 10
             title = constant.examTitle10
@@ -123,11 +120,8 @@ def makeExam3():
     command = request.form.get('command')
 
     if command == 'exit':
-        status = getStatus(user_id)
-        return render_template('main-menu.html',
-                               user_id=user_id,
-                               status=status,
-                               )
+        from menu_view import render_main_menu_page
+        return render_main_menu_page(user_id)
 
     category = request.form['category']
     cidx = ['' for i in range(4)]
@@ -207,11 +201,8 @@ def makeExam3():
             q, a1, a2, a3, a4, crct, cid, num, permutation = getQuestionFromCategory(41, 49)
         else:
             setStage(user_id, 1)
-            status = getStatus(user_id)
-            return render_template('main-menu.html',
-                                   user_id=user_id,
-                                   status=status,
-                                   )
+            from menu_view import render_main_menu_page
+            return render_main_menu_page(user_id)
 
     n = int(category) - 91
     return render_template('exercise2.html',
