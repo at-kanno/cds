@@ -7,6 +7,18 @@ FILES_DIR = base_path + '/static'
 json_path = base_path + '/static/config.json'
 
 
+def _load_env() -> None:
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(os.path.join(base_path, ".env"), override=True)
+    except ImportError:
+        pass
+
+
+_load_env()
+
+
 def resolve_db_path() -> str:
     """Return the sqlite path for the active subject.
 
@@ -88,8 +100,17 @@ categoryNumber = [11, 12, 13,
                   41, 42]
 
 # 問題作成のための情報（多めに設定している）
-categoryCode = "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW" \
-               + "XYZ[]^`abcdefghijklmnopqrstuvwxyz"
+_CATEGORY_CODE_ALPHABET = (
+    "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW"
+    + "XYZ[]^`abcdefghijklmnopqrstuvwxyz"
+)
+
+
+def _build_category_code(num_categories: int) -> str:
+    return _CATEGORY_CODE_ALPHABET[: max(num_categories, 1)]
+
+
+categoryCode = _build_category_code(10)
 
 PASS1_MESSAGE = "おめでとうございます。修了試験の前半合格です。<br>頑張ってこられた成果が出ました。<br>" \
     + "あと１回修了試験の後半があります。<br>それに合格すると、いよいよ本試験（認定試験）です。<br>" \
@@ -297,7 +318,7 @@ def readConstant():
         examEntry6s, examEntry7s, examEntry8s, NumOfQuestions1, NumOfQuestions2, \
         Comment_Base, Area_Base, Category_Base, FIRST_MAIL, LAST_MAIL, \
         GradeMessage1, GradeMessage2, GradeMessage3, GradeMessage3a, GradeMessage4, \
-        StatusSetupMessage, abbreviation, areaname, practice, practice2, categoryNumber
+        StatusSetupMessage, abbreviation, areaname, practice, practice2, categoryNumber, categoryCode
 
     from config_loader import build_area_globals, get_default_section, get_profile_section
 
@@ -414,17 +435,7 @@ def readConstant():
             practice2,
             categoryNumber,
         ) = build_area_globals(areas)
+        categoryCode = _build_category_code(len(categoryNumber))
 
 
-def _load_env() -> None:
-    try:
-        from dotenv import load_dotenv
-
-        load_dotenv(os.path.join(base_path, ".env"))
-    except ImportError:
-        pass
-
-
-_load_env()
-db_path = resolve_db_path()
 readConstant()

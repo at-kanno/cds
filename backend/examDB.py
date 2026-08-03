@@ -212,12 +212,8 @@ def getExamCandidate(amount, category, level, mode):
     dt_now = datetime.datetime.now()
     condition = ""
 
-    if (amount <= 0):
-        return -1
-    elif (amount > constant.MaxQuestions):
-        return -1
-    else:
-        pass
+    if amount <= 0 or amount > constant.MaxQuestions:
+        return None
 
     categoryStr = "CATEGORY = " + str(category)
 
@@ -242,23 +238,21 @@ def getExamCandidate(amount, category, level, mode):
     print("要求数=" + str(amount))
 
     cnt = len(glist)
-    index = []
     index = combination(cnt, amount)
+    if index is None:
+        print(f"Not enough questions: category={category}, have={cnt}, need={amount}")
+        return None
     print('組み合わせ列={0}'.format(index))
 
     candidate = []
-    try:
-        for i in range(amount):
-            candidate.append(glist[index[i]])
-    except:
-        return 'NotEnough'
-    return (candidate)
+    for i in range(amount):
+        candidate.append(glist[index[i]])
+    return candidate
 
 def combination(total, select):
     ns = []
     if total < select:
-        return render_template('error.html',
-                               error_message='内部エラーが発生しました。')
+        return None
     while len(ns) < select:
         n = random.randint(0, total - 1)
         print('n=' + str(n))
@@ -460,41 +454,43 @@ def makeExam2(userid, amount, category: int, level, time, arealist):
 
     total = amount;
     if total < 0 or total > constant.MaxQuestions:
-        return 0
+        return None
     assign = [0 for i in range(constant.MaxQuestions)]
 
     total = assignQuestions(total, assign, category)
 
     if total == -1:
-        return 0
+        return None
 
     print("Total:" + str(total))
 
 # 選択された「エリア（領域）の個数」と「カテゴリの個数」を算出する
     arealist = ''
     for i in range(total):
+        matched = False
         for j in range(constant.NumOfCategory):
-            #            print( 'categoryNumber[{0}])={1}'.format( j, categoryNumber[j]))
-            if (assign[i] == categoryNumber[j]):
+            if assign[i] == categoryNumber[j]:
                 arealist = arealist + categoryCode[j]
                 selectCategory[j] += 1
+                matched = True
                 print('arealist=' + arealist)
 
-                if (j < constant.NumOfCategory1):
+                if j < constant.NumOfCategory1:
                     selectArea[0] += 1
-                elif (j < constant.NumOfCategory2):
+                elif j < constant.NumOfCategory2:
                     selectArea[1] += 1
-                elif (j < constant.NumOfCategory3):
+                elif j < constant.NumOfCategory3:
                     selectArea[2] += 1
-                elif (j < constant.NumOfCategory4):
+                elif j < constant.NumOfCategory4:
                     selectArea[3] += 1
-                elif (j < constant.NumOfCategory5):
+                elif j < constant.NumOfCategory5:
                     selectArea[4] += 1
                 else:
                     selectArea[5] += 1
                 break
-            else:
-                pass
+        if not matched:
+            print(f"Unknown category in assignment: {assign[i]}")
+            return None
     #        print('i={0}'.format(i))
 
     print('arealist=' + arealist)
@@ -503,13 +499,34 @@ def makeExam2(userid, amount, category: int, level, time, arealist):
     # ユーザーIDをチェックする（ログインいしているか、有料か無料か）
 
     for i in range(constant.NumOfCategory):
-        if (selectCategory[i]!=0):
-            genlist[i] = getExamCandidate(selectCategory[i], categoryNumber[i], level, business_status)
+        if selectCategory[i] != 0:
+            candidates = getExamCandidate(
+                selectCategory[i], categoryNumber[i], level, business_status
+            )
+            if not isinstance(candidates, list):
+                print(
+                    f"Failed to build exam for category {categoryNumber[i]} "
+                    f"(count={selectCategory[i]})"
+                )
+                return None
+            genlist[i] = candidates
         else:
-            genlist[i] = '0'
+            genlist[i] = []
 
     for i in range(total):
+        if i >= len(arealist):
+            print(f"arealist too short: index={i}, length={len(arealist)}")
+            return None
         j = categoryCode.find(arealist[i])
+        if j < 0 or not isinstance(genlist[j], list):
+            print(f"Invalid category mapping at question {i}: char={arealist[i]!r}, j={j}")
+            return None
+        if index[j] >= len(genlist[j]):
+            print(
+                f"Not enough prepared questions for category index {j} "
+                f"(need index {index[j]}, have {len(genlist[j])})"
+            )
+            return None
         list[i] = genlist[j][index[j]]
         index[j] += 1
 
@@ -522,7 +539,7 @@ def makeExam2(userid, amount, category: int, level, time, arealist):
 
     examlist = ""
 
-    for i in range(amount):
+    for i in range(total):
         # 選択肢の配列を決定する
         permutation = GetRandom()
         print('permutation={0}'.format(permutation))
@@ -581,10 +598,10 @@ def assignQuestions(amount, assign, category:int):
             categories = entry["assign_categories"]
             if len(categories) != amount:
                 print(
-                    f"assign_categories length {len(categories)} "
-                    f"!= amount {amount} for category {category}"
+                    f"adjusting amount from {amount} to {len(categories)} "
+                    f"for category {category}"
                 )
-                return -1
+                amount = len(categories)
             for i, cat in enumerate(categories):
                 assign[i] = int(cat)
             return amount

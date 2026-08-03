@@ -4,6 +4,40 @@ from flask import Flask, session, render_template, request, Blueprint
 import sqlite3, os
 from users import getStage, setStage, getStatus, getPrivilege
 from examDB import makeExam2, getQuestionFromCategory, getQuestionFromNum, saveExam, getCorrectList
+from config_loader import get_exam_entry
+
+
+def _multi_exam_settings(
+    category: str,
+    default_amount: int,
+    default_title: str,
+    default_time: int,
+) -> tuple[int, str, int]:
+    entry = get_exam_entry(int(category))
+    if entry is None:
+        return default_amount, default_title, default_time
+    amount = int(entry.get("amount", default_amount))
+    title = entry.get("title", default_title)
+    time_limit = int(entry.get("time_limit_seconds", default_time))
+    return amount, title, time_limit
+
+
+def _run_make_exam(
+    user_id,
+    category: str,
+    level: int,
+    default_amount: int,
+    default_title: str,
+    default_time: int,
+):
+    amount, title, time_limit = _multi_exam_settings(
+        category, default_amount, default_title, default_time
+    )
+    result = makeExam2(user_id, amount, int(category), level, time_limit, "")
+    if result is None:
+        return None
+    examlist, arealist = result
+    return amount, title, examlist, arealist
 
 
 def _login_path() -> str:
@@ -41,58 +75,78 @@ def makeExam():
             from menu_view import render_main_menu_page
             return render_main_menu_page(user_id)
         elif (category == constant.examEntry10):
-            amount = 10
-            title = constant.examTitle10
-            examlist, arealist = makeExam2(user_id, amount, int(category), level,
-                    constant.NumOfQuestions2 * constant.TimePerQuestion, '')
+            exam_data = _run_make_exam(
+                user_id, category, level, 10, constant.examTitle10,
+                constant.NumOfQuestions2 * constant.TimePerQuestion,
+            )
         elif (category == constant.examEntry11):
-            amount = constant.MaxQuestions
-            title = constant.examTitle11
-            examlist, arealist = makeExam2(user_id, amount, int(category), level,
-                    constant.MaxQuestions * constant.TimePerQuestion, '')
+            exam_data = _run_make_exam(
+                user_id, category, level, constant.MaxQuestions, constant.examTitle11,
+                constant.MaxQuestions * constant.TimePerQuestion,
+            )
         elif (category == constant.examEntry12):
-            amount = constant.MaxQuestions
-            title = constant.examTitle12
-            examlist, arealist = makeExam2(user_id, amount, int(category), level,
-                    constant.MaxQuestions * constant.TimePerQuestion, '')
+            exam_data = _run_make_exam(
+                user_id, category, level, constant.MaxQuestions, constant.examTitle12,
+                constant.MaxQuestions * constant.TimePerQuestion,
+            )
         elif (category == constant.examEntry1):
-            amount = 5
-            title = constant.examTitle1
-            examlist, arealist = makeExam2(user_id, amount, int(category), level,
-                    constant.NumOfQuestions1 * constant.TimePerQuestion, '')
+            exam_data = _run_make_exam(
+                user_id, category, level, 5, constant.examTitle1,
+                constant.NumOfQuestions1 * constant.TimePerQuestion,
+            )
         elif (category == constant.examEntry2):
-            amount = 5
-            title = constant.examTitle2
-            examlist, arealist = makeExam2(user_id, amount, int(category), level,
-                    constant.NumOfQuestions1 * constant.TimePerQuestion, '')
+            exam_data = _run_make_exam(
+                user_id, category, level, 5, constant.examTitle2,
+                constant.NumOfQuestions1 * constant.TimePerQuestion,
+            )
         elif (category == constant.examEntry3):
-            amount = 5
-            title = constant.examTitle3
-            examlist, arealist = makeExam2(user_id, amount, int(category), level,
-                    constant.NumOfQuestions1 * constant.TimePerQuestion, '')
+            exam_data = _run_make_exam(
+                user_id, category, level, 5, constant.examTitle3,
+                constant.NumOfQuestions1 * constant.TimePerQuestion,
+            )
         elif (category == constant.examEntry4):
-            amount = 5
-            title = constant.examTitle4
-            examlist, arealist = makeExam2(user_id, amount, int(category), level,
-                    constant.NumOfQuestions1 * constant.TimePerQuestion, '')
+            exam_data = _run_make_exam(
+                user_id, category, level, 5, constant.examTitle4,
+                constant.NumOfQuestions1 * constant.TimePerQuestion,
+            )
         elif (category == constant.examEntry5):
-            amount = 5
-            title = constant.examTitle5
-            examlist, arealist = makeExam2(user_id, amount, int(category), level,
-                    constant.NumOfQuestions1 * constant.TimePerQuestion, '')
+            exam_data = _run_make_exam(
+                user_id, category, level, 5, constant.examTitle5,
+                constant.NumOfQuestions1 * constant.TimePerQuestion,
+            )
         elif category == constant.examEntry1s or category == constant.examEntry2s or \
             category == constant.examEntry3s or category == constant.examEntry4s or \
             category == constant.examEntry5s:
-            amount = 5
-            examlist, arealist = makeExam2(user_id, amount, int(category), level,
-                                           constant.TimePerQuestion, '')
+            exam_data = _run_make_exam(
+                user_id, category, level, 5, "", constant.TimePerQuestion,
+            )
         else:
-            setStage(user_id, 9)
-            priv = getPrivilege(user_id)
-            return render_template('admin.html',
-                                   user_id=int(user_id),
-                                   priv=priv,
-                                   )
+            entry = get_exam_entry(int(category))
+            if entry and entry.get("mode") == "multi":
+                default_amount = int(entry.get("amount", 5))
+                default_title = entry.get("title", "")
+                default_time = int(
+                    entry.get(
+                        "time_limit_seconds",
+                        default_amount * constant.TimePerQuestion,
+                    )
+                )
+                exam_data = _run_make_exam(
+                    user_id, category, level, default_amount, default_title, default_time,
+                )
+            else:
+                setStage(user_id, 9)
+                priv = getPrivilege(user_id)
+                return render_template('admin.html',
+                                       user_id=int(user_id),
+                                       priv=priv,
+                                       )
+        if exam_data is None:
+            return render_template(
+                'error3.html',
+                error_message='問題データを作成できませんでした。設定または問題DBを確認してください。',
+            )
+        amount, title, examlist, arealist = exam_data
         try:
             exam_id = saveExam(user_id, category, level, amount, examlist, arealist)
             # for debug
