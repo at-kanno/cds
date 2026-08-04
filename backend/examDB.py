@@ -47,6 +47,16 @@ def _cid_from_row(row, perm_value, cid_offset: int = 4):
     return row[cid_offset + idx]
 
 
+def _safe_int(value, default: int = 0) -> int:
+    """Parse ints from DB cells; legacy FLAG strings (e.g. '2.2.f') become default."""
+    if value is None or value == "":
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 class Question:
     def __init__(self, category, level, q, a1, a2, a3, a4, correct, cid1, cid2, cid3, cid4):
         self.category = category
@@ -125,9 +135,10 @@ def getQuestion(examlist, q_no):
     q.cid3 = _cid_from_row(r, idx[2])
     q.cid4 = _cid_from_row(r, idx[3])
     q.choice_count = sum(1 for value in idx if int(value) != 0) or 4
-    q.number = int(number)
-    q.category = int(r[9]) if r[9] is not None else 0
-    q.flag = int(r[10]) if r[10] is not None else 0
+    q.number = _safe_int(number)
+    q.category = _safe_int(r[9])
+    # FLAG may hold legacy non-numeric labels; only 101-199 / 201-299 are used as ints.
+    q.flag = _safe_int(r[10])
 
     _debug_print('Question=', q.q)
     return q, conn, c
