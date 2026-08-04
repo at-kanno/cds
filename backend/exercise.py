@@ -12,23 +12,49 @@ from mail import sendMail
 
 exec_module = Blueprint("exercise", __name__, static_folder='./static')
 
+
+def _request_value(key: str, default: str = "") -> str:
+    if request.form.get(key) is not None:
+        return request.form.get(key, default)
+    return request.args.get(key, default)
+
+
+def _resolve_exam_lists(
+    exam_id: str, examlist: str, arealist: str
+) -> tuple[str, str]:
+    if not exam_id:
+        return examlist, arealist
+    if examlist and arealist:
+        return examlist, arealist
+
+    from examDB import getExamlist
+
+    db_examlist, db_arealist, _ = getExamlist(exam_id)
+    if not examlist:
+        examlist = db_examlist or ""
+    if not arealist:
+        arealist = db_arealist or ""
+    return examlist, arealist
+
+
 # 問題の出題
-@exec_module.route('/exercise')
+@exec_module.route('/exercise', methods=['GET', 'POST'])
 def exercise():
 
-    command = request.args.get("command", "")
-    q_no = request.args.get("q_no", "")
-    user_id = request.args.get("user_id", "")
-    title = request.args.get("title", "")
-    exam_id = request.args.get("exam_id", "")
-    total = int(request.args.get("total", ""))
-    examlist = request.args.get("examlist", "")
-    arealist = request.args.get("arealist", "")
+    command = _request_value("command", "")
+    q_no = _request_value("q_no", "")
+    user_id = _request_value("user_id", "")
+    title = _request_value("title", "")
+    exam_id = _request_value("exam_id", "")
+    total = int(_request_value("total", "0") or 0)
+    examlist = _request_value("examlist", "")
+    arealist = _request_value("arealist", "")
+    examlist, arealist = _resolve_exam_lists(exam_id, examlist, arealist)
 #    timeMin = request.args.get("timeMin", "")
 #    timeH = request.args.get("timeH", "")
 #    timeSec = request.args.get("timeSec", "")
 
-    timePerQ = request.args.get("timePerQ", "")
+    timePerQ = _request_value("timePerQ", "")
 
     stage = getStage(user_id)
     if (stage != 2 and stage != 3 and stage != 4):
@@ -119,9 +145,9 @@ def exercise():
                                )
 
     elif command == 'next':
-        q_no = (int)(request.args.get("q_no", ""))
-        marklist = request.args.get("marklist", "")
-        answerlist = request.args.get("answerlist", "")
+        q_no = (int)(_request_value("q_no", ""))
+        marklist = _request_value("marklist", "")
+        answerlist = _request_value("answerlist", "")
         timeH, timeMin, timeSec = getDelta (exam_id, now)
 
         q_no += 1
@@ -160,9 +186,9 @@ def exercise():
                                )
 
     elif command == 'previous':
-        q_no = (int)(request.args.get("q_no", ""))
-        marklist = request.args.get("marklist", "")
-        answerlist = request.args.get("answerlist", "")
+        q_no = (int)(_request_value("q_no", ""))
+        marklist = _request_value("marklist", "")
+        answerlist = _request_value("answerlist", "")
         timeH, timeMin, timeSec = getDelta (exam_id, now)
 
         q_no -= 1
@@ -201,9 +227,9 @@ def exercise():
                                )
 
     elif command == 'move':
-        q_no = (int)(request.args.get("q_no", ""))
-        marklist = request.args.get("marklist", "")
-        answerlist = request.args.get("answerlist", "")
+        q_no = (int)(_request_value("q_no", ""))
+        marklist = _request_value("marklist", "")
+        answerlist = _request_value("answerlist", "")
         timeH, timeMin, timeSec = getDelta (exam_id, now)
 
         q, conn, c = getQuestion(examlist, q_no)
@@ -246,8 +272,8 @@ def exercise():
         timeH, timeMin, timeSec = getDelta (exam_id, now)
         #   終了
         setStage(user_id, 4)
-        answerlist = request.args.get("answerlist", "")
-        examlist = request.args.get("examlist", "")
+        answerlist = _request_value("answerlist", "")
+        examlist, arealist = _resolve_exam_lists(exam_id, examlist, arealist)
         correctlist = getCorrectList(examlist)
         correct = 0
         resultlist = ""

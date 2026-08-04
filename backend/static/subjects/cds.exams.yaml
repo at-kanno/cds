@@ -1,0 +1,302 @@
+# ITIL4 CDS — 試験プラン（非エンジニア編集用）
+# areas: 画面表示用の領域定義
+# topics: 出題スロット用のカテゴリ参照
+
+area_order:
+  - org
+  - tech
+  - svs
+  - coordination
+
+areas:
+  org:
+    name: 組織と人材
+    abbrev: 組織
+    categories: [11, 12, 13]
+    practices: [組織の文化, シフトレフト, 要員の計画と管理]
+  tech:
+    name: 情報と技術
+    abbrev: 技術
+    categories: [21]
+    practices: [新たな技術]
+  svs:
+    name: サービスバリュー・ストリーム
+    abbrev: SVS
+    categories: [31, 32, 33, 34]
+    practices:
+      - 新サービス導入のバリューストリーム
+      - 新サービス導入に貢献するプラクティス
+      - ユーザサポートのバリューストリーム
+      - ユーザサポートに貢献するプラクティス
+  coordination:
+    name: 活動の調整とリソースの調達
+    abbrev: 活動調整・調達
+    categories: [41, 42]
+    practices: [活動の調整方法, 調達の手段]
+
+topics:
+  org_culture:
+    category: 11
+    label: 組織の文化
+  shift_left:
+    category: 12
+    label: シフトレフト
+  workforce_planning:
+    category: 13
+    label: 人材の計画と管理
+  info_technology:
+    category: 21
+    label: 情報と技術
+  svs_new_service:
+    category: 31
+    label: バリューストリーム（新サービスSVS）
+  new_service_practice:
+    category: 32
+    label: 新サービス・プラクティス
+  svs_user_support:
+    category: 33
+    label: バリューストリーム（ユーザサポート）
+  user_support_practice:
+    category: 34
+    label: ユーザサポート・プラクティス
+  activity_coordination:
+    category: 41
+    label: 活動の調整
+  procurement:
+    category: 42
+    label: 調達の手段
+
+sequences:
+  full_exam:
+    - area: svs_new_service
+    - area: info_technology
+    - area: org_culture
+    - area: procurement
+    - area: user_support_practice
+    - area: shift_left
+    - area: svs_user_support
+    - area: activity_coordination
+    - area: workforce_planning
+    - area: new_service_practice
+    - area: info_technology
+    - area: new_service_practice
+    - area: activity_coordination
+    - area: procurement
+    - area: user_support_practice
+    - area: org_culture
+    - area: shift_left
+    - area: activity_coordination
+    - area: svs_user_support
+    - area: info_technology
+    - area: svs_new_service
+    - area: workforce_planning
+    - area: new_service_practice
+    - area: workforce_planning
+    - area: svs_new_service
+    - area: org_culture
+    - area: procurement
+    - area: user_support_practice
+    - area: shift_left
+    - area: new_service_practice
+    - area: activity_coordination
+    - area: user_support_practice
+    - area: procurement
+    - area: svs_user_support
+    - area: org_culture
+    - area: workforce_planning
+    - area: new_service_practice
+    - area: info_technology
+    - area: activity_coordination
+    - area: user_support_practice
+
+status_rules:
+  mock_exam:
+    min_status: 10
+    completed_min_status: 30
+    messages:
+      locked: 模擬試験には、まだ挑戦できません。
+      unlocked: 模擬試験に挑戦できるようになりました。
+      completed: 模擬試験で５回以上、合格することができました。修了試験に挑戦することができます。
+  final_exam:
+    min_status: 30
+    passed_once_status: 31
+    messages:
+      locked: 修了試験には、まだ挑戦できません。模擬試験に少なくとも5回合格が必要です。
+      unlocked: 修了試験に挑戦できるようになりました。２回連続で合格すると修了です。
+      passed_once: 合格することができました。連続してもう一度、合格すると修了です。
+      completed: おめでとうございます。修了しました。
+
+menu:
+  title: メインメニュー
+  sections:
+    - id: single_question
+      title: 一問一答
+      items: [91, 92, 93, 94]
+    - id: area_quiz
+      title: 分野別確認問題
+      items: [10, 20, 30, 40, 60]
+    - id: mock_exam
+      title: 模擬試験
+      status_rule: mock_exam
+      items: [70]
+    - id: final_exam
+      title: 修了試験
+      status_rule: final_exam
+      items: [80]
+  actions:
+    - id: admin
+      label: 管理画面
+      action: makeExam
+      category: 99
+    - id: logout
+      label: ログアウト
+      action: logout
+
+exams:
+  "91":
+    mode: single
+    action: makeExam3
+    area_index: 0
+    category_range: [11, 19]
+    time_limit_seconds: 135
+    menu:
+      label: 組織と人材
+      color: "#A46892"
+
+  "92":
+    mode: single
+    action: makeExam3
+    area_index: 1
+    category_range: [21, 29]
+    time_limit_seconds: 135
+    menu:
+      label: 情報と技術
+      color: "#7DA7D3"
+
+  "93":
+    mode: single
+    action: makeExam3
+    area_index: 2
+    category_range: [31, 39]
+    time_limit_seconds: 135
+    menu:
+      label: サービスバリュー・ストリーム
+      color: "#51CBCA"
+
+  "94":
+    mode: single
+    action: makeExam3
+    area_index: 3
+    category_range: [41, 49]
+    time_limit_seconds: 135
+    menu:
+      label: 活動調整と調達
+      color: "#D065A2"
+
+  "10":
+    mode: multi
+    action: makeExam
+    title: 組織：確認問題
+    time_limit_seconds: 675
+    menu:
+      label: 組織と人材【5問】
+      subtitle: "時間:11分15秒"
+      color: "#642852"
+    slots:
+      - area: org_culture
+      - area: workforce_planning
+      - area: org_culture
+      - area: shift_left
+      - area: org_culture
+
+  "20":
+    mode: multi
+    action: makeExam
+    title: 技術：確認問題
+    time_limit_seconds: 675
+    menu:
+      label: 情報と技術【5問】
+      subtitle: "時間:11分15秒"
+      color: "#3D6793"
+    slots:
+      - repeat: 5
+        area: info_technology
+
+  "30":
+    mode: multi
+    action: makeExam
+    title: SVS：確認問題
+    time_limit_seconds: 675
+    menu:
+      label: サービスバリュー・ストリーム【5問】
+      subtitle: "時間:11分15秒"
+      color: "#219B9A"
+    slots:
+      - area: user_support_practice
+      - area: svs_new_service
+      - pick:
+          - area: new_service_practice
+            weight: 50
+          - area: user_support_practice
+            weight: 50
+      - area: svs_user_support
+      - area: new_service_practice
+
+  "40":
+    mode: multi
+    action: makeExam
+    title: 活動調整・調達：確認問題
+    time_limit_seconds: 675
+    menu:
+      label: 活動調整と調達【5問】
+      subtitle: "時間:11分15秒"
+      color: "#902562"
+    slots:
+      - area: activity_coordination
+      - area: procurement
+      - area: activity_coordination
+      - area: procurement
+      - area: activity_coordination
+
+  "60":
+    mode: multi
+    action: makeExam
+    title: 確認問題(全領域)
+    time_limit_seconds: 1350
+    menu:
+      label: 全領域から【10問】
+      subtitle: "時間:22分30秒"
+      color: "#60B719"
+    slots:
+      - use: full_exam
+        take: 10
+
+  "70":
+    mode: multi
+    action: makeExam
+    title: 模擬試験
+    time_limit_seconds: 5400
+    requires_status_min: 10
+    menu:
+      label: 模擬試験【40問】
+      subtitle: "時間：1時間30分"
+      color: "#A0A0A0"
+    slots:
+      - use: full_exam
+
+  "80":
+    mode: multi
+    action: makeExam
+    title: 修了試験
+    time_limit_seconds: 5400
+    requires_status_min: 30
+    menu:
+      label: 修了試験【40問】
+      subtitle: "時間：1時間30分"
+      color: "#D4AF37"
+    slots:
+      - use: full_exam
+
+  "99":
+    mode: admin
+    action: makeExam

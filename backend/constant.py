@@ -426,7 +426,9 @@ def readConstant():
     GradeMessage4 = _profile_value(profile, default, "GradeMessage4")
     StatusSetupMessage = _profile_value(profile, default, "StatusSetupMessage")
 
-    areas = profile.get("areas", [])
+    from config_loader import get_areas
+
+    areas = get_areas()
     if areas:
         (
             abbreviation,

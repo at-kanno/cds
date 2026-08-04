@@ -17,6 +17,20 @@ except ModuleNotFoundError:
 
 load_dotenv(override=True)
 
+import sys
+
+
+def _configure_stdio_utf8() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        if stream is not None and hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except Exception:
+                pass
+
+
+_configure_stdio_utf8()
+
 from index import app  # noqa: E402,F401
 import constant  # noqa: E402
 

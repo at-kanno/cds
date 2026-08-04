@@ -161,265 +161,7 @@
     "Area_Base": 741,
     "Category_Base": 751,
     "FIRST_MAIL": "【アーク】ITIL_CDS　修了試験（合格）のお知らせ",
-    "LAST_MAIL": "【アーク】ITIL_CDS 模擬試験システム　ログイン名とパスワードのご案内",
-    "areas": [
-      {
-        "name": "組織と人材",
-        "abbrev": "組織",
-        "categories": [11, 12, 13],
-        "practices": ["組織の文化", "シフトレフト", "要員の計画と管理"]
-      },
-      {
-        "name": "情報と技術",
-        "abbrev": "技術",
-        "categories": [21],
-        "practices": ["新たな技術"]
-      },
-      {
-        "name": "サービスバリュー・ストリーム",
-        "abbrev": "SVS",
-        "categories": [31, 32, 33, 34],
-        "practices": [
-          "新サービス導入のバリューストリーム",
-          "新サービス導入に貢献するプラクティス",
-          "ユーザサポートのバリューストリーム",
-          "ユーザサポートに貢献するプラクティス"
-        ]
-      },
-      {
-        "name": "活動の調整とリソースの調達",
-        "abbrev": "活動調整・調達",
-        "categories": [41, 42],
-        "practices": ["活動の調整方法", "調達の手段"]
-      }
-    ],
-    "exam_catalog": {
-      "91": {
-        "mode": "single",
-        "action": "makeExam3",
-        "area_index": 0,
-        "category_range": [11, 19],
-        "time_limit_seconds": 135
-      },
-      "92": {
-        "mode": "single",
-        "action": "makeExam3",
-        "area_index": 1,
-        "category_range": [21, 29],
-        "time_limit_seconds": 135
-      },
-      "93": {
-        "mode": "single",
-        "action": "makeExam3",
-        "area_index": 2,
-        "category_range": [31, 39],
-        "time_limit_seconds": 135
-      },
-      "94": {
-        "mode": "single",
-        "action": "makeExam3",
-        "area_index": 3,
-        "category_range": [41, 49],
-        "time_limit_seconds": 135
-      },
-      "10": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 5,
-        "title": "組織：確認問題",
-        "time_limit_seconds": 675
-      },
-      "20": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 5,
-        "title": "技術：確認問題",
-        "time_limit_seconds": 675
-      },
-      "30": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 5,
-        "title": "SVS：確認問題",
-        "time_limit_seconds": 675
-      },
-      "40": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 5,
-        "title": "活動調整・調達：確認問題",
-        "time_limit_seconds": 675
-      },
-      "60": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 10,
-        "title": "確認問題(全領域)",
-        "time_limit_seconds": 1350
-      },
-      "70": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 40,
-        "title": "模擬試験",
-        "time_limit_seconds": 5400,
-        "requires_status_min": 10
-      },
-      "80": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 40,
-        "title": "修了試験",
-        "time_limit_seconds": 5400,
-        "requires_status_min": 30
-      },
-      "99": {
-        "mode": "admin",
-        "action": "makeExam"
-      }
-    },
-    "status_rules": {
-      "mock_exam": {
-        "min_status": 10,
-        "completed_min_status": 30,
-        "messages": {
-          "locked": "模擬試験には、まだ挑戦できません。",
-          "unlocked": "模擬試験に挑戦できるようになりました。",
-          "completed": "模擬試験で５回以上、合格することができました。修了試験に挑戦することができます。"
-        }
-      },
-      "final_exam": {
-        "min_status": 30,
-        "passed_once_status": 31,
-        "messages": {
-          "locked": "修了試験には、まだ挑戦できません。模擬試験に少なくとも5回合格が必要です。",
-          "unlocked": "修了試験に挑戦できるようになりました。２回連続で合格すると修了です。",
-          "passed_once": "合格することができました。連続してもう一度、合格すると修了です。",
-          "completed": "おめでとうございます。修了しました。"
-        }
-      }
-    },
-    "menu": {
-      "title": "メインメニュー",
-      "sections": [
-        {
-          "id": "single_question",
-          "title": "一問一答",
-          "items": [
-            {
-              "category": 91,
-              "action": "makeExam3",
-              "label": "組織と人材",
-              "subtitle": "時間:2分15秒 / 1問",
-              "color": "#A46892"
-            },
-            {
-              "category": 92,
-              "action": "makeExam3",
-              "label": "情報と技術",
-              "subtitle": "時間:2分15秒 / 1問",
-              "color": "#7DA7D3"
-            },
-            {
-              "category": 93,
-              "action": "makeExam3",
-              "label": "サービスバリュー・ストリーム",
-              "subtitle": "時間:2分15秒 / 1問",
-              "color": "#51CBCA"
-            },
-            {
-              "category": 94,
-              "action": "makeExam3",
-              "label": "活動調整と調達",
-              "subtitle": "時間:2分15秒 / 1問",
-              "color": "#D065A2"
-            }
-          ]
-        },
-        {
-          "id": "area_quiz",
-          "title": "分野別確認問題",
-          "items": [
-            {
-              "category": 10,
-              "action": "makeExam",
-              "label": "組織と人材【5問】",
-              "subtitle": "時間:11分15秒",
-              "color": "#642852"
-            },
-            {
-              "category": 20,
-              "action": "makeExam",
-              "label": "情報と技術【5問】",
-              "subtitle": "時間:11分15秒",
-              "color": "#3D6793"
-            },
-            {
-              "category": 30,
-              "action": "makeExam",
-              "label": "サービスバリュー・ストリーム【5問】",
-              "subtitle": "時間:11分15秒",
-              "color": "#219B9A"
-            },
-            {
-              "category": 40,
-              "action": "makeExam",
-              "label": "活動調整と調達【5問】",
-              "subtitle": "時間:11分15秒",
-              "color": "#902562"
-            },
-            {
-              "category": 60,
-              "action": "makeExam",
-              "label": "全領域から【10問】",
-              "subtitle": "時間:22分30秒",
-              "color": "#60B719"
-            }
-          ]
-        },
-        {
-          "id": "mock_exam",
-          "title": "模擬試験",
-          "status_rule": "mock_exam",
-          "items": [
-            {
-              "category": 70,
-              "action": "makeExam",
-              "label": "模擬試験【40問】",
-              "subtitle": "時間：1時間30分",
-              "color": "#A0A0A0"
-            }
-          ]
-        },
-        {
-          "id": "final_exam",
-          "title": "修了試験",
-          "status_rule": "final_exam",
-          "items": [
-            {
-              "category": 80,
-              "action": "makeExam",
-              "label": "修了試験【40問】",
-              "subtitle": "時間：1時間30分",
-              "color": "#D4AF37"
-            }
-          ]
-        }
-      ],
-      "actions": [
-        {
-          "id": "admin",
-          "label": "管理画面",
-          "action": "makeExam",
-          "category": 99
-        },
-        {
-          "id": "logout",
-          "label": "ログアウト",
-          "action": "logout"
-        }
-      ]
-    }
+    "LAST_MAIL": "【アーク】ITIL_CDS 模擬試験システム　ログイン名とパスワードのご案内"
   },
   "DSV": {
     "SUBJECT": "DSV",
@@ -694,14 +436,34 @@
       {
         "name": "リスニング",
         "abbrev": "L",
-        "categories": [11, 12, 13, 14, 15, 16],
-        "practices": ["Part 1", "Part 2", "Part 3", "Part 4"]
+        "categories": [
+          11,
+          12,
+          13,
+          14,
+          15,
+          16
+        ],
+        "practices": [
+          "Part 1",
+          "Part 2",
+          "Part 3",
+          "Part 4"
+        ]
       },
       {
         "name": "リーディング",
         "abbrev": "R",
-        "categories": [21, 22, 23],
-        "practices": ["Part 5", "Part 6", "Part 7"]
+        "categories": [
+          21,
+          22,
+          23
+        ],
+        "practices": [
+          "Part 5",
+          "Part 6",
+          "Part 7"
+        ]
       }
     ],
     "exam_catalog": {
@@ -807,15 +569,15 @@
     "TimePerQuestion": 120,
     "NumOfHeader": 6,
     "NumOfArea": 6,
-    "NumOfCategory": 6,
-    "NumOfCategory1": 1,
-    "NumOfCategory2": 2,
-    "NumOfCategory3": 3,
-    "NumOfCategory4": 4,
-    "NumOfCategory5": 5,
-    "NumOfCategory6": 6,
-    "NumOfCategory7": 6,
-    "NumOfCategory8": 6,
+    "NumOfCategory": 14,
+    "NumOfCategory1": 9,
+    "NumOfCategory2": 10,
+    "NumOfCategory3": 11,
+    "NumOfCategory4": 12,
+    "NumOfCategory5": 13,
+    "NumOfCategory6": 14,
+    "NumOfCategory7": 14,
+    "NumOfCategory8": 14,
     "examType1": "文法4択(10問)",
     "examType2": "会話4択(5問)",
     "examType3": "文法3択(5問)",
@@ -842,288 +604,6 @@
     "Area_Base": 2100,
     "Category_Base": 2200,
     "FIRST_MAIL": "【スペイン語検定4級】模擬試験 合格のお知らせ",
-    "LAST_MAIL": "【スペイン語検定4級】模擬試験システム ログイン情報",
-    "areas": [
-      {
-        "name": "文法（4択）",
-        "abbrev": "文法4",
-        "categories": [11],
-        "practices": ["文法4択"],
-        "choice_count": 4,
-        "points_per_question": 2
-      },
-      {
-        "name": "会話（4択）",
-        "abbrev": "会話4",
-        "categories": [21],
-        "practices": ["会話4択"],
-        "choice_count": 4,
-        "points_per_question": 3
-      },
-      {
-        "name": "文法（3択）",
-        "abbrev": "文法3",
-        "categories": [31],
-        "practices": ["文法3択"],
-        "choice_count": 3,
-        "points_per_question": 3
-      },
-      {
-        "name": "会話（3択）",
-        "abbrev": "会話3",
-        "categories": [41],
-        "practices": ["会話3択"],
-        "choice_count": 3,
-        "points_per_question": 3
-      },
-      {
-        "name": "リーディング（2択）",
-        "abbrev": "読解",
-        "categories": [51],
-        "practices": ["リーディング2択"],
-        "choice_count": 2,
-        "points_per_question": 4
-      },
-      {
-        "name": "ヒアリング（3択）",
-        "abbrev": "聴解",
-        "categories": [61],
-        "practices": ["ヒアリング3択"],
-        "choice_count": 3,
-        "points_per_question": 3,
-        "listening": true,
-        "max_audio_plays": 2
-      }
-    ],
-    "exam_catalog": {
-      "91": {
-        "mode": "single",
-        "action": "makeExam3",
-        "area_index": 0,
-        "category_range": [11, 11],
-        "time_limit_seconds": 60
-      },
-      "92": {
-        "mode": "single",
-        "action": "makeExam3",
-        "area_index": 1,
-        "category_range": [21, 21],
-        "time_limit_seconds": 120
-      },
-      "93": {
-        "mode": "single",
-        "action": "makeExam3",
-        "area_index": 2,
-        "category_range": [31, 31],
-        "time_limit_seconds": 120
-      },
-      "94": {
-        "mode": "single",
-        "action": "makeExam3",
-        "area_index": 3,
-        "category_range": [41, 41],
-        "time_limit_seconds": 120
-      },
-      "10": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 10,
-        "title": "文法4択：確認問題",
-        "exam_type": "文法4択(10問)",
-        "time_limit_seconds": 600,
-        "assign_categories": [11, 11, 11, 11, 11, 11, 11, 11, 11, 11]
-      },
-      "20": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 5,
-        "title": "会話4択：確認問題",
-        "exam_type": "会話4択(5問)",
-        "time_limit_seconds": 600,
-        "assign_categories": [21, 21, 21, 21, 21]
-      },
-      "30": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 5,
-        "title": "文法3択：確認問題",
-        "exam_type": "文法3択(5問)",
-        "time_limit_seconds": 600,
-        "assign_categories": [31, 31, 31, 31, 31]
-      },
-      "40": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 5,
-        "title": "会話3択：確認問題",
-        "exam_type": "会話3択(5問)",
-        "time_limit_seconds": 600,
-        "assign_categories": [41, 41, 41, 41, 41]
-      },
-      "50": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 5,
-        "title": "リーディング2択：確認問題",
-        "exam_type": "リーディング2択(5問)",
-        "time_limit_seconds": 600,
-        "assign_categories": [51, 51, 51, 51, 51]
-      },
-      "60": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 5,
-        "title": "ヒアリング3択：確認問題",
-        "exam_type": "ヒアリング3択(5問)",
-        "time_limit_seconds": 600,
-        "assign_categories": [61, 61, 61, 61, 61]
-      },
-      "70": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 35,
-        "title": "スペイン語検定4級 模擬試験",
-        "exam_type": "模擬試験(35問)",
-        "time_limit_seconds": 3600,
-        "requires_status_min": 0,
-        "assign_categories": [
-          11, 11, 11, 11, 11, 11, 11, 11, 11, 11,
-          21, 21, 21, 21, 21,
-          31, 31, 31, 31, 31,
-          41, 41, 41, 41, 41,
-          51, 51, 51, 51, 51,
-          61, 61, 61, 61, 61
-        ]
-      },
-      "99": {
-        "mode": "admin",
-        "action": "makeExam"
-      }
-    },
-    "status_rules": {
-      "mock_exam": {
-        "min_status": 0,
-        "completed_min_status": 999,
-        "messages": {
-          "locked": "",
-          "unlocked": "本番形式の模擬試験を受験できます。",
-          "completed": "模擬試験を複数回受験済みです。"
-        }
-      }
-    },
-    "menu": {
-      "title": "スペイン語検定4級 メニュー",
-      "sections": [
-        {
-          "id": "single_question",
-          "title": "一問一答",
-          "items": [
-            {
-              "category": 91,
-              "action": "makeExam3",
-              "label": "文法（4択）",
-              "subtitle": "時間:1分 / 1問",
-              "color": "#A46892"
-            },
-            {
-              "category": 92,
-              "action": "makeExam3",
-              "label": "会話（4択）",
-              "subtitle": "時間:2分 / 1問",
-              "color": "#7DA7D3"
-            },
-            {
-              "category": 93,
-              "action": "makeExam3",
-              "label": "文法（3択）",
-              "subtitle": "時間:2分 / 1問",
-              "color": "#51CBCA"
-            },
-            {
-              "category": 94,
-              "action": "makeExam3",
-              "label": "会話（3択）",
-              "subtitle": "時間:2分 / 1問",
-              "color": "#D065A2"
-            }
-          ]
-        },
-        {
-          "id": "area_quiz",
-          "title": "分野別確認問題",
-          "items": [
-            {
-              "category": 10,
-              "action": "makeExam",
-              "label": "文法4択【10問】",
-              "subtitle": "時間:10分",
-              "color": "#642852"
-            },
-            {
-              "category": 20,
-              "action": "makeExam",
-              "label": "会話4択【5問】",
-              "subtitle": "時間:10分",
-              "color": "#3D6793"
-            },
-            {
-              "category": 30,
-              "action": "makeExam",
-              "label": "文法3択【5問】",
-              "subtitle": "時間:10分",
-              "color": "#219B9A"
-            },
-            {
-              "category": 40,
-              "action": "makeExam",
-              "label": "会話3択【5問】",
-              "subtitle": "時間:10分",
-              "color": "#902562"
-            },
-            {
-              "category": 50,
-              "action": "makeExam",
-              "label": "リーディング2択【5問】",
-              "subtitle": "時間:10分",
-              "color": "#60B719"
-            },
-            {
-              "category": 60,
-              "action": "makeExam",
-              "label": "ヒアリング3択【5問】",
-              "subtitle": "時間:10分",
-              "color": "#D4AF37"
-            }
-          ]
-        },
-        {
-          "id": "mock_exam",
-          "title": "試験形式",
-          "status_rule": "mock_exam",
-          "items": [
-            {
-              "category": 70,
-              "action": "makeExam",
-              "label": "模擬試験【35問】",
-              "subtitle": "時間：60分 / 合格70点",
-              "color": "#DC2626"
-            }
-          ]
-        }
-      ],
-      "actions": [
-        {
-          "id": "admin",
-          "label": "管理画面",
-          "action": "makeExam",
-          "category": 99
-        },
-        {
-          "id": "logout",
-          "label": "ログアウト",
-          "action": "logout"
-        }
-      ]
-    }
+    "LAST_MAIL": "【スペイン語検定4級】模擬試験システム ログイン情報"
   }
 }

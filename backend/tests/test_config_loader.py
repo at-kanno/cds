@@ -5,12 +5,14 @@ from unittest.mock import patch
 from config_loader import (
     build_area_globals,
     clear_config_cache,
+    get_areas,
     get_exam_entry,
     get_menu_template,
     get_profile_name,
     get_profile_section,
 )
 from constant import resolve_db_path
+from exam_plan_loader import resolve_assign_categories
 
 
 class ConfigLoaderTests(unittest.TestCase):
@@ -54,13 +56,27 @@ class ConfigLoaderTests(unittest.TestCase):
         self.assertEqual(entry["category_range"], [11, 19])
 
     def test_build_area_globals(self) -> None:
-        areas = get_profile_section()["areas"]
+        areas = get_areas()
         abbrev, areaname, practice, practice2, category_number = build_area_globals(areas)
         self.assertEqual(abbrev[0], "組織")
         self.assertEqual(category_number[:3], [11, 12, 13])
         self.assertEqual(len(practice2), 10)
 
-    def test_toeic_profile(self) -> None:
+    def test_cds_profile_section_has_no_duplicate_exam_blocks(self) -> None:
+        section = get_profile_section()
+        for key in ("areas", "exam_catalog", "status_rules", "menu"):
+            self.assertNotIn(key, section, f"CDS.{key} should live in cds.exams.yaml")
+
+    def test_spanish4_profile_section_has_no_duplicate_exam_blocks(self) -> None:
+        os.environ["APP_PROFILE"] = "SPANISH4"
+        clear_config_cache()
+        section = get_profile_section()
+        for key in ("areas", "exam_catalog", "status_rules", "menu"):
+            self.assertNotIn(
+                key, section, f"SPANISH4.{key} should live in spanish4.exams.yaml"
+            )
+
+    def test_toeic_still_uses_config_json_menu(self) -> None:
         os.environ["APP_PROFILE"] = "TOEIC"
         clear_config_cache()
         menu = get_menu_template()
@@ -91,15 +107,35 @@ class ConfigLoaderTests(unittest.TestCase):
         assert mock is not None
         self.assertEqual(mock["amount"], 35)
         self.assertEqual(mock["time_limit_seconds"], 3600)
-        self.assertEqual(len(mock["assign_categories"]), 35)
+        categories = resolve_assign_categories(70)
+        self.assertIsNotNone(categories)
+        assert categories is not None
+        self.assertEqual(len(categories), 35)
         single = get_exam_entry(91)
         self.assertIsNotNone(single)
         assert single is not None
         self.assertEqual(single["time_limit_seconds"], 60)
-        areas = get_profile_section()["areas"]
+        areas = get_areas()
         self.assertEqual(len(areas), 6)
         _, _, _, _, category_number = build_area_globals(areas)
-        self.assertEqual(category_number, [11, 21, 31, 41, 51, 61])
+        self.assertEqual(
+            category_number,
+            [11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 31, 41, 51, 61],
+        )
+        area_quiz = next(
+            section for section in menu["sections"] if section["id"] == "area_quiz"
+        )
+        labels = [item["label"] for item in area_quiz["items"][:5]]
+        self.assertEqual(
+            labels,
+            [
+                "文法(ser/estar/hay/tener)【5問】",
+                "文法(疑問詞)【5問】",
+                "文法(動詞)【5問】",
+                "文法(接続法)【5問】",
+                "文法(全領域)【10問】",
+            ],
+        )
 
 
 class MenuServiceTests(unittest.TestCase):

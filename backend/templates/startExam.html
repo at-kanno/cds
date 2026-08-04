@@ -20,13 +20,13 @@
         <input type="hidden" name="category" value="99">
         <input type="submit"value="メインメニューへ戻る" style="background:#00E">
 </form>
-<form action="exercise" >
-    <input type="hidden" name="user_id" value={{ user_id }} />
-    <input type="hidden" name="title" value={{ title }} />
-    <input type="hidden" name="exam_id" value={{ exam_id }} />
-    <input type="hidden" id="total" name="total" value={{ total }} />
-    <input type="hidden" name="examlist" value={{ examlist }} />
-    <input type="hidden" name="arealist" value={{ arealist }} />
+<form action="exercise" method="POST">
+    <input type="hidden" name="user_id" value="{{ user_id }}" />
+    <input type="hidden" name="title" value="{{ title }}" />
+    <input type="hidden" name="exam_id" value="{{ exam_id }}" />
+    <input type="hidden" id="total" name="total" value="{{ total }}" />
+    <input type="hidden" name="examlist" value="{{ examlist }}" />
+    <input type="hidden" name="arealist" value="{{ arealist }}" />
     <input type="hidden" name="command" value="start">
     <input type="submit" value="開始">
 </form>

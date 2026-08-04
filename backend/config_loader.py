@@ -19,6 +19,12 @@ def get_config_path() -> str:
 
 def clear_config_cache() -> None:
     load_raw_config.cache_clear()
+    try:
+        from exam_plan_loader import clear_exam_plan_cache
+
+        clear_exam_plan_cache()
+    except ImportError:
+        pass
 
 
 @lru_cache
@@ -42,6 +48,15 @@ def get_default_section() -> dict[str, Any]:
 
 
 def get_exam_entry(category: int) -> dict[str, Any] | None:
+    try:
+        from exam_plan_loader import get_exam_plan_entry
+
+        entry = get_exam_plan_entry(category)
+        if entry is not None:
+            return entry
+    except ImportError:
+        pass
+
     catalog = get_profile_section().get("exam_catalog", {})
     entry = catalog.get(str(category))
     if entry is None:
@@ -50,19 +65,53 @@ def get_exam_entry(category: int) -> dict[str, Any] | None:
 
 
 def get_menu_template() -> dict[str, Any]:
+    try:
+        from exam_plan_loader import get_menu_from_plan, plan_exists
+
+        menu = get_menu_from_plan()
+        if menu is not None:
+            return menu
+        if plan_exists():
+            raise KeyError(
+                f"exam plan for APP_PROFILE={get_profile_name()!r} "
+                f"exists but has no menu block"
+            )
+    except ImportError:
+        pass
+
     menu = get_profile_section().get("menu")
     if menu is None:
         raise KeyError(
-            f"menu block missing for APP_PROFILE={get_profile_name()!r}"
+            f"menu block missing for APP_PROFILE={get_profile_name()!r} "
+            f"(add static/subjects/{get_profile_name().lower()}.exams.yaml "
+            f"or menu in config.json)"
         )
     return menu
 
 
 def get_status_rules() -> dict[str, Any]:
+    try:
+        from exam_plan_loader import get_plan_status_rules
+
+        rules = get_plan_status_rules()
+        if rules is not None:
+            return rules
+    except ImportError:
+        pass
+
     return get_profile_section().get("status_rules", {})
 
 
 def get_areas() -> list[dict[str, Any]]:
+    try:
+        from exam_plan_loader import get_plan_areas
+
+        areas = get_plan_areas()
+        if areas is not None:
+            return areas
+    except ImportError:
+        pass
+
     return get_profile_section().get("areas", [])
 
 

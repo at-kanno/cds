@@ -2,6 +2,13 @@ from constant import db_path, categoryCode
 import constant
 import sqlite3, os, json
 
+# Column offsets before the first C1_* / category block in each SELECT.
+# getResult and getResultData use different SELECT shapes, so NumOfHeader
+# cannot serve both (DEFAULT=13 vs CDS/SPANISH4=6 caused shifted area scores).
+_GET_RESULT_PREFIX = 13  # EXAM_ID..LAST3 then C1_*
+_GET_RESULT_DATA_PREFIX = 6  # EXAM_ID..TOTAL_P then C1_*
+
+
 class ResultInfo:
     def __init__(self, user_id, exam_id, arealist, answerlist, resultlist):
         self.user_id = user_id
@@ -235,8 +242,8 @@ def getResult(exam_id):
     rate = items[0][5]
 
     for i in range(constant.NumOfCategory):
-        a = items[0][i * 3 + constant.NumOfHeader]
-        b = items[0][i * 3 + constant.NumOfHeader+1]
+        a = items[0][i * 3 + _GET_RESULT_PREFIX]
+        b = items[0][i * 3 + _GET_RESULT_PREFIX + 1]
 
         categoryNumber[i] = int(a)
         categoryScore[i] = int(b)
@@ -244,9 +251,10 @@ def getResult(exam_id):
             categoryPercent[i] = categoryScore[i] / categoryNumber[i] * 100
 
     for i in range(constant.NumOfArea):
-        areaNumber[i] = items[0][(i+constant.NumOfCategory)*3+constant.NumOfHeader]
-        areaScore[i] = items[0][(i+constant.NumOfCategory)*3+constant.NumOfHeader+1]
-        areaPercent[i] = items[0][(i+constant.NumOfCategory)*3+constant.NumOfHeader+2]
+        base = (i + constant.NumOfCategory) * 3 + _GET_RESULT_PREFIX
+        areaNumber[i] = items[0][base]
+        areaScore[i] = items[0][base + 1]
+        areaPercent[i] = items[0][base + 2]
 
     return categoryNumber, categoryScore, categoryPercent, areaNumber, \
            areaScore, areaPercent
@@ -502,9 +510,9 @@ def getResultData(exam_id):
     score[constant.NumOfArea+constant.NumOfCategory] = items[0][4]
     percent[constant.NumOfArea+constant.NumOfCategory] = items[0][5]
     for i in range(constant.NumOfArea+constant.NumOfCategory):
-        area[i]= items[0][i*3+constant.NumOfHeader]
-        score[i]= items[0][i*3+constant.NumOfHeader+1]
-        percent[i]= items[0][i*3+constant.NumOfHeader+2]
+        area[i] = items[0][i * 3 + _GET_RESULT_DATA_PREFIX]
+        score[i] = items[0][i * 3 + _GET_RESULT_DATA_PREFIX + 1]
+        percent[i] = items[0][i * 3 + _GET_RESULT_DATA_PREFIX + 2]
     half1 = items[0][(constant.NumOfArea+constant.NumOfCategory)*3+6]
     half2 = items[0][(constant.NumOfArea+constant.NumOfCategory)*3+7]
     res = items[0][(constant.NumOfArea+constant.NumOfCategory)*3+8]

@@ -1,10 +1,20 @@
 from constant import db_path, categoryNumber, categoryCode, DIFF_JST_FROM_UTC
 import constant
 from flask import Flask, request, render_template
-import sqlite3, os, json
+import sqlite3, os, json, sys
 import random
 import datetime
 import re
+
+
+def _debug_print(*parts) -> None:
+    message = "".join(str(part) for part in parts)
+    try:
+        print(message)
+    except UnicodeEncodeError:
+        encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+        print(message.encode(encoding, errors="replace").decode(encoding, errors="replace"))
+
 
 class Question:
     def __init__(self, category, level, q, a1, a2, a3, a4, correct, cid1, cid2, cid3, cid4):
@@ -22,11 +32,11 @@ class Question:
         self.cid4 = cid4
 
     def show(self):
-        print(f'質問 {self.q}')
-        print(f'A. {self.a1}')
-        print(f'B. {self.a2}')
-        print(f'C. {self.a3}')
-        print(f'D. {self.a4}')
+        _debug_print(f'質問 {self.q}')
+        _debug_print(f'A. {self.a1}')
+        _debug_print(f'B. {self.a2}')
+        _debug_print(f'C. {self.a3}')
+        _debug_print(f'D. {self.a4}')
 
 class QuestionList:
     def __init__(self):
@@ -60,6 +70,9 @@ def getQuestion(examlist, q_no):
         return None, None, None
 
     items = c.fetchall()
+    if not items:
+        conn.close()
+        return None, None, None
 
     for k, r in enumerate(items):
         for s in range(4):
@@ -78,7 +91,7 @@ def getQuestion(examlist, q_no):
     q.cid3 = r[4+int(idx[2])]
     q.cid4 = r[4+int(idx[3])]
 
-    print('Question=' + q.q)
+    _debug_print('Question=', q.q)
     return q, conn, c
 
 # 演習IDと解答からコメントIDを取得する
@@ -175,7 +188,7 @@ def getQuestions(exam_id, qlist):
                 r[4+int(idxlist[k][2])],
                 r[4+int(idxlist[k][3])],
                 )
-            print('Question=' + q.q)
+            _debug_print('Question=', q.q)
             qlist[j] = q
 
     conn.close()
@@ -446,11 +459,12 @@ def makeExam2(userid, amount, category: int, level, time, arealist):
     print('userid={0},amount={1}, category={2}, level={3},\
           time={4}, arealist={5}'.format(userid, amount, \
                                          category, level, time, arealist))
-    list = [0 for i in range(constant.MaxQuestions)]
-    selectArea = [0 for i in range(constant.NumOfArea)]
-    selectCategory = [0 for i in range(constant.NumOfCategory+1)]
-    index = [0 for i in range(constant.NumOfCategory+1)]
-    genlist = [[0 for i in range(5)] for j in range(constant.NumOfCategory+1)]
+    num_categories = len(categoryNumber)
+    question_ids = [0 for i in range(constant.MaxQuestions)]
+    selectArea = [0 for i in range(max(constant.NumOfArea, 6))]
+    selectCategory = [0 for i in range(num_categories + 1)]
+    index = [0 for i in range(num_categories + 1)]
+    genlist = [[] for _ in range(num_categories + 1)]
 
     total = amount;
     if total < 0 or total > constant.MaxQuestions:
@@ -468,7 +482,7 @@ def makeExam2(userid, amount, category: int, level, time, arealist):
     arealist = ''
     for i in range(total):
         matched = False
-        for j in range(constant.NumOfCategory):
+        for j in range(num_categories):
             if assign[i] == categoryNumber[j]:
                 arealist = arealist + categoryCode[j]
                 selectCategory[j] += 1
@@ -498,7 +512,7 @@ def makeExam2(userid, amount, category: int, level, time, arealist):
 
     # ユーザーIDをチェックする（ログインいしているか、有料か無料か）
 
-    for i in range(constant.NumOfCategory):
+    for i in range(num_categories):
         if selectCategory[i] != 0:
             candidates = getExamCandidate(
                 selectCategory[i], categoryNumber[i], level, business_status
@@ -527,14 +541,14 @@ def makeExam2(userid, amount, category: int, level, time, arealist):
                 f"(need index {index[j]}, have {len(genlist[j])})"
             )
             return None
-        list[i] = genlist[j][index[j]]
+        question_ids[i] = genlist[j][index[j]]
         index[j] += 1
 
-    print('リスト={0}'.format(list))
+    print('リスト={0}'.format(question_ids))
 
-    # デバッグ・コード：　演習ID（list[i]）が０なら、異常なので埋め合わせる
-    #    if(list[i]==0):
-    #        print("list[" + i + "]:" + list[i])
+    # デバッグ・コード：　演習ID（question_ids[i]）が０なら、異常なので埋め合わせる
+    #    if(question_ids[i]==0):
+    #        print("question_ids[" + i + "]:" + question_ids[i])
     #        print("*************** ERROR ****************\n")
 
     examlist = ""
@@ -544,7 +558,7 @@ def makeExam2(userid, amount, category: int, level, time, arealist):
         permutation = GetRandom()
         print('permutation={0}'.format(permutation))
 
-        examlist = examlist + "(" + str(list[i]) + ":" \
+        examlist = examlist + "(" + str(question_ids[i]) + ":" \
                    + str(permutation[0]) + "," + str(permutation[1]) + "," \
                    + str(permutation[2]) + "," + str(permutation[3]) + ")"
 
@@ -589,13 +603,11 @@ def assignQuestions(amount, assign, category:int):
     if (amount > constant.MaxQuestions or amount < 0):
         return -1
 
-    # Prefer exam_catalog.assign_categories from the active APP_PROFILE.
     try:
-        from config_loader import get_exam_entry
+        from exam_plan_loader import resolve_assign_categories
 
-        entry = get_exam_entry(category)
-        if entry and entry.get("assign_categories"):
-            categories = entry["assign_categories"]
+        categories = resolve_assign_categories(category)
+        if categories:
             if len(categories) != amount:
                 print(
                     f"adjusting amount from {amount} to {len(categories)} "
@@ -606,80 +618,10 @@ def assignQuestions(amount, assign, category:int):
                 assign[i] = int(cat)
             return amount
     except Exception as exc:
-        print(f"assign_categories lookup failed: {exc}")
+        print(f"exam plan slot resolution failed: {exc}")
 
-# CDS (2022.12.27)
-    if category == 10:
-        assign[0] = 11
-        assign[1] = 13
-        assign[2] = 11
-        assign[3] = 12
-        assign[4] = 11
-    elif category == 20:
-        assign[0] = 21
-        assign[1] = 21
-        assign[2] = 21
-        assign[3] = 21
-        assign[4] = 21
-    elif category == 30:
-        assign[0] = 34
-        assign[1] = 31
-        assign[2] = 32 + (random.randint(0, 1)*2)
-        assign[3] = 33
-        assign[4] = 32
-    elif category == 40:
-        assign[0] = 41
-        assign[1] = 42
-        assign[2] = 41
-        assign[3] = 42
-        assign[4] = 41
-    elif category == 60 or category == 70 or category == 80:
-        assign[0] = 31    # バリューストリーム（新サービスSVS）
-        assign[1] = 21    # 情報と技術
-        assign[2] = 11    # 組織の文化
-        assign[3] = 42    # 調達の手段
-        assign[4] = 34    # ユーザサポート・プラクティス
-        assign[5] = 12    # シフトレフト
-        assign[6] = 33    # バリューストリーム（ユーザサポート）
-        assign[7] = 41    # 活動の調整
-        assign[8] = 13    # 人材の計画と管理
-        assign[9] = 32    # 新サービス・プラクティス
-        if amount == 40:
-            assign[10] = 21    # 情報と技術(2)
-            assign[11] = 32    # 新サービス・プラクティス(2)
-            assign[12] = 41    # 活動の調整(2)
-            assign[13] = 42    # 調達の手段(2)
-            assign[14] = 34    # ユーザサポート・プラクティス(2)
-            assign[15] = 11    # 組織の文化(2)
-            assign[16] = 12    # 組織変更の管理
-            assign[17] = 41    # 活動の調整(3)
-            assign[18] = 33    # バリューストリーム（ユーザサポート）(2)
-            assign[19] = 21    # 情報と技術(3)
-            assign[20] = 31    # バリューストリーム（新サービスSVS）(2)
-            assign[21] = 13    # 人材の計画と管理(2)
-            assign[22] = 32    # 新サービス・プラクティス(3)
-            assign[23] = 13    # 人材の計画と管理(3)
-            assign[24] = 31    # バリューストリーム（新サービスSVS）(3)
-            assign[25] = 11    # 組織の文化(3)
-            assign[26] = 42    # 調達の手段(3)
-            assign[27] = 34    # ユーザサポート・プラクティス(3)
-            assign[28] = 12    # シフトレフト（2）
-            assign[29] = 32    # 新サービス・プラクティス(4)
-            assign[30] = 41    # 活動の調整(4)
-            assign[31] = 34    # ユーザサポート・プラクティス(4)
-            assign[32] = 42    # 調達の手段(4)
-            assign[33] = 33    # バリューストリーム（ユーザサポート）(3)
-            assign[34] = 11    # 組織の文化(4)
-            assign[35] = 13    # 人材の計画と管理(4)
-            assign[36] = 32    # 新サービス・プラクティス(5)
-            assign[37] = 21    # 情報と技術(4)
-            assign[38] = 41    # 活動の調整(5)
-            assign[39] = 34    # ユーザサポート・プラクティス(5)
-    else:
-        print("Error!")
-        return -1
-
-    return amount
+    print(f"Error! No exam plan assignment for category {category}")
+    return -1
 
 def stringToButton(s):
     if(s == ""):
