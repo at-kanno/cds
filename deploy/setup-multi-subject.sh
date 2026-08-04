@@ -55,6 +55,10 @@ if [ ! -d .venv ]; then
 fi
 .venv/bin/pip install --upgrade pip
 .venv/bin/pip install -r requirements.txt
+if [ ! -x .venv/bin/gunicorn ]; then
+  echo "ERROR: gunicorn missing in SPANISH4 venv after pip install"
+  exit 1
+fi
 
 if [ ! -f exam-SPANISH4.sqlite ]; then
   echo ""
