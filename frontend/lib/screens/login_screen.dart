@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../config/api_config.dart';
+import '../config/app_branding.dart';
 import '../services/auth_service.dart';
 import 'main_menu_screen.dart';
 
@@ -23,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   String? _errorMessage;
 
-  bool get _showServerField => !kIsWeb;
+  bool get _showServerField => AppBranding.showServerField;
 
   @override
   void dispose() {
@@ -105,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'CDS — Web / iPhone / Android',
+                      AppBranding.title,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,

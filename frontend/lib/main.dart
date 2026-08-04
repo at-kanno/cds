@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'config/app_branding.dart';
 import 'screens/login_screen.dart';
 
 void main() {
@@ -12,7 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CDS',
+      title: AppBranding.title,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),

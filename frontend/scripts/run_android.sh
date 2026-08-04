@@ -8,12 +8,17 @@ if ! command -v flutter >/dev/null 2>&1; then
   exit 1
 fi
 
+# Prefer scripts/run_subject.sh cds|spanish4 for flavored runs.
 API_URL="${API_BASE_URL:-}"
-RUN_ARGS=(run -d android)
+FLAVOR="${FLAVOR:-cds}"
+APP_TITLE="${APP_TITLE:-CDS}"
+RUN_ARGS=(run --flavor "$FLAVOR" -d android)
+RUN_ARGS+=(--dart-define="APP_FLAVOR=$FLAVOR")
+RUN_ARGS+=(--dart-define="APP_TITLE=$APP_TITLE")
 
 if [[ -n "$API_URL" ]]; then
   RUN_ARGS+=(--dart-define="API_BASE_URL=$API_URL")
 fi
 
-echo "Starting CDS on Android emulator..."
+echo "Starting $FLAVOR on Android emulator..."
 flutter "${RUN_ARGS[@]}"

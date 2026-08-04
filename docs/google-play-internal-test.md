@@ -1,8 +1,10 @@
 # Google Play 内部テスト（Android）
 
-**アプリ名:** 模試システム  
-**Application ID:** `jp.co.olivenet.cds`（iOS Bundle ID と同一）  
+**アプリ名:** 模試システム（CDS） / スペイン語は別アプリ  
+**Application ID:** `jp.co.olivenet.cds` または `jp.co.olivenet.spanish4`  
 **配布:** Google Play **内部テスト**（TestFlight に相当）
+
+科目を2アプリで配る手順の全体像は [`multi-app-distribution.md`](multi-app-distribution.md) を参照。
 
 ---
 
