@@ -60,6 +60,9 @@ areas:
     practices: [リーディング2択]
     choice_count: 2
     points_per_question: 4
+    # 同じ FLAG(101-199) = 同じスペイン語文章。文章を2つ選び、合計から出題数を抽出（同FLAGは件数分すべて候補）
+    passage_group: flag
+    passages: 2
   listening3:
     name: ヒアリング（3択）
     abbrev: 聴解

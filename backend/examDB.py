@@ -253,13 +253,129 @@ def getExamlist(exam_id):
 
     return examlist, arealist, answerlist
 
-def getExamCandidate(amount, category, level, mode):
-    dt_now = datetime.datetime.now()
-    condition = ""
+def get_passage_settings_for_category(category: int):
+    """Return passage-grouping settings from YAML area metadata, or None."""
+    try:
+        from config_loader import get_areas
 
+        for area in get_areas():
+            if int(category) not in [int(c) for c in area.get("categories", [])]:
+                continue
+            if not (area.get("passages") or area.get("passage_group")):
+                return None
+            return {
+                "passages": int(area.get("passages", 2)),
+                "group": str(area.get("passage_group", "flag")).lower(),
+            }
+    except Exception as exc:
+        print(f"passage settings lookup failed for category={category}: {exc}")
+    return None
+
+
+# Reading passages use knowledge_base.FLAG in this reserved range only.
+PASSAGE_FLAG_MIN = 101
+PASSAGE_FLAG_MAX = 199
+
+
+def is_passage_flag(flag) -> bool:
+    """True when FLAG is reserved for Spanish reading passage grouping (101-199)."""
+    if flag is None or flag == "":
+        return False
+    try:
+        value = int(flag)
+    except (TypeError, ValueError):
+        return False
+    return PASSAGE_FLAG_MIN <= value <= PASSAGE_FLAG_MAX
+
+
+def order_passage_selection(
+    groups: dict, passage_count: int, amount: int
+) -> list | None:
+    """Pick ``passage_count`` FLAG groups, sample ``amount`` questions, keep groups contiguous.
+
+    ``groups`` maps passage key -> list of question NUMBERs.
+    Any group size is allowed (e.g. 3 or 5 rows sharing the same FLAG).
+    Only FLAG values in 101-199 are treated as passage groups.
+    """
+    eligible = {
+        key: list(values)
+        for key, values in groups.items()
+        if values and is_passage_flag(key)
+    }
+    keys = list(eligible.keys())
+    if len(keys) < passage_count:
+        print(
+            f"Not enough passages: have={len(keys)}, need={passage_count}"
+        )
+        return None
+
+    chosen_keys = random.sample(keys, passage_count)
+    pool_by_key = {key: list(eligible[key]) for key in chosen_keys}
+    pool: list[int] = []
+    for key in chosen_keys:
+        pool.extend(int(n) for n in pool_by_key[key])
+
+    if len(pool) < amount:
+        print(
+            f"Not enough passage questions: pool={len(pool)}, need={amount}, "
+            f"passages={chosen_keys}"
+        )
+        return None
+
+    selected = set(random.sample(pool, amount))
+    random.shuffle(chosen_keys)
+
+    ordered: list[int] = []
+    for key in chosen_keys:
+        picks = [int(n) for n in pool_by_key[key] if int(n) in selected]
+        random.shuffle(picks)
+        ordered.extend(picks)
+    return ordered
+
+
+def get_exam_candidates_by_passage_flag(amount, category, passage_count: int):
+    """Select questions grouped by knowledge_base.FLAG (Spanish passage id)."""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT NUMBER, FLAG FROM knowledge_base WHERE CATEGORY = ?",
+        (int(category),),
+    )
+    rows = cursor.fetchall()
+    conn.close()
+
+    groups: dict[int, list[int]] = {}
+    for number, flag in rows:
+        if not is_passage_flag(flag):
+            continue
+        flag_key = int(flag)
+        groups.setdefault(flag_key, []).append(int(number))
+
+    print(
+        f"passage candidates: category={category}, groups={len(groups)}, "
+        f"flag_range={PASSAGE_FLAG_MIN}-{PASSAGE_FLAG_MAX}, "
+        f"passages={passage_count}, amount={amount}"
+    )
+    return order_passage_selection(groups, passage_count, amount)
+
+
+def getExamCandidate(amount, category, level, mode):
     if amount <= 0 or amount > constant.MaxQuestions:
         return None
 
+    passage = get_passage_settings_for_category(int(category))
+    if passage and passage.get("group") == "flag":
+        candidate = get_exam_candidates_by_passage_flag(
+            amount, category, passage["passages"]
+        )
+        if candidate is None:
+            print(
+                f"Passage selection failed: category={category}, "
+                f"amount={amount}, passages={passage['passages']}"
+            )
+        return candidate
+
+    condition = ""
     categoryStr = "CATEGORY = " + str(category)
 
     if (category != 0):
