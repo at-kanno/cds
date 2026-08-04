@@ -22,6 +22,7 @@ def _question_response(
     num: str,
     permutation: str,
     time_limit_seconds: int,
+    choice_count: int = 4,
 ) -> dict[str, Any]:
     return {
         "mode": "single",
@@ -34,6 +35,7 @@ def _question_response(
         "selection2": selection2,
         "selection3": selection3,
         "selection4": selection4,
+        "choice_count": choice_count,
         "crct": crct,
         "cid": cid,
         "num": str(num),
@@ -68,7 +70,7 @@ def start_single_exam(user_id: int, category: int) -> dict[str, Any]:
     if result is False or not isinstance(result, tuple):
         raise ValueError("No questions available for this category.")
 
-    question, a1, a2, a3, a4, crct, cid, num, permutation = result
+    question, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = result
     return _question_response(
         user_id=user_id,
         category=category,
@@ -83,6 +85,7 @@ def start_single_exam(user_id: int, category: int) -> dict[str, Any]:
         num=num,
         permutation=permutation,
         time_limit_seconds=time_limit,
+        choice_count=choice_count,
     )
 
 
@@ -138,5 +141,6 @@ def check_single_answer(
         "selection2": a2,
         "selection3": a3,
         "selection4": a4,
+        "choice_count": sum(1 for text in (a1, a2, a3, a4) if text),
         "comment": comment,
     }

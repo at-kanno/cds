@@ -24,8 +24,12 @@
 <TR><TD width=70">問題 {{ q_no }}</TD><TD>{{ q  | safe }}</TD></TR>
 <TR><TD>A.</TD><TD>{{ a1 }}</TD></TR>
 <TR><TD>B.</TD><TD>{{ a2 }}</TD></TR>
+{% if a3 %}
 <TR><TD>C.</TD><TD>{{ a3 }}</TD></TR>
+{% endif %}
+{% if a4 %}
 <TR><TD>D.</TD><TD>{{ a4 }}</TD></TR>
+{% endif %}
 </TABLE><br>
 正解は 「{{ answer }}」です。
 <br><br>

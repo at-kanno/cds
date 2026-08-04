@@ -276,12 +276,17 @@
     <TR><TD width="40">
     <input type="radio" name="selection" value="2" {{ selectStr[1] }} onclick="parent.setActive({{ q_no }})"/>
     </TD><TD>B.</TD><TD>{{ selection2 }}</TD></TR>
+    {% if choice_count|default(4) >= 3 %}
     <TR><TD width="40">
     <input type="radio" name="selection" value="3" {{ selectStr[2] }} onclick="parent.setActive({{ q_no }})"/>
     </TD><TD>C.</TD><TD>{{ selection3 }}</TD></TR>
+    {% endif %}
+    {% if choice_count|default(4) >= 4 %}
     <TR><TD width="40">
     <input type="radio" name="selection" value="4" {{ selectStr[3] }} onclick="parent.setActive({{ q_no }})"/>
-    </TD><TD>D.</TD><TD>{{ selection4 }}</TD></TR></TABLE>
+    </TD><TD>D.</TD><TD>{{ selection4 }}</TD></TR>
+    {% endif %}
+    </TABLE>
     </div>
 
   <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>

@@ -66,6 +66,7 @@ def _question_payload(
         "selection2": q_obj.a2,
         "selection3": q_obj.a3,
         "selection4": q_obj.a4,
+        "choice_count": getattr(q_obj, "choice_count", 4),
         "marklist": marklist,
         "answerlist": answerlist,
         "selected_answer": selected,

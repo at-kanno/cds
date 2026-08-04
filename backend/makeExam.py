@@ -245,14 +245,23 @@ def makeExam3():
         print('category=' + str(category))
 
 # １問１答の処理（91:FND,92:CDS,93:DSV,94:HVIT,95:DPI）
-        if (category == '91'):
-            q, a1, a2, a3, a4, crct, cid, num, permutation = getQuestionFromCategory(11, 19)
+        entry = get_exam_entry(int(category))
+        if entry and entry.get("category_range"):
+            start, end = entry["category_range"]
+            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = \
+                getQuestionFromCategory(int(start), int(end))
+        elif (category == '91'):
+            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = \
+                getQuestionFromCategory(11, 19)
         elif (category == '92'):
-            q, a1, a2, a3, a4, crct, cid, num, permutation = getQuestionFromCategory(21, 29)
+            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = \
+                getQuestionFromCategory(21, 29)
         elif (category == '93'):
-            q, a1, a2, a3, a4, crct, cid, num, permutation = getQuestionFromCategory(31, 39)
+            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = \
+                getQuestionFromCategory(31, 39)
         elif (category == '94'):
-            q, a1, a2, a3, a4, crct, cid, num, permutation = getQuestionFromCategory(41, 49)
+            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = \
+                getQuestionFromCategory(41, 49)
         else:
             setStage(user_id, 1)
             from menu_view import render_main_menu_page
@@ -266,6 +275,7 @@ def makeExam3():
                            selection2=a2,
                            selection3=a3,
                            selection4=a4,
+                           choice_count=choice_count,
                            timeMin=0,
                            timeSec=0,
                            selectStr="",

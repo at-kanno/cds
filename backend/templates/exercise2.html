@@ -93,10 +93,14 @@
     /></TD><TD>A.</TD><TD>{{ selection1 }}</TD></TR>
 <TR><TD><input type="radio" name="selection" value="2" {{ selectStr[1] }} onclick="parent.setActive({{ q_no }})"
     /></TD><TD>B.</TD><TD>{{ selection2 }}</TD></TR>
+{% if choice_count|default(4) >= 3 %}
 <TR><TD><input type="radio" name="selection" value="3" {{ selectStr[2] }} onclick="parent.setActive({{ q_no }})"
     /></TD><TD>C.</TD><TD>{{ selection3 }}</TD></TR>
+{% endif %}
+{% if choice_count|default(4) >= 4 %}
 <TR><TD><input type="radio" name="selection" value="4" {{ selectStr[3] }} onclick="parent.setActive({{ q_no }})"
     /></TD><TD>D.</TD><TD>{{ selection4 }}</TD></TR>
+{% endif %}
 </TABLE><BR>
 
 <div class="buttonwrap" >

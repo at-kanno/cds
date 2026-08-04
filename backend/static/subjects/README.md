@@ -55,6 +55,25 @@ slots:
 | 確率 | `- pick:` + `weight` | 重み付きランダム |
 | 共通配分 | `- use: full_exam` | 模擬試験40問など |
 
+## 選択肢数（2択 / 3択 / 4択）
+
+`areas` に `choice_count` を書くと、出題時のシャッフルと画面表示に使われます。
+
+```yaml
+grammar3:
+  categories: [31]
+  choice_count: 3   # A–C のみ表示（D は出さない）
+```
+
+| choice_count | 画面 |
+|---|---|
+| 4 | A B C D |
+| 3 | A B C |
+| 2 | A B |
+
+DB の A4（4択目）にダミー文字があっても、`choice_count: 3` なら D は出ません。  
+新規出題から有効です（古い試験の examlist は作成時の並びのまま）。
+
 ## CDS 専用: topics
 
 CDS は画面表示用 `areas`（4領域）と、出題参照用 `topics`（10カテゴリ）を分けています。  

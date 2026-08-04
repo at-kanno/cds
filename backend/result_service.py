@@ -250,6 +250,7 @@ def build_question_analysis(data: dict[str, Any]) -> dict[str, Any]:
         "selection2": question.a2,
         "selection3": question.a3,
         "selection4": question.a4,
+        "choice_count": getattr(question, "choice_count", 4),
         "correct_answer": correct_answer,
         "comment_html": comment,
     }

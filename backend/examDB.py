@@ -16,6 +16,37 @@ def _debug_print(*parts) -> None:
         print(message.encode(encoding, errors="replace").decode(encoding, errors="replace"))
 
 
+def get_choice_count_for_category(category: int, default: int = 4) -> int:
+    """Return 2/3/4 from YAML/config area metadata for the knowledge_base category."""
+    try:
+        from config_loader import get_areas
+
+        for area in get_areas():
+            if int(category) in [int(c) for c in area.get("categories", [])]:
+                count = int(area.get("choice_count", default))
+                if 2 <= count <= 4:
+                    return count
+                return default
+    except Exception as exc:
+        print(f"choice_count lookup failed for category={category}: {exc}")
+    return default
+
+
+def _answer_from_row(row, perm_value):
+    """Map permutation slot (1..4) to A1..A4; 0 means unused choice."""
+    idx = int(perm_value)
+    if idx <= 0:
+        return ""
+    return row[idx]
+
+
+def _cid_from_row(row, perm_value, cid_offset: int = 4):
+    idx = int(perm_value)
+    if idx <= 0:
+        return 0
+    return row[cid_offset + idx]
+
+
 class Question:
     def __init__(self, category, level, q, a1, a2, a3, a4, correct, cid1, cid2, cid3, cid4):
         self.category = category
@@ -82,14 +113,15 @@ def getQuestion(examlist, q_no):
             pass
 
     q.q = r[0]
-    q.a1 = r[int(idx[0])]
-    q.a2 = r[int(idx[1])]
-    q.a3 = r[int(idx[2])]
-    q.a4 = r[int(idx[3])]
-    q.cid1 = r[4+int(idx[0])]
-    q.cid2 = r[4+int(idx[1])]
-    q.cid3 = r[4+int(idx[2])]
-    q.cid4 = r[4+int(idx[3])]
+    q.a1 = _answer_from_row(r, idx[0])
+    q.a2 = _answer_from_row(r, idx[1])
+    q.a3 = _answer_from_row(r, idx[2])
+    q.a4 = _answer_from_row(r, idx[3])
+    q.cid1 = _cid_from_row(r, idx[0])
+    q.cid2 = _cid_from_row(r, idx[1])
+    q.cid3 = _cid_from_row(r, idx[2])
+    q.cid4 = _cid_from_row(r, idx[3])
+    q.choice_count = sum(1 for value in idx if int(value) != 0) or 4
 
     _debug_print('Question=', q.q)
     return q, conn, c
@@ -321,26 +353,29 @@ def getQuestionFromCategory(start, end):
     m = random.randint(0, n-1)
     q = items[m][0]
 
-    permutation = GetRandom()
-    a1 = items[m][permutation[0]]
-    a2 = items[m][permutation[1]]
-    a3 = items[m][permutation[2]]
-    a4 = items[m][permutation[3]]
-    perm = str(permutation[0]) + str(permutation[1]) + str(permutation[2]) + str(permutation[3])
+    # start is the lower bound of the category range for this single-question exam.
+    choice_n = get_choice_count_for_category(int(start))
+    permutation = GetRandom(choice_n)
+    a1 = _answer_from_row(items[m], permutation[0])
+    a2 = _answer_from_row(items[m], permutation[1])
+    a3 = _answer_from_row(items[m], permutation[2])
+    a4 = _answer_from_row(items[m], permutation[3])
+    perm = "".join(str(value) for value in permutation)
 
+    crct = 0
     for i in range(4):
-        if (permutation[i] == 1):
+        if permutation[i] == 1:
             crct = i
     cid = items[m][5]
     num = items[m][6]
 
-    return q,a1,a2,a3,a4,crct,cid,num, perm
+    return q, a1, a2, a3, a4, crct, cid, num, perm, choice_n
 
 def getQuestionFromNum(number,permutation):
 
     items = [['' for i in range(1)] for j in range(6)]
     a = ['' for i in range(4)]
-    cid = ['' for i in range(4)]
+    cid = [0 for i in range(4)]
 
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
@@ -361,10 +396,17 @@ def getQuestionFromNum(number,permutation):
         return False
 
     q = items[0][0]
+    # permutation may be a digit string "2130" or a sequence of ints.
+    if isinstance(permutation, str):
+        slots = [int(ch) for ch in permutation[:4]]
+        while len(slots) < 4:
+            slots.append(0)
+    else:
+        slots = [int(permutation[i]) if i < len(permutation) else 0 for i in range(4)]
+
     for i in range(4):
-        idx = int(permutation[i])
-        a[i] = items[0][idx]
-        cid[i] = int(items[0][idx+4])
+        a[i] = _answer_from_row(items[0], slots[i])
+        cid[i] = _cid_from_row(items[0], slots[i])
 
     return q,a[0],a[1],a[2],a[3],cid[0],cid[1],cid[2],cid[3], conn, c
 
@@ -554,8 +596,9 @@ def makeExam2(userid, amount, category: int, level, time, arealist):
     examlist = ""
 
     for i in range(total):
-        # 選択肢の配列を決定する
-        permutation = GetRandom()
+        # 選択肢の配列を決定する（2/3/4択は YAML areas.choice_count）
+        choice_n = get_choice_count_for_category(int(assign[i]))
+        permutation = GetRandom(choice_n)
         print('permutation={0}'.format(permutation))
 
         examlist = examlist + "(" + str(question_ids[i]) + ":" \
@@ -567,37 +610,51 @@ def makeExam2(userid, amount, category: int, level, time, arealist):
     return examlist, arealist
 
 
-def GetRandom():
-    data = [
-        [1, 2, 3, 4],
-        [1, 2, 4, 3],
-        [1, 3, 2, 4],
-        [1, 3, 4, 2],
-        [1, 4, 2, 3],
-        [1, 4, 3, 2],
-        [2, 1, 3, 4],
-        [2, 1, 4, 3],
-        [2, 3, 1, 4],
-        [2, 3, 4, 1],
-        [2, 4, 1, 3],
-        [2, 4, 3, 1],
-        [3, 2, 1, 4],
-        [3, 2, 4, 1],
-        [3, 1, 2, 4],
-        [3, 1, 4, 2],
-        [3, 4, 2, 1],
-        [3, 4, 1, 2],
-        [4, 2, 3, 1],
-        [4, 2, 1, 3],
-        [4, 3, 2, 1],
-        [4, 3, 1, 2],
-        [4, 1, 2, 3],
-        [4, 1, 3, 2],
-    ]
+def GetRandom(choice_count: int = 4):
+    """Return a length-4 permutation. Unused slots (beyond choice_count) are 0.
 
-    n = random.randint(0, 23)
-    #    print(n)
-    return data[n]
+    Example for 3-choice: [2, 1, 3, 0]
+    """
+    count = int(choice_count)
+    if count < 2:
+        count = 2
+    if count > 4:
+        count = 4
+
+    if count == 4:
+        data = [
+            [1, 2, 3, 4],
+            [1, 2, 4, 3],
+            [1, 3, 2, 4],
+            [1, 3, 4, 2],
+            [1, 4, 2, 3],
+            [1, 4, 3, 2],
+            [2, 1, 3, 4],
+            [2, 1, 4, 3],
+            [2, 3, 1, 4],
+            [2, 3, 4, 1],
+            [2, 4, 1, 3],
+            [2, 4, 3, 1],
+            [3, 2, 1, 4],
+            [3, 2, 4, 1],
+            [3, 1, 2, 4],
+            [3, 1, 4, 2],
+            [3, 4, 2, 1],
+            [3, 4, 1, 2],
+            [4, 2, 3, 1],
+            [4, 2, 1, 3],
+            [4, 3, 2, 1],
+            [4, 3, 1, 2],
+            [4, 1, 2, 3],
+            [4, 1, 3, 2],
+        ]
+        return list(data[random.randint(0, 23)])
+
+    pool = list(range(1, count + 1))
+    random.shuffle(pool)
+    while len(pool) < 4:
+        pool.append(0)
+    return pool
 
 def assignQuestions(amount, assign, category:int):
     if (amount > constant.MaxQuestions or amount < 0):
