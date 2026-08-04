@@ -51,15 +51,21 @@ jobs:
           script: |
             set -euo pipefail
             APP_DIR="${{ secrets.EC2_APP_PATH != '' && secrets.EC2_APP_PATH || vars.EC2_APP_PATH }}"
+            SPANISH4_DIR="${{ secrets.EC2_SPANISH4_PATH != '' && secrets.EC2_SPANISH4_PATH || vars.EC2_SPANISH4_PATH }}"
             HEALTHCHECK_URL="${{ secrets.HEALTHCHECK_URL != '' && secrets.HEALTHCHECK_URL || vars.HEALTHCHECK_URL }}"
+            SPANISH4_HEALTHCHECK_URL="${{ secrets.SPANISH4_HEALTHCHECK_URL != '' && secrets.SPANISH4_HEALTHCHECK_URL || vars.SPANISH4_HEALTHCHECK_URL }}"
             export APP_DIR="${APP_DIR:-/home/ubuntu/cds}"
+            export SPANISH4_DIR="${SPANISH4_DIR:-/home/ubuntu/spanish4}"
             export HEALTHCHECK_URL="${HEALTHCHECK_URL:-https://traveltokio.com/cds/api/health}"
+            export SPANISH4_HEALTHCHECK_URL="${SPANISH4_HEALTHCHECK_URL:-https://traveltokio.com/spanish4/api/health}"
             if [ -z "$APP_DIR" ]; then export APP_DIR=/home/ubuntu/cds; fi
+            if [ -z "$SPANISH4_DIR" ]; then export SPANISH4_DIR=/home/ubuntu/spanish4; fi
             if [ -z "$HEALTHCHECK_URL" ]; then export HEALTHCHECK_URL=https://traveltokio.com/cds/api/health; fi
+            if [ -z "$SPANISH4_HEALTHCHECK_URL" ]; then export SPANISH4_HEALTHCHECK_URL=https://traveltokio.com/spanish4/api/health; fi
+
+            # Sync CDS first (bootstrap), then let deploy-backend.sh handle deps,
+            # SPANISH4 sync (if present), service restarts, and health checks.
             cd "$APP_DIR"
-            # Bootstrap: preserve live DBs, hard-reset to origin/main, then deploy.
-            # skip-worktree alone fails when exam.sqlite is dirty
-            # ("Entry 'backend/exam.sqlite' not uptodate. Cannot merge.").
             git fetch origin main
             git checkout main
             BACKUP_DIR="$(mktemp -d)"
@@ -90,4 +96,6 @@ jobs:
             done
             shopt -u nullglob
             rm -rf "$BACKUP_DIR"
+
+            # CDS already synced; script will still sync SPANISH4 if the dir exists.
             SKIP_GIT_SYNC=1 bash deploy/deploy-backend.sh

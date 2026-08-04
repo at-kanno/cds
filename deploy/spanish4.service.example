@@ -1,0 +1,20 @@
+[Unit]
+Description=SPANISH4 Flask Backend (APP_PROFILE=SPANISH4)
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/spanish4/backend
+Environment="PATH=/home/ubuntu/spanish4/backend/.venv/bin"
+EnvironmentFile=/home/ubuntu/spanish4/backend/.env
+# Set APP_PROFILE=SPANISH4 in .env
+# Apache sends X-Forwarded-Prefix; do NOT set SCRIPT_NAME here.
+ExecStart=/home/ubuntu/spanish4/backend/.venv/bin/gunicorn \
+  --bind 127.0.0.1:8081 \
+  --workers 2 \
+  --timeout 120 \
+  "index:app"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

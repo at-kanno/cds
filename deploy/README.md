@@ -1,46 +1,116 @@
-# Subject deployment (Phase 1)
+# 複数科目デプロイ（同一 EC2）
 
-Each server instance serves **one subject**. Set the active profile in `backend/.env`:
+1 インスタンスで科目ごとにプロセスを分けます。
 
-```bash
-cp backend/.env.example backend/.env
-# Edit APP_PROFILE to match a section in backend/static/config.json
-APP_PROFILE=CDS
-```
+| 科目 | ディレクトリ | `.env` | ポート | URL | systemd |
+|---|---|---|---|---|---|
+| CDS | `/home/ubuntu/cds` | `APP_PROFILE=CDS` | 8080 | `/cds/` | `cds` |
+| SPANISH4 | `/home/ubuntu/spanish4` | `APP_PROFILE=SPANISH4` | 8081 | `/spanish4/` | `spanish4` |
 
-## Add a new subject (e.g. TOEIC / SPANISH4)
+科目の切り替えは今も **`backend/.env` の `APP_PROFILE`** です（プロセス単位）。
 
-1. Add or copy a profile block in `backend/static/config.json` (`menu`, `areas`, `exam_catalog`, `status_rules`).
-2. Prepare `exam.sqlite` with questions whose categories match `areas`.
-3. Deploy a separate service (or directory) with `APP_PROFILE=SPANISH4` (or `TOEIC`) in `.env`.
-4. Configure Apache to proxy `/spanish4/` (or `/toeic/`) to that Gunicorn instance.
-5. Point the Flutter app login URL to that path — no app update required.
+---
 
-Spanish Level 4 S1 notes: `docs/spanish4-s1.md`
+## こちらで用意したもの（リポジトリ）
 
-See `deploy/apache/cds-proxy-snippet.conf` for the Apache proxy pattern.
+- `deploy/cds.service.example` / `deploy/spanish4.service.example`
+- `deploy/apache/multi-subject-proxy-snippet.conf`
+- `deploy/setup-multi-subject.sh`（EC2 初回セットアップ）
+- `deploy/deploy-backend.sh`（CDS + SPANISH4 を更新・再起動）
 
-## 科目ごとの DB（exam-{PROFILE}.sqlite）
+---
 
-- 科目ごとに **別ファイル**（利用者・問題・履歴を分離）。詳細: `docs/per-subject-database.md`
-- 例: `exam-CDS.sqlite` / `exam-SPANISH4.sqlite`（CDS は従来の `exam.sqlite` も可）
-- **deploy では上書きしない**（バックアップは別途運用）
+## あなたが EC2 でやること（初回のみ）
+
+### 1. 最新コードを pull
 
 ```bash
-cd ~/cds
-git update-index --skip-worktree backend/exam.sqlite 2>/dev/null || true
-git update-index --skip-worktree backend/exam-CDS.sqlite 2>/dev/null || true
-git update-index --skip-worktree backend/exam-SPANISH4.sqlite 2>/dev/null || true
+cd /home/ubuntu/cds
+git fetch origin main
+git reset --hard origin/main
 ```
 
-## sudo（Deploy Actions 用）
+### 2. 初回セットアップスクリプト
 
-GitHub Actions から `systemctl restart` するには、ubuntu ユーザーが **パスワードなし sudo** できる必要があります。EC2 で1回:
+```bash
+cd /home/ubuntu/cds
+bash deploy/setup-multi-subject.sh
+```
+
+これで SPANISH4 用クローン・venv・systemd（`cds` / `spanish4`）まで作成します。
+
+### 3. SPANISH4 の DB を置く
+
+ローカルの `exam-SPANISH4.sqlite` を配置:
+
+```bash
+# ローカル（Windows）から例:
+scp backend/exam-SPANISH4.sqlite ubuntu@<EC2_HOST>:/home/ubuntu/spanish4/backend/
+```
+
+EC2 で:
+
+```bash
+sudo systemctl restart spanish4
+```
+
+### 4. Apache に `/spanish4/` を追加
+
+`deploy/apache/multi-subject-proxy-snippet.conf` の内容を、既存の SSL VirtualHost  
+（例: `/etc/apache2/sites-available/000-default-le-ssl.conf`）に追加。
+
+```bash
+sudo a2enmod proxy proxy_http headers ssl rewrite
+sudo apache2ctl configtest
+sudo systemctl reload apache2
+```
+
+`/cds/` が既にあれば SPANISH4 部分だけ足せば十分です。
+
+### 5. sudoers を更新（Deploy Actions 用）
 
 ```bash
 sudo visudo -f /etc/sudoers.d/cds-deploy
 ```
 
 ```
-ubuntu ALL=(ALL) NOPASSWD: /bin/systemctl restart cds, /bin/systemctl is-active cds
+ubuntu ALL=(ALL) NOPASSWD: /bin/systemctl restart cds, /bin/systemctl is-active cds, /bin/systemctl restart spanish4, /bin/systemctl is-active spanish4
 ```
+
+### 6. 動作確認
+
+```bash
+curl -fsS http://127.0.0.1:8080/api/health
+curl -fsS http://127.0.0.1:8081/api/health
+```
+
+ブラウザ:
+
+- https://traveltokio.com/cds/
+- https://traveltokio.com/spanish4/
+
+---
+
+## 日常運用
+
+| 操作 | コマンド |
+|---|---|
+| CDS 起動/停止/再起動 | `sudo systemctl start\|stop\|restart cds` |
+| SPANISH4 起動/停止/再起動 | `sudo systemctl start\|stop\|restart spanish4` |
+| 状態 | `sudo systemctl status cds spanish4` |
+
+`main` への push 後、Deploy が **両方** を更新・再起動します  
+（`/home/ubuntu/spanish4` が存在するとき）。
+
+### 科目ごとの DB
+
+- CDS: `exam-CDS.sqlite` または従来の `exam.sqlite`
+- SPANISH4: `exam-SPANISH4.sqlite`
+- deploy は sqlite を上書きしません
+
+---
+
+## 新規科目（TOEIC など）を足すとき
+
+1. `spanish4` と同様にディレクトリ・`.env`・systemd・Apache パスを追加
+2. `deploy-backend.sh` と sudoers にサービス名を追加
