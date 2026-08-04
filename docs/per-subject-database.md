@@ -56,12 +56,14 @@ CDS を試すとき:
 
 ## 本番 EC2（推奨構成）
 
+手順の詳細: `deploy/README.md` と `deploy/setup-multi-subject.sh`
+
 ```
 /home/ubuntu/cds/backend/
   .env                 → APP_PROFILE=CDS
   exam-CDS.sqlite      ← CDS 利用者（または従来 exam.sqlite）
 
-/home/ubuntu/spanish4-app/backend/
+/home/ubuntu/spanish4/backend/
   .env                 → APP_PROFILE=SPANISH4
   exam-SPANISH4.sqlite ← スペイン語利用者
 ```
