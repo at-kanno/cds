@@ -57,14 +57,37 @@ jobs:
             if [ -z "$APP_DIR" ]; then export APP_DIR=/home/ubuntu/cds; fi
             if [ -z "$HEALTHCHECK_URL" ]; then export HEALTHCHECK_URL=https://traveltokio.com/cds/api/health; fi
             cd "$APP_DIR"
-            # Bootstrap: update repo before running deploy script (handles stale deploy-backend.sh).
+            # Bootstrap: preserve live DBs, hard-reset to origin/main, then deploy.
+            # skip-worktree alone fails when exam.sqlite is dirty
+            # ("Entry 'backend/exam.sqlite' not uptodate. Cannot merge.").
             git fetch origin main
             git checkout main
+            BACKUP_DIR="$(mktemp -d)"
+            shopt -s nullglob
             for db in backend/exam.sqlite backend/exam-*.sqlite; do
-              if [ -f "$db" ] && git ls-files --error-unmatch "$db" >/dev/null 2>&1; then
-                git update-index --skip-worktree "$db"
+              if [ -f "$db" ]; then
+                cp -a "$db" "$BACKUP_DIR/"
               fi
             done
+            for db in backend/exam.sqlite backend/exam-*.sqlite; do
+              if git ls-files --error-unmatch "$db" >/dev/null 2>&1; then
+                git update-index --no-skip-worktree "$db" 2>/dev/null || true
+              fi
+            done
+            shopt -u nullglob
             git checkout -- backend/static/config.json 2>/dev/null || true
             git reset --hard origin/main
+            shopt -s nullglob
+            for db in "$BACKUP_DIR"/*; do
+              if [ -f "$db" ]; then
+                cp -a "$db" "backend/$(basename "$db")"
+              fi
+            done
+            for db in backend/exam.sqlite backend/exam-*.sqlite; do
+              if [ -f "$db" ] && git ls-files --error-unmatch "$db" >/dev/null 2>&1; then
+                git update-index --skip-worktree "$db" 2>/dev/null || true
+              fi
+            done
+            shopt -u nullglob
+            rm -rf "$BACKUP_DIR"
             SKIP_GIT_SYNC=1 bash deploy/deploy-backend.sh

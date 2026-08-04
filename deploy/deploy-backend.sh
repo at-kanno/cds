@@ -12,20 +12,61 @@ cd "$APP_DIR"
 
 echo "==> Deploy target: APP_DIR=$APP_DIR BRANCH=$BRANCH"
 
-if [ "${SKIP_GIT_SYNC:-0}" != "1" ]; then
-  echo "==> Sync git from origin/${BRANCH}"
-  git fetch origin "${BRANCH}"
-  git checkout "${BRANCH}"
+# Live DBs must survive git reset. skip-worktree alone is fragile when the
+# working tree is dirty ("Entry 'backend/exam.sqlite' not uptodate").
+preserve_and_sync_git() {
+  local branch="$1"
+  local backup_dir
+  backup_dir="$(mktemp -d)"
 
-  # Per-subject DBs (exam-CDS.sqlite, exam-SPANISH4.sqlite, legacy exam.sqlite)
-  # are live data. Deploy must not overwrite them.
+  echo "==> Sync git from origin/${branch}"
+  git fetch origin "${branch}"
+  git checkout "${branch}"
+
+  echo "==> Back up live sqlite DBs"
+  shopt -s nullglob
   for db in backend/exam.sqlite backend/exam-*.sqlite; do
-    if [ -f "$db" ] && git ls-files --error-unmatch "$db" >/dev/null 2>&1; then
-      git update-index --skip-worktree "$db"
+    if [ -f "$db" ]; then
+      cp -a "$db" "$backup_dir/"
+      echo "    saved $(basename "$db")"
     fi
   done
+  shopt -u nullglob
+
+  echo "==> Clear skip-worktree on tracked DBs so reset can proceed"
+  shopt -s nullglob
+  for db in backend/exam.sqlite backend/exam-*.sqlite; do
+    if git ls-files --error-unmatch "$db" >/dev/null 2>&1; then
+      git update-index --no-skip-worktree "$db" 2>/dev/null || true
+    fi
+  done
+  shopt -u nullglob
+
   git checkout -- backend/static/config.json 2>/dev/null || true
-  git reset --hard "origin/${BRANCH}"
+  git reset --hard "origin/${branch}"
+
+  echo "==> Restore live sqlite DBs"
+  shopt -s nullglob
+  for db in "$backup_dir"/*; do
+    if [ -f "$db" ]; then
+      cp -a "$db" "backend/$(basename "$db")"
+      echo "    restored $(basename "$db")"
+    fi
+  done
+  shopt -u nullglob
+  rm -rf "$backup_dir"
+
+  shopt -s nullglob
+  for db in backend/exam.sqlite backend/exam-*.sqlite; do
+    if [ -f "$db" ] && git ls-files --error-unmatch "$db" >/dev/null 2>&1; then
+      git update-index --skip-worktree "$db" 2>/dev/null || true
+    fi
+  done
+  shopt -u nullglob
+}
+
+if [ "${SKIP_GIT_SYNC:-0}" != "1" ]; then
+  preserve_and_sync_git "${BRANCH}"
 fi
 
 echo "==> Install backend dependencies"
