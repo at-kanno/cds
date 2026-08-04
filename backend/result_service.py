@@ -4,6 +4,18 @@ import constant
 from examDB import getCommentId, getExamlist, getQuestion
 from resultDB import getComment, getResult, getStartTime, makeComments
 from users import getStage, setStage
+from audio_support import get_audio_play_info
+
+
+def _audio_payload(question) -> dict[str, Any] | None:
+    info = get_audio_play_info(question)
+    if not info:
+        return None
+    return {
+        "filename": info["filename"],
+        "url": f"/audio/{info['filename']}",
+        "max_audio_plays": info["max_audio_plays"],
+    }
 
 
 def _area_offsets() -> List[int]:
@@ -251,6 +263,7 @@ def build_question_analysis(data: dict[str, Any]) -> dict[str, Any]:
         "selection3": question.a3,
         "selection4": question.a4,
         "choice_count": getattr(question, "choice_count", 4),
+        "audio": _audio_payload(question),
         "correct_answer": correct_answer,
         "comment_html": comment,
     }

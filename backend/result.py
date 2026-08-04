@@ -1,11 +1,22 @@
 from constant import db_path, categoryCode, practice, areaname, return3, return4
 import constant
-from flask import Flask, session, render_template, request, Blueprint
+from flask import Flask, session, render_template, request, Blueprint, url_for
 from users import getStage, setStage, getStatus
 from resultDB import getStartTime, getResult, makeComments, getComment
 from examDB import stringToButton, getExamlist, Question, getQuestion, getCommentId
+from audio_support import get_audio_play_info
 
 result_module = Blueprint("result", __name__, static_folder='./static')
+
+
+def _audio_template_kwargs(question) -> dict:
+    info = get_audio_play_info(question)
+    if not info:
+        return {"show_audio": False, "audio_url": ""}
+    return {
+        "show_audio": True,
+        "audio_url": url_for("exercise.serve_audio", filename=info["filename"]),
+    }
 
 # 分析結果をフィードバックする
 @result_module.route('/summary', methods=['POST', 'GET'])
@@ -369,5 +380,6 @@ def analize():
                                arealist=arealist,
                                answer=answer,
                                title=title,
+                               **_audio_template_kwargs(q),
                                )
 

@@ -94,7 +94,10 @@ def getQuestion(examlist, q_no):
     c = conn.cursor()
     q = Question
 
-    sql = "SELECT Q,A1,A2,A3,A4,CID1, CID2, CID3, CID4 FROM knowledge_base WHERE NUMBER = " + str(number)
+    sql = (
+        "SELECT Q,A1,A2,A3,A4,CID1,CID2,CID3,CID4,CATEGORY,FLAG "
+        "FROM knowledge_base WHERE NUMBER = " + str(number)
+    )
     try:
         c.execute(sql)
     except:
@@ -122,6 +125,9 @@ def getQuestion(examlist, q_no):
     q.cid3 = _cid_from_row(r, idx[2])
     q.cid4 = _cid_from_row(r, idx[3])
     q.choice_count = sum(1 for value in idx if int(value) != 0) or 4
+    q.number = int(number)
+    q.category = int(r[9]) if r[9] is not None else 0
+    q.flag = int(r[10]) if r[10] is not None else 0
 
     _debug_print('Question=', q.q)
     return q, conn, c

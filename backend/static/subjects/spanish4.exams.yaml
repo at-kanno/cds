@@ -70,6 +70,7 @@ areas:
     practices: [ヒアリング3択]
     choice_count: 3
     points_per_question: 3
+    # 音声: backend/audio/{NUMBER}.mp3（git外）。共有時は FLAG 201-299 → {FLAG}.mp3
     listening: true
     max_audio_plays: 2
 

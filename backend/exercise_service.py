@@ -17,6 +17,18 @@ from examDB import getCorrectList, getQuestion, makeExam2, saveExam
 from mail import sendMail
 from resultDB import putResult
 from users import getMailadress, getStage, getStatus, rankDown, rankUp, setStage
+from audio_support import get_audio_play_info
+
+
+def _audio_payload(question) -> dict[str, Any] | None:
+    info = get_audio_play_info(question)
+    if not info:
+        return None
+    return {
+        "filename": info["filename"],
+        "url": f"/audio/{info['filename']}",
+        "max_audio_plays": info["max_audio_plays"],
+    }
 
 
 def _exam_time_limit_seconds(exam_id: int, total: int) -> int:
@@ -67,6 +79,7 @@ def _question_payload(
         "selection3": q_obj.a3,
         "selection4": q_obj.a4,
         "choice_count": getattr(q_obj, "choice_count", 4),
+        "audio": _audio_payload(q_obj),
         "marklist": marklist,
         "answerlist": answerlist,
         "selected_answer": selected,

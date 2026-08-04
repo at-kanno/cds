@@ -2,13 +2,18 @@ from constant import MaxQuestions, DIFF_JST_FROM_UTC, \
      PASS1_MESSAGE, FAIL_MESSAGE, \
      PASS_MESSAGE_IN_MAIL, PASS_MESSAGE_ON_SCREEN, FAIL_MESSAGE_ON_SCREEN
 import constant
-from flask import Flask, session, render_template, request, Blueprint
+from flask import Flask, session, render_template, request, Blueprint, send_from_directory, url_for, abort
 from users import getStage, setStage, getStatus, rankUp, rankDown, getMailadress
 import sqlite3, os
 import datetime
 from examDB import getQuestion, getQuestions, Question, getCorrectList
 from resultDB import putResult
 from mail import sendMail
+from audio_support import (
+    get_audio_play_info,
+    is_safe_audio_filename,
+    resolve_audio_dir,
+)
 
 exec_module = Blueprint("exercise", __name__, static_folder='./static')
 
@@ -17,6 +22,35 @@ def _request_value(key: str, default: str = "") -> str:
     if request.form.get(key) is not None:
         return request.form.get(key, default)
     return request.args.get(key, default)
+
+
+def _audio_template_kwargs(question, *, enforce_play_limit: bool = True) -> dict:
+    info = get_audio_play_info(question)
+    if not info:
+        return {
+            "show_audio": False,
+            "audio_url": "",
+            "max_audio_plays": 0,
+            "enforce_audio_limit": False,
+        }
+    return {
+        "show_audio": True,
+        "audio_url": url_for("exercise.serve_audio", filename=info["filename"]),
+        "max_audio_plays": info["max_audio_plays"],
+        "enforce_audio_limit": enforce_play_limit,
+    }
+
+
+@exec_module.route("/audio/<filename>")
+def serve_audio(filename: str):
+    """Serve listening mp3 from EXAM_AUDIO_DIR / backend/audio (outside git)."""
+    if not is_safe_audio_filename(filename):
+        abort(404)
+    audio_dir = resolve_audio_dir()
+    path = os.path.join(audio_dir, filename)
+    if not os.path.isfile(path):
+        abort(404)
+    return send_from_directory(audio_dir, filename, mimetype="audio/mpeg")
 
 
 def _resolve_exam_lists(
@@ -143,6 +177,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
+                               **_audio_template_kwargs(q),
                                )
 
     elif command == 'next':
@@ -185,6 +220,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
+                               **_audio_template_kwargs(q),
                                )
 
     elif command == 'previous':
@@ -227,6 +263,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
+                               **_audio_template_kwargs(q),
                                )
 
     elif command == 'move':
@@ -270,6 +307,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
+                               **_audio_template_kwargs(q),
                                )
 
     elif (command == 'finish') or (command == 'timeout'):

@@ -54,6 +54,17 @@ EC2 で:
 sudo systemctl restart spanish4
 ```
 
+### 3b. ヒアリング mp3 を置く（git 外）
+
+```bash
+sudo mkdir -p /home/ubuntu/spanish4/backend/audio
+# 例: 6101.mp3 → /home/ubuntu/spanish4/backend/audio/6101.mp3
+scp path/to/*.mp3 ubuntu@<EC2_HOST>:/home/ubuntu/spanish4/backend/audio/
+sudo systemctl restart spanish4
+```
+
+別ディレクトリにする場合は `.env` に `EXAM_AUDIO_DIR=/path/to/audio` を設定。
+
 ### 4. Apache に `/spanish4/` を追加
 
 `deploy/apache/multi-subject-proxy-snippet.conf` の内容を、既存の SSL VirtualHost  

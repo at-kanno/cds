@@ -270,6 +270,17 @@
 
 <TABLE style="margin:0;padding=0">
     <TR><TD width="40">問題</TD><TD width="20">{{ q_no }}:</TD><TD>{{ question | safe }}</TD></TR>
+    {% if show_audio %}
+    <TR><TD colspan="3" style="padding:8px 0;">
+        <audio id="listeningAudio" controls controlsList="nodownload noplaybackrate"
+               preload="metadata" src="{{ audio_url }}"></audio>
+        {% if enforce_audio_limit %}
+        <div id="audioPlayStatus" style="margin-top:4px;font-size:small;">
+            音声の再生: 残り <span id="audioPlaysLeft">{{ max_audio_plays }}</span> / {{ max_audio_plays }} 回
+        </div>
+        {% endif %}
+    </TD></TR>
+    {% endif %}
     <TR><TD width="40">
     <input type="radio" name="selection" value="1" {{ selectStr[0] }} onclick="parent.setActive({{ q_no }})"/>
     </TD><TD>A.</TD><TD>{{ selection1 }}</TD></TR>
@@ -320,6 +331,64 @@
     <H4>経過時間  <input type="text" id="time"
                    style="border:0;font-size:large;width:100px;bgcolor:white;"/></H4>
     </form>
+
+{% if show_audio and enforce_audio_limit %}
+<script>
+(function () {
+    var audio = document.getElementById("listeningAudio");
+    if (!audio) return;
+    var maxPlays = parseInt("{{ max_audio_plays|int }}", 10) || 0;
+    var key = "audioPlays_{{ exam_id }}_{{ q_no }}";
+    var plays = parseInt(sessionStorage.getItem(key) || "0", 10) || 0;
+    var inPlaySession = false;
+    var leftEl = document.getElementById("audioPlaysLeft");
+
+    function remaining() {
+        return Math.max(0, maxPlays - plays);
+    }
+
+    function updateStatus() {
+        if (leftEl) leftEl.textContent = String(remaining());
+    }
+
+    function disableAudio() {
+        audio.pause();
+        audio.removeAttribute("controls");
+        audio.removeAttribute("src");
+        audio.load();
+        audio.style.display = "none";
+        var status = document.getElementById("audioPlayStatus");
+        if (status) status.textContent = "音声の再生回数の上限に達しました。";
+    }
+
+    function finishPlaySession() {
+        inPlaySession = false;
+        updateStatus();
+        // 上限消化後も「今回の再生」は最後まで聴ける。終わってから無効化。
+        if (plays >= maxPlays) {
+            disableAudio();
+        }
+    }
+
+    audio.addEventListener("play", function () {
+        if (inPlaySession) return;
+        if (plays >= maxPlays) {
+            disableAudio();
+            return;
+        }
+        inPlaySession = true;
+        plays += 1;
+        sessionStorage.setItem(key, String(plays));
+        updateStatus();
+    });
+    audio.addEventListener("ended", finishPlaySession);
+    updateStatus();
+    if (plays >= maxPlays) {
+        disableAudio();
+    }
+})();
+</script>
+{% endif %}
 
 </body>
 

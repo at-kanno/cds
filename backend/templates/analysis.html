@@ -22,6 +22,11 @@
 採点結果：{{ rate }}   正答率：{{ correct }} / {{ total }}  合否： {{ result }}
 <br><TABLE style="margin:0;padding=0">
 <TR><TD width=70">問題 {{ q_no }}</TD><TD>{{ q  | safe }}</TD></TR>
+{% if show_audio %}
+<TR><TD colspan="2" style="padding:8px 0;">
+    <audio controls controlsList="nodownload" preload="metadata" src="{{ audio_url }}"></audio>
+</TD></TR>
+{% endif %}
 <TR><TD>A.</TD><TD>{{ a1 }}</TD></TR>
 <TR><TD>B.</TD><TD>{{ a2 }}</TD></TR>
 {% if a3 %}

@@ -5,6 +5,8 @@ backend/.env
 backend/DEBUG.log
 backend/exam.sqlite
 backend/exam-*.sqlite
+backend/audio/*
+!backend/audio/README.md
 frontend/.dart_tool/
 frontend/build/
 frontend/all
