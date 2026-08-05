@@ -1,15 +1,9 @@
-# Listening audio (not in git)
+# Listening audio
 
-Place mp3 files here (or set `EXAM_AUDIO_DIR`).
+Place mp3 files here (or set `EXAM_AUDIO_DIR`). `*.mp3` is tracked in git.
 
 - Normal: `{NUMBER}.mp3` (example: `6101.mp3`)
 - Shared conversation (optional): `{FLAG}.mp3` with FLAG in 201–299
-- TOEIC Part1: `{NUMBER}.mp3` may also live next to PNG in `backend/image/`
+- TOEIC Part1 choice clips live next to PNG in `backend/image/` (`{NUMBER}-A.mp3` … `D`)
 
-EC2 example:
-
-```bash
-sudo mkdir -p /home/ubuntu/spanish4/backend/audio
-# copy *.mp3 into that directory
-sudo systemctl restart spanish4
-```
+EC2: pull/deploy the repo (or sync `backend/audio/`), then restart the service.

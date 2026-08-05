@@ -4,6 +4,7 @@ __pycache__/
 .env
 audio/*
 !audio/README.md
+!audio/*.mp3
 image/*
 !image/README.md
 !image/*.png
