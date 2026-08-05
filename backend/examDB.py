@@ -139,6 +139,8 @@ def getQuestion(examlist, q_no):
     q.category = _safe_int(r[9])
     # FLAG may hold legacy non-numeric labels; only 101-199 / 201-299 are used as ints.
     q.flag = _safe_int(r[10])
+    # Same slot order used for shuffled answer text; choice audio remaps with this.
+    q.permutation = [int(value) for value in idx]
 
     _debug_print('Question=', q.q)
     return q, conn, c

@@ -1,10 +1,50 @@
 import sqlite3
+from types import SimpleNamespace
 from typing import Any
 
+from audio_support import get_audio_play_info, get_choice_audio_info
 from config_loader import get_areas, get_exam_entry
 from constant import db_path
 from examDB import getQuestionFromCategory, getQuestionFromNum
+from image_support import get_image_info
 from users import getStage, setStage
+
+
+def _media_payloads(num, db_category: int, permutation) -> dict[str, Any]:
+    stub = SimpleNamespace(
+        number=int(num),
+        category=int(db_category),
+        permutation=permutation,
+        flag=0,
+    )
+    choice = get_choice_audio_info(stub)
+    audio = None if choice else get_audio_play_info(stub)
+    image = get_image_info(stub)
+    payload: dict[str, Any] = {
+        "audio": None,
+        "choice_audio": None,
+        "image": None,
+    }
+    if choice:
+        payload["choice_audio"] = {
+            "choices": {
+                letter: {"filename": filename, "url": f"/audio/{filename}"}
+                for letter, filename in choice["choices"].items()
+            },
+            "max_audio_plays": choice["max_audio_plays"],
+        }
+    elif audio:
+        payload["audio"] = {
+            "filename": audio["filename"],
+            "url": f"/audio/{audio['filename']}",
+            "max_audio_plays": audio["max_audio_plays"],
+        }
+    if image:
+        payload["image"] = {
+            "filename": image["filename"],
+            "url": f"/image/{image['filename']}",
+        }
+    return payload
 
 
 def _question_response(
@@ -23,7 +63,11 @@ def _question_response(
     permutation: str,
     time_limit_seconds: int,
     choice_count: int = 4,
+    db_category: int | None = None,
 ) -> dict[str, Any]:
+    media = _media_payloads(num, db_category if db_category is not None else category, permutation)
+    if media.get("choice_audio"):
+        selection1 = selection2 = selection3 = selection4 = ""
     return {
         "mode": "single",
         "user_id": user_id,
@@ -41,6 +85,7 @@ def _question_response(
         "num": str(num),
         "permutation": str(permutation),
         "time_limit_seconds": time_limit_seconds,
+        **media,
     }
 
 
@@ -86,6 +131,7 @@ def start_single_exam(user_id: int, category: int) -> dict[str, Any]:
         permutation=permutation,
         time_limit_seconds=time_limit,
         choice_count=choice_count,
+        db_category=start,
     )
 
 
@@ -128,6 +174,10 @@ def check_single_answer(
     conn.close()
     comment = row[0] if row else ""
 
+    entry = get_exam_entry(int(category))
+    db_category = int(entry["category_range"][0]) if entry and entry.get("category_range") else int(category)
+    media = _media_payloads(num, db_category, permutation)
+
     return {
         "mode": "single_result",
         "user_id": user_id,
@@ -143,4 +193,5 @@ def check_single_answer(
         "selection4": a4,
         "choice_count": sum(1 for text in (a1, a2, a3, a4) if text),
         "comment": comment,
+        **media,
     }

@@ -76,15 +76,23 @@ class ConfigLoaderTests(unittest.TestCase):
                 key, section, f"SPANISH4.{key} should live in spanish4.exams.yaml"
             )
 
-    def test_toeic_still_uses_config_json_menu(self) -> None:
+    def test_toeic_uses_yaml_hierarchical_menu(self) -> None:
         os.environ["APP_PROFILE"] = "TOEIC"
         clear_config_cache()
+        from exam_plan_loader import clear_exam_plan_cache
+
+        clear_exam_plan_cache()
         menu = get_menu_template()
         self.assertEqual(menu["title"], "TOEIC メニュー")
+        self.assertTrue(menu.get("hierarchy"))
+        self.assertIn("single_question", menu.get("submenus", {}))
         entry = get_exam_entry(70)
         self.assertIsNotNone(entry)
         assert entry is not None
         self.assertEqual(entry["amount"], 200)
+        section = get_profile_section()
+        for key in ("areas", "exam_catalog", "status_rules", "menu"):
+            self.assertNotIn(key, section)
 
     def test_resolve_db_path_uses_profile_name(self) -> None:
         os.environ["APP_PROFILE"] = "SPANISH4"

@@ -56,6 +56,43 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
       return;
     }
 
+    if (item.action == 'openSubmenu') {
+      final key = item.submenu;
+      if (key == null || key.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('サブメニューが設定されていません。')),
+        );
+        return;
+      }
+      final menu = await _menuFuture;
+      final section = menu.submenus[key];
+      if (section == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('サブメニュー "$key" が見つかりません。')),
+        );
+        return;
+      }
+      if (!mounted) {
+        return;
+      }
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => _SubMenuScreen(
+            userId: widget.userId,
+            email: widget.email,
+            title: section.title.isNotEmpty ? section.title : item.label,
+            section: section,
+            actions: menu.actions,
+            onActionTap: _onActionTap,
+            onExamTap: _onMenuItemTap,
+            parseColor: _parseColor,
+          ),
+        ),
+      );
+      await _reloadMenu();
+      return;
+    }
+
     if (item.action == 'makeExam3') {
       try {
         final session = await _examService.startSingleExam(
@@ -170,7 +207,10 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('メインメニュー'),
+        title: Text(
+          // Prefer server-provided subject title when available after load.
+          'メインメニュー',
+        ),
         actions: [
           IconButton(
             onPressed: _reloadMenu,
@@ -210,21 +250,28 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
             padding: const EdgeInsets.all(16),
             children: [
               Text(
+                menu.title,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 4),
+              Text(
                 menu.email.isNotEmpty ? menu.email : widget.email,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Text('Status: ${menu.status}'),
               const SizedBox(height: 16),
               for (final section in menu.sections) ...[
-                Text(
-                  section.title,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                if (section.message != null) ...[
-                  const SizedBox(height: 8),
-                  Text(section.message!),
+                if (section.title.isNotEmpty) ...[
+                  Text(
+                    section.title,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 12),
                 ],
-                const SizedBox(height: 12),
+                if (section.message != null) ...[
+                  Text(section.message!),
+                  const SizedBox(height: 8),
+                ],
                 for (final item in section.items)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -234,7 +281,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                       onTap: () => _onMenuItemTap(item, section.message),
                     ),
                   ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
               ],
               Wrap(
                 spacing: 12,
@@ -250,6 +297,65 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _SubMenuScreen extends StatelessWidget {
+  const _SubMenuScreen({
+    required this.userId,
+    required this.email,
+    required this.title,
+    required this.section,
+    required this.actions,
+    required this.onActionTap,
+    required this.onExamTap,
+    required this.parseColor,
+  });
+
+  final int userId;
+  final String email;
+  final String title;
+  final MenuSection section;
+  final List<MenuAction> actions;
+  final Future<void> Function(MenuAction action) onActionTap;
+  final Future<void> Function(MenuItem item, String? sectionMessage) onExamTap;
+  final Color Function(String hex) parseColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (section.message != null) ...[
+            Text(section.message!),
+            const SizedBox(height: 12),
+          ],
+          for (final item in section.items)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _MenuButton(
+                item: item,
+                color: parseColor(item.color),
+                onTap: () => onExamTap(item, section.message),
+              ),
+            ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              for (final action in actions)
+                OutlinedButton(
+                  onPressed: action.enabled ? () => onActionTap(action) : null,
+                  child: Text(action.label),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }

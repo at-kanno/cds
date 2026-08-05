@@ -9,11 +9,8 @@ import datetime
 from examDB import getQuestion, getQuestions, Question, getCorrectList
 from resultDB import putResult
 from mail import sendMail
-from audio_support import (
-    get_audio_play_info,
-    is_safe_audio_filename,
-    resolve_audio_dir,
-)
+from audio_support import get_audio_play_info, get_choice_audio_info, locate_audio_file
+from image_support import get_image_info, is_safe_image_filename, resolve_image_dir
 
 exec_module = Blueprint("exercise", __name__, static_folder='./static')
 
@@ -24,33 +21,87 @@ def _request_value(key: str, default: str = "") -> str:
     return request.args.get(key, default)
 
 
-def _audio_template_kwargs(question, *, enforce_play_limit: bool = True) -> dict:
-    info = get_audio_play_info(question)
-    if not info:
-        return {
-            "show_audio": False,
-            "audio_url": "",
-            "max_audio_plays": 0,
-            "enforce_audio_limit": False,
-        }
-    return {
-        "show_audio": True,
-        "audio_url": url_for("exercise.serve_audio", filename=info["filename"]),
-        "max_audio_plays": info["max_audio_plays"],
-        "enforce_audio_limit": enforce_play_limit,
+def _media_template_kwargs(question, *, enforce_play_limit: bool = True) -> dict:
+    choice_audio = get_choice_audio_info(question)
+    audio = None if choice_audio else get_audio_play_info(question)
+    image = get_image_info(question)
+    kwargs = {
+        "show_audio": False,
+        "audio_url": "",
+        "show_choice_audio": False,
+        "choice_audio_urls": {},
+        "max_audio_plays": 0,
+        "enforce_audio_limit": False,
+        "show_image": False,
+        "image_url": "",
     }
+    if choice_audio:
+        urls = {
+            letter: url_for("exercise.serve_audio", filename=filename)
+            for letter, filename in choice_audio["choices"].items()
+        }
+        kwargs.update(
+            {
+                "show_choice_audio": True,
+                "choice_audio_urls": urls,
+                "max_audio_plays": choice_audio["max_audio_plays"],
+                "enforce_audio_limit": enforce_play_limit,
+            }
+        )
+    elif audio:
+        kwargs.update(
+            {
+                "show_audio": True,
+                "audio_url": url_for("exercise.serve_audio", filename=audio["filename"]),
+                "max_audio_plays": audio["max_audio_plays"],
+                "enforce_audio_limit": enforce_play_limit,
+            }
+        )
+    if image:
+        kwargs.update(
+            {
+                "show_image": True,
+                "image_url": url_for("exercise.serve_image", filename=image["filename"]),
+            }
+        )
+    return kwargs
+
+
+# Backward-compatible alias used by older call sites / result module imports.
+def _audio_template_kwargs(question, *, enforce_play_limit: bool = True) -> dict:
+    return _media_template_kwargs(question, enforce_play_limit=enforce_play_limit)
 
 
 @exec_module.route("/audio/<filename>")
 def serve_audio(filename: str):
-    """Serve listening mp3 from EXAM_AUDIO_DIR / backend/audio (outside git)."""
-    if not is_safe_audio_filename(filename):
+    """Serve listening mp3 from audio/ or image/ (Part1 colocated)."""
+    path = locate_audio_file(filename)
+    if not path:
         abort(404)
-    audio_dir = resolve_audio_dir()
-    path = os.path.join(audio_dir, filename)
+    return send_from_directory(
+        os.path.dirname(path),
+        os.path.basename(path),
+        mimetype="audio/mpeg",
+    )
+
+
+@exec_module.route("/image/<filename>")
+def serve_image(filename: str):
+    """Serve question images from EXAM_IMAGE_DIR / backend/image."""
+    if not is_safe_image_filename(filename):
+        abort(404)
+    image_dir = resolve_image_dir()
+    path = os.path.join(image_dir, filename)
     if not os.path.isfile(path):
         abort(404)
-    return send_from_directory(audio_dir, filename, mimetype="audio/mpeg")
+    lower = filename.lower()
+    if lower.endswith(".png"):
+        mime = "image/png"
+    elif lower.endswith(".webp"):
+        mime = "image/webp"
+    else:
+        mime = "image/jpeg"
+    return send_from_directory(image_dir, filename, mimetype=mime)
 
 
 def _resolve_exam_lists(
@@ -177,7 +228,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
-                               **_audio_template_kwargs(q),
+                               **_media_template_kwargs(q),
                                )
 
     elif command == 'next':
@@ -220,7 +271,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
-                               **_audio_template_kwargs(q),
+                               **_media_template_kwargs(q),
                                )
 
     elif command == 'previous':
@@ -263,7 +314,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
-                               **_audio_template_kwargs(q),
+                               **_media_template_kwargs(q),
                                )
 
     elif command == 'move':
@@ -307,7 +358,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
-                               **_audio_template_kwargs(q),
+                               **_media_template_kwargs(q),
                                )
 
     elif (command == 'finish') or (command == 'timeout'):

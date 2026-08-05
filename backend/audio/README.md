@@ -4,6 +4,7 @@ Place mp3 files here (or set `EXAM_AUDIO_DIR`).
 
 - Normal: `{NUMBER}.mp3` (example: `6101.mp3`)
 - Shared conversation (optional): `{FLAG}.mp3` with FLAG in 201–299
+- TOEIC Part1: `{NUMBER}.mp3` may also live next to PNG in `backend/image/`
 
 EC2 example:
 

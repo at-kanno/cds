@@ -14,7 +14,9 @@
     {% if not loop.first %}
       <hr size="3" noshade="">
     {% endif %}
-    <h3 style="text-align:center;"><b><ul>【{{ section.title }}】</ul></b></h3>
+    {% if section.title %}
+      <h3 style="text-align:center;"><b><ul>【{{ section.title }}】</ul></b></h3>
+    {% endif %}
     {% if section.message %}
       <p style="text-align:center;">{{ section.message }}</p>
     {% endif %}
@@ -27,6 +29,28 @@
             <div class="six cols">
               <div class="row">
                 <div class="six mobile-two cols">
+                  {% if item.action == 'openSubmenu' %}
+                  <form action="submenu" method="POST">
+                    <input type="hidden" name="user_id" value="{{ user_id }}" />
+                    <input type="hidden" name="submenu" value="{{ item.submenu }}" />
+                    {% if item.enabled %}
+                      <button
+                        class="top-buttons"
+                        type="submit"
+                        style="background:{{ item.color }}">
+                        {{ item.label }}<br>［{{ item.subtitle }}］
+                      </button>
+                    {% else %}
+                      <button
+                        class="top-buttons"
+                        type="button"
+                        style="background:{{ item.color }};color:#D0D0D0"
+                        onclick="alert({{ (section.message or 'この試験には、まだ挑戦できません。')|tojson }});">
+                        {{ item.label }}<br>［{{ item.subtitle }}］
+                      </button>
+                    {% endif %}
+                  </form>
+                  {% else %}
                   <form action="{{ item.action }}" method="POST">
                     <input type="hidden" name="user_id" value="{{ user_id }}" />
                     {% if item.enabled %}
@@ -50,6 +74,7 @@
                       </button>
                     {% endif %}
                   </form>
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -60,6 +85,13 @@
   {% endfor %}
 
   <div class="buttonwrap" style="display:inline-flex; margin-top: 16px;">
+    {% if show_back_to_main %}
+      <form action="mainMenu" method="POST">
+        <input type="hidden" name="user_id" value="{{ user_id }}" />
+        <input type="submit" value="メインメニューへ"
+               style="background:#f2f2f2;color:black;border:1">
+      </form>
+    {% endif %}
     {% for action in menu['actions'] %}
       {% if action.action == 'logout' %}
         <form action="{{ url_for('logout') }}" method="POST">
@@ -82,3 +114,4 @@
 </div>
 </body>
 </html>
+

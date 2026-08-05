@@ -115,6 +115,26 @@ def _pick_from_pool(pool: list[int]) -> int:
     return int(random.choice(pool))
 
 
+def _expand_equal_from(rule: dict[str, Any]) -> list[int]:
+    """Distribute ``count`` picks evenly across ``equal_from`` categories."""
+    pool = [int(value) for value in rule.get("equal_from", [])]
+    if not pool:
+        raise ValueError(f"equal_from pool is empty: {rule}")
+    count = int(rule.get("count") or rule.get("repeat") or 0)
+    if count <= 0:
+        raise ValueError(f"equal_from requires positive count: {rule}")
+
+    base, remainder = divmod(count, len(pool))
+    order = list(pool)
+    random.shuffle(order)
+    assigned: list[int] = []
+    for index, category in enumerate(order):
+        n = base + (1 if index < remainder else 0)
+        assigned.extend([category] * n)
+    random.shuffle(assigned)
+    return assigned
+
+
 def _expand_slot_rule(plan: dict[str, Any], rule: dict[str, Any]) -> list[int]:
     if "use" in rule:
         sequence_name = rule["use"]
@@ -129,6 +149,9 @@ def _expand_slot_rule(plan: dict[str, Any], rule: dict[str, Any]) -> list[int]:
         if take is not None:
             return categories[: int(take)]
         return categories
+
+    if "equal_from" in rule:
+        return _expand_equal_from(rule)
 
     if "repeat" in rule:
         count = int(rule["repeat"])
@@ -180,6 +203,8 @@ def count_exam_slots(plan: dict[str, Any], exam: dict[str, Any]) -> int:
             )
             take = rule.get("take")
             total += min(int(take), seq_count) if take is not None else seq_count
+        elif "equal_from" in rule:
+            total += int(rule.get("count") or rule.get("repeat") or 0)
         elif "repeat" in rule:
             total += int(rule["repeat"])
         elif "from" in rule or "pick" in rule:
@@ -270,37 +295,81 @@ def _build_menu_item(
     }
 
 
+def _build_section_items(
+    plan: dict[str, Any], item_refs: list[Any]
+) -> list[dict[str, Any]]:
+    exams = plan.get("exams", {})
+    items: list[dict[str, Any]] = []
+    for item_ref in item_refs:
+        if isinstance(item_ref, dict):
+            items.append(dict(item_ref))
+            continue
+        exam_id = str(item_ref)
+        exam = exams.get(exam_id)
+        if exam is None:
+            raise KeyError(
+                f"Exam {exam_id!r} referenced in menu but missing from exams"
+            )
+        items.append(_build_menu_item(exam_id, exam, plan))
+    return items
+
+
+def _build_hierarchical_menu(
+    plan: dict[str, Any], menu_block: dict[str, Any]
+) -> dict[str, Any]:
+    top_items: list[dict[str, Any]] = []
+    for item in menu_block.get("top", []):
+        top_items.append(
+            {
+                "category": int(item.get("category", 0)),
+                "action": item.get("action", "openSubmenu"),
+                "submenu": item.get("submenu"),
+                "label": item["label"],
+                "subtitle": item.get("subtitle", ""),
+                "color": item.get("color", "#808080"),
+                "enabled": item.get("enabled", True),
+            }
+        )
+
+    submenus: dict[str, Any] = {}
+    for key, section in menu_block.get("submenus", {}).items():
+        built = {
+            "id": key,
+            "title": section.get("title", key),
+            "items": _build_section_items(plan, section.get("items", [])),
+        }
+        if "status_rule" in section:
+            built["status_rule"] = section["status_rule"]
+        submenus[key] = built
+
+    return {
+        "title": menu_block.get("title", "メインメニュー"),
+        "hierarchy": True,
+        "sections": [{"id": "home", "title": "", "items": top_items}],
+        "submenus": submenus,
+        "actions": list(menu_block.get("actions", [])),
+    }
+
+
 def get_menu_from_plan(profile: str | None = None) -> dict[str, Any] | None:
     plan = load_exam_plan(profile)
     if not plan or "menu" not in plan:
         return None
 
     menu_block = plan["menu"]
+    if menu_block.get("hierarchy"):
+        return _build_hierarchical_menu(plan, menu_block)
+
     sections: list[dict[str, Any]] = []
-    exams = plan.get("exams", {})
 
     for section in menu_block.get("sections", []):
         built_section: dict[str, Any] = {
             "id": section["id"],
             "title": section["title"],
-            "items": [],
+            "items": _build_section_items(plan, section.get("items", [])),
         }
         if "status_rule" in section:
             built_section["status_rule"] = section["status_rule"]
-
-        for item_ref in section.get("items", []):
-            if isinstance(item_ref, dict):
-                built_section["items"].append(dict(item_ref))
-                continue
-
-            exam_id = str(item_ref)
-            exam = exams.get(exam_id)
-            if exam is None:
-                raise KeyError(
-                    f"Exam {exam_id!r} referenced in menu but missing from exams"
-                )
-            built_section["items"].append(_build_menu_item(exam_id, exam, plan))
-
         sections.append(built_section)
 
     return {

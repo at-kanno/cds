@@ -1,0 +1,475 @@
+# TOEIC L&R — 試験プラン
+#
+# カテゴリ（knowledge_base.CATEGORY）:
+#   Part1 写真描写   11
+#   Part2 応答       21
+#   Part3 会話       31  （セット: FLAG でグループ化予定）
+#   Part4 説明文     41  （セット予定）
+#   Part5 短文穴埋め 51-55（品詞/時制/前置詞/接続詞/語彙）均等
+#   Part6 長文穴埋め 61  （セット予定）
+#   Part7 読解       71 シングル / 72 ダブル / 73 トリプル
+#
+# 時間（暫定）: Listening 30秒/問, Reading 45秒/問
+
+area_order:
+  - part1
+  - part2
+  - part3
+  - part4
+  - part5
+  - part6
+  - part7
+
+areas:
+  part1:
+    name: 写真描写問題
+    abbrev: P1
+    # Part1 は当面 CATEGORY 11 のみ（将来拡張の余地あり）
+    categories: [11]
+    practices: [写真描写問題]
+    choice_count: 4
+    listening: true
+    max_audio_plays: 1
+    # メディア: backend/image/{NUMBER}.png と {NUMBER}-A..D.mp3
+    # 出題時は選択肢テキスト非表示（音声のみ）。解説では表示。
+  part2:
+    name: 応答問題
+    abbrev: P2
+    categories: [21]
+    practices: [応答問題]
+    choice_count: 4
+    listening: true
+    max_audio_plays: 2
+  part3:
+    name: 会話問題
+    abbrev: P3
+    categories: [31]
+    practices: [会話問題]
+    choice_count: 4
+    listening: true
+    max_audio_plays: 2
+    set_size: 3
+    passage_group: flag
+  part4:
+    name: 説明文問題
+    abbrev: P4
+    categories: [41]
+    practices: [説明文問題]
+    choice_count: 4
+    listening: true
+    max_audio_plays: 2
+    set_size: 3
+    passage_group: flag
+  part5:
+    name: 短文穴埋め問題
+    abbrev: P5
+    # area コード 50 相当。出題カテゴリは 51-55
+    area_code: 50
+    categories: [51, 52, 53, 54, 55]
+    practices: [品詞, 時制, 前置詞, 接続詞, 語彙]
+    choice_count: 4
+  part6:
+    name: 長文穴埋め問題
+    abbrev: P6
+    categories: [61]
+    practices: [長文穴埋め問題]
+    choice_count: 4
+    set_size: 4
+    passage_group: flag
+  part7:
+    name: 読解問題
+    abbrev: P7
+    categories: [71, 72, 73]
+    practices: [シングルパッケージ, ダブルパッケージ, トリプルパッケージ]
+    choice_count: 4
+    passage_group: flag
+
+status_rules:
+  mock_exam:
+    min_status: 0
+    completed_min_status: 999
+    messages:
+      locked: ""
+      unlocked: 本番形式の模擬試験を受験できます。
+      completed: 模擬試験を複数回受験済みです。
+
+menu:
+  title: TOEIC メニュー
+  hierarchy: true
+  top:
+    - id: single_question
+      label: 一問一答
+      subtitle: Part別・1問または1セット
+      action: openSubmenu
+      submenu: single_question
+      color: "#7C3AED"
+    - id: area_quiz
+      label: 分野別問題
+      subtitle: Part別の確認問題
+      action: openSubmenu
+      submenu: area_quiz
+      color: "#2563EB"
+    - id: comprehensive
+      label: 総合問題
+      subtitle: ヒアリング / リーディング / 本番
+      action: openSubmenu
+      submenu: comprehensive
+      color: "#059669"
+  submenus:
+    single_question:
+      title: 一問一答
+      items: [91, 92, 93, 94, 95, 96, 97]
+    area_quiz:
+      title: 分野別問題
+      items: [10, 11, 12, 13, 14, 15, 16]
+    comprehensive:
+      title: 総合問題
+      status_rule: mock_exam
+      items: [30, 31, 32, 40, 41, 42, 60, 70]
+  actions:
+    - id: admin
+      label: 管理画面
+      action: makeExam
+      category: 99
+    - id: logout
+      label: ログアウト
+      action: logout
+
+exams:
+  # --- 一問一答（セット型は暫定でカテゴリから1問。セット単位UIは後続） ---
+  "91":
+    mode: single
+    action: makeExam3
+    category_range: [11, 11]
+    time_limit_seconds: 30
+    menu:
+      label: 写真描写問題
+      color: "#3B82F6"
+  "92":
+    mode: single
+    action: makeExam3
+    category_range: [21, 21]
+    time_limit_seconds: 30
+    menu:
+      label: 応答問題
+      color: "#2563EB"
+  "93":
+    mode: single
+    action: makeExam3
+    category_range: [31, 31]
+    time_limit_seconds: 90
+    menu:
+      label: 会話問題
+      subtitle: 1セット（3問）想定
+      color: "#1D4ED8"
+  "94":
+    mode: single
+    action: makeExam3
+    category_range: [41, 41]
+    time_limit_seconds: 90
+    menu:
+      label: 説明文問題
+      subtitle: 1セット（3問）想定
+      color: "#1E40AF"
+  "95":
+    mode: single
+    action: makeExam3
+    category_range: [51, 55]
+    time_limit_seconds: 45
+    menu:
+      label: 短文穴埋め問題
+      color: "#059669"
+  "96":
+    mode: single
+    action: makeExam3
+    category_range: [61, 61]
+    time_limit_seconds: 180
+    menu:
+      label: 長文穴埋め問題
+      subtitle: 1セット（4問）想定
+      color: "#047857"
+  "97":
+    mode: single
+    action: makeExam3
+    category_range: [71, 73]
+    time_limit_seconds: 180
+    menu:
+      label: 読解問題
+      subtitle: 1パッケージ想定
+      color: "#065F46"
+
+  # --- 分野別（P1/2/5/7=5問, P3/4/6=2セットから5問）---
+  "10":
+    mode: multi
+    action: makeExam
+    title: 写真描写問題：分野別
+    exam_type: 写真描写(5問)
+    time_limit_seconds: 150
+    menu:
+      label: 写真描写問題
+      subtitle: "5問 / 約2分30秒"
+      color: "#3B82F6"
+    slots:
+      - repeat: 5
+        from: [11]
+  "11":
+    mode: multi
+    action: makeExam
+    title: 応答問題：分野別
+    exam_type: 応答(5問)
+    time_limit_seconds: 150
+    menu:
+      label: 応答問題
+      subtitle: "5問 / 約2分30秒"
+      color: "#2563EB"
+    slots:
+      - repeat: 5
+        from: [21]
+  "12":
+    mode: multi
+    action: makeExam
+    title: 会話問題：分野別
+    exam_type: 会話(5問)
+    time_limit_seconds: 150
+    menu:
+      label: 会話問題
+      subtitle: "2セットから5問 / 約2分30秒"
+      color: "#1D4ED8"
+    slots:
+      # 暫定: 5問ランダム。セット抽出ロジックは後続
+      - repeat: 5
+        from: [31]
+  "13":
+    mode: multi
+    action: makeExam
+    title: 説明文問題：分野別
+    exam_type: 説明文(5問)
+    time_limit_seconds: 150
+    menu:
+      label: 説明文問題
+      subtitle: "2セットから5問 / 約2分30秒"
+      color: "#1E40AF"
+    slots:
+      - repeat: 5
+        from: [41]
+  "14":
+    mode: multi
+    action: makeExam
+    title: 短文穴埋め問題：分野別
+    exam_type: 短文穴埋め(5問)
+    time_limit_seconds: 225
+    menu:
+      label: 短文穴埋め問題
+      subtitle: "5問（51-55均等）/ 約3分45秒"
+      color: "#059669"
+    slots:
+      - equal_from: [51, 52, 53, 54, 55]
+        count: 5
+  "15":
+    mode: multi
+    action: makeExam
+    title: 長文穴埋め問題：分野別
+    exam_type: 長文穴埋め(5問)
+    time_limit_seconds: 225
+    menu:
+      label: 長文穴埋め問題
+      subtitle: "2セットから5問 / 約3分45秒"
+      color: "#047857"
+    slots:
+      - repeat: 5
+        from: [61]
+  "16":
+    mode: multi
+    action: makeExam
+    title: 読解問題：分野別
+    exam_type: 読解(5問)
+    time_limit_seconds: 225
+    menu:
+      label: 読解問題
+      subtitle: "5問 / 約3分45秒"
+      color: "#065F46"
+    slots:
+      - repeat: 5
+        from: [71, 72, 73]
+
+  # --- 総合：ヒアリング ---
+  "30":
+    mode: multi
+    action: makeExam
+    title: ヒアリング（10問）
+    exam_type: ヒアリング(10問)
+    time_limit_seconds: 300
+    menu:
+      label: ヒアリング（10問）
+      color: "#2563EB"
+    slots:
+      - repeat: 3
+        from: [11]
+      - repeat: 3
+        from: [21]
+      - repeat: 2
+        from: [31]
+      - repeat: 2
+        from: [41]
+  "31":
+    mode: multi
+    action: makeExam
+    title: ヒアリング（50問）
+    exam_type: ヒアリング(50問)
+    time_limit_seconds: 1500
+    menu:
+      label: ヒアリング（50問）
+      color: "#1D4ED8"
+    slots:
+      - repeat: 5
+        from: [11]
+      - repeat: 12
+        from: [21]
+      - repeat: 18
+        from: [31]
+      - repeat: 15
+        from: [41]
+  "32":
+    mode: multi
+    action: makeExam
+    title: ヒアリング（100問）
+    exam_type: ヒアリング(100問)
+    time_limit_seconds: 3000
+    menu:
+      label: ヒアリング（100問）
+      color: "#1E3A8A"
+    slots:
+      - repeat: 6
+        from: [11]
+      - repeat: 25
+        from: [21]
+      - repeat: 39
+        from: [31]
+      - repeat: 30
+        from: [41]
+
+  # --- 総合：リーディング ---
+  "40":
+    mode: multi
+    action: makeExam
+    title: リーディング（10問）
+    exam_type: リーディング(10問)
+    time_limit_seconds: 450
+    menu:
+      label: リーディング（10問）
+      color: "#059669"
+    slots:
+      - equal_from: [51, 52, 53, 54, 55]
+        count: 5
+      - repeat: 2
+        from: [61]
+      - repeat: 3
+        from: [71, 72, 73]
+  "41":
+    mode: multi
+    action: makeExam
+    title: リーディング（50問）
+    exam_type: リーディング(50問)
+    time_limit_seconds: 2250
+    menu:
+      label: リーディング（50問）
+      color: "#047857"
+    slots:
+      - equal_from: [51, 52, 53, 54, 55]
+        count: 15
+      - repeat: 8
+        from: [61]
+      - repeat: 14
+        from: [71]
+      - repeat: 5
+        from: [72]
+      - repeat: 8
+        from: [73]
+  "42":
+    mode: multi
+    action: makeExam
+    title: リーディング（100問）
+    exam_type: リーディング(100問)
+    time_limit_seconds: 4500
+    menu:
+      label: リーディング（100問）
+      color: "#065F46"
+    slots:
+      - equal_from: [51, 52, 53, 54, 55]
+        count: 30
+      - repeat: 16
+        from: [61]
+      - repeat: 29
+        from: [71]
+      - repeat: 10
+        from: [72]
+      - repeat: 15
+        from: [73]
+
+  # --- 全領域100 = L50 + R50 ---
+  "60":
+    mode: multi
+    action: makeExam
+    title: 全領域（100問）
+    exam_type: 全領域(100問)
+    time_limit_seconds: 3750
+    menu:
+      label: 全領域（100問）
+      subtitle: "L50 + R50"
+      color: "#B45309"
+    slots:
+      - repeat: 5
+        from: [11]
+      - repeat: 12
+        from: [21]
+      - repeat: 18
+        from: [31]
+      - repeat: 15
+        from: [41]
+      - equal_from: [51, 52, 53, 54, 55]
+        count: 15
+      - repeat: 8
+        from: [61]
+      - repeat: 14
+        from: [71]
+      - repeat: 5
+        from: [72]
+      - repeat: 8
+        from: [73]
+
+  # --- 本番200 = L100 + R100 ---
+  "70":
+    mode: multi
+    action: makeExam
+    title: TOEIC 本番形式
+    exam_type: 本番形式(200問)
+    time_limit_seconds: 7500
+    requires_status_min: 0
+    pass_score: 600
+    menu:
+      label: 本番形式（200問）
+      subtitle: "L100 + R100 / 暫定時間"
+      color: "#DC2626"
+    slots:
+      - repeat: 6
+        from: [11]
+      - repeat: 25
+        from: [21]
+      - repeat: 39
+        from: [31]
+      - repeat: 30
+        from: [41]
+      - equal_from: [51, 52, 53, 54, 55]
+        count: 30
+      - repeat: 16
+        from: [61]
+      - repeat: 29
+        from: [71]
+      - repeat: 10
+        from: [72]
+      - repeat: 15
+        from: [73]
+
+  "99":
+    mode: admin
+    action: makeExam

@@ -2,9 +2,40 @@ from constant import db_path, abbreviation
 import constant
 from flask import Flask, session, render_template, request, Blueprint
 import sqlite3, os
+from types import SimpleNamespace
 from users import getStage, setStage, getStatus, getPrivilege
 from examDB import makeExam2, getQuestionFromCategory, getQuestionFromNum, saveExam, getCorrectList
 from config_loader import get_exam_entry
+from exercise import _media_template_kwargs
+
+
+def _single_question_media(num, category, permutation, *, enforce_play_limit: bool = True) -> dict:
+    """Build image / choice-audio kwargs for 一問一答 (permutation-aware)."""
+    db_category = None
+    try:
+        conn = sqlite3.connect(db_path)
+        row = conn.execute(
+            "SELECT CATEGORY FROM knowledge_base WHERE NUMBER = ?",
+            (int(num),),
+        ).fetchone()
+        conn.close()
+        if row:
+            db_category = int(row[0])
+    except Exception:
+        pass
+    if db_category is None:
+        entry = get_exam_entry(int(category)) if str(category).isdigit() else None
+        if entry and entry.get("category_range"):
+            db_category = int(entry["category_range"][0])
+        else:
+            db_category = int(category) if str(category).isdigit() else 0
+    stub = SimpleNamespace(
+        number=int(num),
+        category=db_category,
+        permutation=permutation,
+        flag=0,
+    )
+    return _media_template_kwargs(stub, enforce_play_limit=enforce_play_limit)
 
 
 def _multi_exam_settings(
@@ -46,6 +77,46 @@ def _login_path() -> str:
 
 
 exam_module = Blueprint("exam", __name__, static_folder='./static')
+
+
+@exam_module.route("/submenu", methods=["POST"])
+def open_submenu():
+    """HTML 2-level menu: show a submenu section with the same admin/logout actions."""
+    from menu_service import build_main_menu
+
+    user_id = request.form.get("user_id")
+    submenu_key = request.form.get("submenu") or ""
+    menu = build_main_menu(int(user_id))
+    section = (menu.get("submenus") or {}).get(submenu_key)
+    if not section:
+        return render_template(
+            "error.html",
+            user_id=user_id,
+            error_message=f"サブメニューが見つかりません: {submenu_key}",
+        )
+
+    sub_menu = {
+        "title": section.get("title") or submenu_key,
+        "sections": [section],
+        "actions": menu.get("actions", []),
+        "hierarchy": False,
+    }
+    return render_template(
+        "main-menu.html",
+        user_id=int(user_id),
+        status=menu.get("status", 0),
+        menu=sub_menu,
+        show_back_to_main=True,
+    )
+
+
+@exam_module.route("/mainMenu", methods=["POST"])
+def main_menu_page():
+    from menu_view import render_main_menu_page
+
+    user_id = request.form.get("user_id")
+    return render_main_menu_page(user_id)
+
 
 # 基本概念を選択
 @exam_module.route('/makeExam', methods=['POST'])
@@ -229,6 +300,9 @@ def makeExam3():
                                category=category,
                                area=area,
                                subject=constant.SUBJECT,
+                               **_single_question_media(
+                                   num, category, permutation, enforce_play_limit=False
+                               ),
                                )
     else:
         stage = getStage(user_id)
@@ -286,6 +360,7 @@ def makeExam3():
                            category=category,
                            area=abbreviation[n], # 領域（エリア）名：constant.pyで定義subject = constant.SUBJECT,
                            subject = constant.SUBJECT,
+                           **_single_question_media(num, category, permutation),
     )
 
 # ログインしているか調べる

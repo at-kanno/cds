@@ -17,7 +17,8 @@ from examDB import getCorrectList, getQuestion, makeExam2, saveExam
 from mail import sendMail
 from resultDB import putResult
 from users import getMailadress, getStage, getStatus, rankDown, rankUp, setStage
-from audio_support import get_audio_play_info
+from audio_support import get_audio_play_info, get_choice_audio_info
+from image_support import get_image_info
 
 
 def _audio_payload(question) -> dict[str, Any] | None:
@@ -28,6 +29,32 @@ def _audio_payload(question) -> dict[str, Any] | None:
         "filename": info["filename"],
         "url": f"/audio/{info['filename']}",
         "max_audio_plays": info["max_audio_plays"],
+    }
+
+
+def _choice_audio_payload(question) -> dict[str, Any] | None:
+    info = get_choice_audio_info(question)
+    if not info:
+        return None
+    return {
+        "choices": {
+            letter: {
+                "filename": filename,
+                "url": f"/audio/{filename}",
+            }
+            for letter, filename in info["choices"].items()
+        },
+        "max_audio_plays": info["max_audio_plays"],
+    }
+
+
+def _image_payload(question) -> dict[str, Any] | None:
+    info = get_image_info(question)
+    if not info:
+        return None
+    return {
+        "filename": info["filename"],
+        "url": f"/image/{info['filename']}",
     }
 
 
@@ -63,6 +90,17 @@ def _question_payload(
         raise ValueError(f"Question {q_no} not found.")
     conn.close()
     selected = int(answerlist[q_no - 1]) if answerlist[q_no - 1].isdigit() else 0
+    choice_audio = _choice_audio_payload(q_obj)
+    # Part1-style: hide choice text during the exam (audio only).
+    if choice_audio:
+        selection1 = selection2 = selection3 = selection4 = ""
+    else:
+        selection1, selection2, selection3, selection4 = (
+            q_obj.a1,
+            q_obj.a2,
+            q_obj.a3,
+            q_obj.a4,
+        )
 
     return {
         "finished": False,
@@ -74,12 +112,14 @@ def _question_payload(
         "examlist": examlist,
         "arealist": arealist,
         "question": q_obj.q,
-        "selection1": q_obj.a1,
-        "selection2": q_obj.a2,
-        "selection3": q_obj.a3,
-        "selection4": q_obj.a4,
+        "selection1": selection1,
+        "selection2": selection2,
+        "selection3": selection3,
+        "selection4": selection4,
         "choice_count": getattr(q_obj, "choice_count", 4),
         "audio": _audio_payload(q_obj),
+        "choice_audio": choice_audio,
+        "image": _image_payload(q_obj),
         "marklist": marklist,
         "answerlist": answerlist,
         "selected_answer": selected,

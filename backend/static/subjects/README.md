@@ -100,11 +100,14 @@ reading2:
 
 | 置き場 | ファイル名 |
 |---|---|
-| `backend/audio/`（または環境変数 `EXAM_AUDIO_DIR`） | `{NUMBER}.mp3` |
+| `backend/audio/`（または `EXAM_AUDIO_DIR`） | `{NUMBER}.mp3` |
+| `backend/image/`（TOEIC Part1。`EXAM_IMAGE_DIR`） | `{NUMBER}.png` と任意で `{NUMBER}.mp3` |
 
-例: 問題番号 `6101` → `backend/audio/6101.mp3`
+例: 西検 `6101` → `backend/audio/6101.mp3`  
+例: TOEIC Part1 `101` → `backend/image/101.png` + `101-A.mp3` … `101-D.mp3`
 
-- mp3 は **git 管理外**（サーバへ別途配置）
+- メディアは **git 管理外**（サーバへ別途配置）
+- mp3 は `audio/` を優先し、無ければ `image/` を参照
 - 同じ会話を複数問で共有する場合（任意）: `FLAG` を **201–299** にし、`{FLAG}.mp3` を置く
 - `max_audio_plays` で試験中の再生回数上限（解説画面は制限なし）
 
@@ -121,4 +124,4 @@ CDS は画面表示用 `areas`（4領域）と、出題参照用 `topics`（10�
 2. `.env` の `APP_PROFILE` をその科目名に設定
 3. 再起動してメニューを確認
 
-YAML が無い科目（TOEIC など）は従来どおり `config.json` の `exam_catalog` / `menu` を使います。
+TOEIC は `toeic.exams.yaml` を使います（2階層メニュー + Part 配分）。概要は `docs/toeic-plan.md`。

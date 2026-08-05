@@ -22,18 +22,48 @@
 採点結果：{{ rate }}   正答率：{{ correct }} / {{ total }}  合否： {{ result }}
 <br><TABLE style="margin:0;padding=0">
 <TR><TD width=70">問題 {{ q_no }}</TD><TD>{{ q  | safe }}</TD></TR>
+{% if show_image %}
+<TR><TD colspan="2" style="padding:8px 0;">
+    <img src="{{ image_url }}" alt="問題画像"
+         style="max-width:100%;max-height:360px;height:auto;border:1px solid #ccc;"/>
+</TD></TR>
+{% endif %}
 {% if show_audio %}
 <TR><TD colspan="2" style="padding:8px 0;">
     <audio controls controlsList="nodownload" preload="metadata" src="{{ audio_url }}"></audio>
 </TD></TR>
 {% endif %}
-<TR><TD>A.</TD><TD>{{ a1 }}</TD></TR>
-<TR><TD>B.</TD><TD>{{ a2 }}</TD></TR>
+<TR><TD>A.</TD><TD>
+    {% if show_choice_audio and choice_audio_urls.get('A') %}
+    <audio controls controlsList="nodownload" preload="metadata" src="{{ choice_audio_urls['A'] }}"
+           style="vertical-align:middle;max-width:220px;"></audio>
+    {% endif %}
+    {{ a1 }}
+</TD></TR>
+<TR><TD>B.</TD><TD>
+    {% if show_choice_audio and choice_audio_urls.get('B') %}
+    <audio controls controlsList="nodownload" preload="metadata" src="{{ choice_audio_urls['B'] }}"
+           style="vertical-align:middle;max-width:220px;"></audio>
+    {% endif %}
+    {{ a2 }}
+</TD></TR>
 {% if a3 %}
-<TR><TD>C.</TD><TD>{{ a3 }}</TD></TR>
+<TR><TD>C.</TD><TD>
+    {% if show_choice_audio and choice_audio_urls.get('C') %}
+    <audio controls controlsList="nodownload" preload="metadata" src="{{ choice_audio_urls['C'] }}"
+           style="vertical-align:middle;max-width:220px;"></audio>
+    {% endif %}
+    {{ a3 }}
+</TD></TR>
 {% endif %}
 {% if a4 %}
-<TR><TD>D.</TD><TD>{{ a4 }}</TD></TR>
+<TR><TD>D.</TD><TD>
+    {% if show_choice_audio and choice_audio_urls.get('D') %}
+    <audio controls controlsList="nodownload" preload="metadata" src="{{ choice_audio_urls['D'] }}"
+           style="vertical-align:middle;max-width:220px;"></audio>
+    {% endif %}
+    {{ a4 }}
+</TD></TR>
 {% endif %}
 </TABLE><br>
 正解は 「{{ answer }}」です。

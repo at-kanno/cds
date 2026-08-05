@@ -4,19 +4,49 @@ from flask import Flask, session, render_template, request, Blueprint, url_for
 from users import getStage, setStage, getStatus
 from resultDB import getStartTime, getResult, makeComments, getComment
 from examDB import stringToButton, getExamlist, Question, getQuestion, getCommentId
-from audio_support import get_audio_play_info
+from audio_support import get_audio_play_info, get_choice_audio_info
+from image_support import get_image_info
 
 result_module = Blueprint("result", __name__, static_folder='./static')
 
 
 def _audio_template_kwargs(question) -> dict:
-    info = get_audio_play_info(question)
-    if not info:
-        return {"show_audio": False, "audio_url": ""}
-    return {
-        "show_audio": True,
-        "audio_url": url_for("exercise.serve_audio", filename=info["filename"]),
+    choice_audio = get_choice_audio_info(question)
+    audio = None if choice_audio else get_audio_play_info(question)
+    image = get_image_info(question)
+    kwargs = {
+        "show_audio": False,
+        "audio_url": "",
+        "show_choice_audio": False,
+        "choice_audio_urls": {},
+        "show_image": False,
+        "image_url": "",
     }
+    if choice_audio:
+        kwargs.update(
+            {
+                "show_choice_audio": True,
+                "choice_audio_urls": {
+                    letter: url_for("exercise.serve_audio", filename=filename)
+                    for letter, filename in choice_audio["choices"].items()
+                },
+            }
+        )
+    elif audio:
+        kwargs.update(
+            {
+                "show_audio": True,
+                "audio_url": url_for("exercise.serve_audio", filename=audio["filename"]),
+            }
+        )
+    if image:
+        kwargs.update(
+            {
+                "show_image": True,
+                "image_url": url_for("exercise.serve_image", filename=image["filename"]),
+            }
+        )
+    return kwargs
 
 # 分析結果をフィードバックする
 @result_module.route('/summary', methods=['POST', 'GET'])

@@ -395,34 +395,34 @@
     "MaxQuestions": 200,
     "TimePerQuestion": 30,
     "NumOfHeader": 6,
-    "NumOfArea": 2,
-    "NumOfCategory": 4,
-    "NumOfCategory1": 2,
-    "NumOfCategory2": 4,
-    "NumOfCategory3": 4,
+    "NumOfArea": 7,
+    "NumOfCategory": 13,
+    "NumOfCategory1": 1,
+    "NumOfCategory2": 2,
+    "NumOfCategory3": 3,
     "NumOfCategory4": 4,
-    "NumOfCategory5": 4,
-    "NumOfCategory6": 4,
-    "NumOfCategory7": 4,
-    "NumOfCategory8": 4,
-    "examType1": "リスニング(20問)",
-    "examType2": "リーディング(20問)",
-    "examType3": "",
-    "examType4": "",
-    "examType5": "",
-    "examType6": "",
-    "examType7": "",
+    "NumOfCategory5": 9,
+    "NumOfCategory6": 10,
+    "NumOfCategory7": 13,
+    "NumOfCategory8": 13,
+    "examType1": "写真描写(5問)",
+    "examType2": "応答(5問)",
+    "examType3": "会話(5問)",
+    "examType4": "説明文(5問)",
+    "examType5": "短文穴埋め(5問)",
+    "examType6": "長文穴埋め(5問)",
+    "examType7": "読解(5問)",
     "examType8": "",
-    "examTitle1": "リスニング：確認問題",
-    "examTitle2": "リーディング：確認問題",
-    "examTitle3": "",
-    "examTitle4": "",
-    "examTitle5": "",
-    "examTitle6": "",
-    "examTitle7": "",
+    "examTitle1": "写真描写問題：分野別",
+    "examTitle2": "応答問題：分野別",
+    "examTitle3": "会話問題：分野別",
+    "examTitle4": "説明文問題：分野別",
+    "examTitle5": "短文穴埋め問題：分野別",
+    "examTitle6": "長文穴埋め問題：分野別",
+    "examTitle7": "読解問題：分野別",
     "examTitle8": "",
-    "examEntry6": "110",
-    "examEntry7": "120",
+    "examEntry6": "15",
+    "examEntry7": "16",
     "examEntry8": "130",
     "examEntry10": "60",
     "examEntry11": "70",
@@ -431,132 +431,7 @@
     "Area_Base": 1100,
     "Category_Base": 1200,
     "FIRST_MAIL": "【TOEIC】模擬試験 合格のお知らせ",
-    "LAST_MAIL": "【TOEIC】模擬試験システム ログイン情報",
-    "areas": [
-      {
-        "name": "リスニング",
-        "abbrev": "L",
-        "categories": [
-          11,
-          12,
-          13,
-          14,
-          15,
-          16
-        ],
-        "practices": [
-          "Part 1",
-          "Part 2",
-          "Part 3",
-          "Part 4"
-        ]
-      },
-      {
-        "name": "リーディング",
-        "abbrev": "R",
-        "categories": [
-          21,
-          22,
-          23
-        ],
-        "practices": [
-          "Part 5",
-          "Part 6",
-          "Part 7"
-        ]
-      }
-    ],
-    "exam_catalog": {
-      "10": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 20,
-        "title": "リスニング 確認問題",
-        "time_limit_seconds": 600
-      },
-      "20": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 20,
-        "title": "リーディング 確認問題",
-        "time_limit_seconds": 900
-      },
-      "70": {
-        "mode": "multi",
-        "action": "makeExam",
-        "amount": 200,
-        "title": "TOEIC 模擬試験",
-        "time_limit_seconds": 7200,
-        "requires_status_min": 0
-      },
-      "99": {
-        "mode": "admin",
-        "action": "makeExam"
-      }
-    },
-    "status_rules": {
-      "mock_exam": {
-        "min_status": 0,
-        "completed_min_status": 999,
-        "messages": {
-          "locked": "",
-          "unlocked": "模擬試験を受験できます。",
-          "completed": "模擬試験を複数回受験済みです。"
-        }
-      }
-    },
-    "menu": {
-      "title": "TOEIC メニュー",
-      "sections": [
-        {
-          "id": "part_practice",
-          "title": "パート別練習",
-          "items": [
-            {
-              "category": 10,
-              "action": "makeExam",
-              "label": "リスニング【20問】",
-              "subtitle": "制限時間 10分",
-              "color": "#2563EB"
-            },
-            {
-              "category": 20,
-              "action": "makeExam",
-              "label": "リーディング【20問】",
-              "subtitle": "制限時間 15分",
-              "color": "#059669"
-            }
-          ]
-        },
-        {
-          "id": "mock_exam",
-          "title": "本番形式",
-          "status_rule": "mock_exam",
-          "items": [
-            {
-              "category": 70,
-              "action": "makeExam",
-              "label": "TOEIC 模擬試験【200問】",
-              "subtitle": "制限時間 2時間",
-              "color": "#DC2626"
-            }
-          ]
-        }
-      ],
-      "actions": [
-        {
-          "id": "admin",
-          "label": "管理画面",
-          "action": "makeExam",
-          "category": 99
-        },
-        {
-          "id": "logout",
-          "label": "ログアウト",
-          "action": "logout"
-        }
-      ]
-    }
+    "LAST_MAIL": "【TOEIC】模擬試験システム ログイン情報"
   },
   "SPANISH4": {
     "SUBJECT": "SPANISH4",

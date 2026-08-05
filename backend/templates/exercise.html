@@ -270,9 +270,15 @@
 
 <TABLE style="margin:0;padding=0">
     <TR><TD width="40">問題</TD><TD width="20">{{ q_no }}:</TD><TD>{{ question | safe }}</TD></TR>
+    {% if show_image %}
+    <TR><TD colspan="3" style="padding:8px 0;">
+        <img src="{{ image_url }}" alt="問題画像"
+             style="max-width:100%;max-height:360px;height:auto;border:1px solid #ccc;"/>
+    </TD></TR>
+    {% endif %}
     {% if show_audio %}
     <TR><TD colspan="3" style="padding:8px 0;">
-        <audio id="listeningAudio" controls controlsList="nodownload noplaybackrate"
+        <audio id="listeningAudio" class="listeningAudio" controls controlsList="nodownload noplaybackrate"
                preload="metadata" src="{{ audio_url }}"></audio>
         {% if enforce_audio_limit %}
         <div id="audioPlayStatus" style="margin-top:4px;font-size:small;">
@@ -281,21 +287,54 @@
         {% endif %}
     </TD></TR>
     {% endif %}
+    {% if show_choice_audio and enforce_audio_limit %}
+    <TR><TD colspan="3" style="padding:4px 0;font-size:small;" id="audioPlayStatus">
+        各選択肢の音声: 各 <span id="audioPlaysLeft">{{ max_audio_plays }}</span> / {{ max_audio_plays }} 回まで
+    </TD></TR>
+    {% endif %}
     <TR><TD width="40">
     <input type="radio" name="selection" value="1" {{ selectStr[0] }} onclick="parent.setActive({{ q_no }})"/>
-    </TD><TD>A.</TD><TD>{{ selection1 }}</TD></TR>
+    </TD><TD>A.</TD><TD>
+        {% if show_choice_audio and choice_audio_urls.get('A') %}
+        <audio class="listeningAudio" data-choice="A" controls controlsList="nodownload noplaybackrate"
+               preload="metadata" src="{{ choice_audio_urls['A'] }}" style="vertical-align:middle;max-width:220px;"></audio>
+        {% else %}
+        {{ selection1 }}
+        {% endif %}
+    </TD></TR>
     <TR><TD width="40">
     <input type="radio" name="selection" value="2" {{ selectStr[1] }} onclick="parent.setActive({{ q_no }})"/>
-    </TD><TD>B.</TD><TD>{{ selection2 }}</TD></TR>
+    </TD><TD>B.</TD><TD>
+        {% if show_choice_audio and choice_audio_urls.get('B') %}
+        <audio class="listeningAudio" data-choice="B" controls controlsList="nodownload noplaybackrate"
+               preload="metadata" src="{{ choice_audio_urls['B'] }}" style="vertical-align:middle;max-width:220px;"></audio>
+        {% else %}
+        {{ selection2 }}
+        {% endif %}
+    </TD></TR>
     {% if choice_count|default(4) >= 3 %}
     <TR><TD width="40">
     <input type="radio" name="selection" value="3" {{ selectStr[2] }} onclick="parent.setActive({{ q_no }})"/>
-    </TD><TD>C.</TD><TD>{{ selection3 }}</TD></TR>
+    </TD><TD>C.</TD><TD>
+        {% if show_choice_audio and choice_audio_urls.get('C') %}
+        <audio class="listeningAudio" data-choice="C" controls controlsList="nodownload noplaybackrate"
+               preload="metadata" src="{{ choice_audio_urls['C'] }}" style="vertical-align:middle;max-width:220px;"></audio>
+        {% else %}
+        {{ selection3 }}
+        {% endif %}
+    </TD></TR>
     {% endif %}
     {% if choice_count|default(4) >= 4 %}
     <TR><TD width="40">
     <input type="radio" name="selection" value="4" {{ selectStr[3] }} onclick="parent.setActive({{ q_no }})"/>
-    </TD><TD>D.</TD><TD>{{ selection4 }}</TD></TR>
+    </TD><TD>D.</TD><TD>
+        {% if show_choice_audio and choice_audio_urls.get('D') %}
+        <audio class="listeningAudio" data-choice="D" controls controlsList="nodownload noplaybackrate"
+               preload="metadata" src="{{ choice_audio_urls['D'] }}" style="vertical-align:middle;max-width:220px;"></audio>
+        {% else %}
+        {{ selection4 }}
+        {% endif %}
+    </TD></TR>
     {% endif %}
     </TABLE>
     </div>
@@ -332,60 +371,53 @@
                    style="border:0;font-size:large;width:100px;bgcolor:white;"/></H4>
     </form>
 
-{% if show_audio and enforce_audio_limit %}
+{% if (show_audio or show_choice_audio) and enforce_audio_limit %}
 <script>
 (function () {
-    var audio = document.getElementById("listeningAudio");
-    if (!audio) return;
     var maxPlays = parseInt("{{ max_audio_plays|int }}", 10) || 0;
-    var key = "audioPlays_{{ exam_id }}_{{ q_no }}";
-    var plays = parseInt(sessionStorage.getItem(key) || "0", 10) || 0;
-    var inPlaySession = false;
-    var leftEl = document.getElementById("audioPlaysLeft");
+    var players = Array.prototype.slice.call(document.querySelectorAll(".listeningAudio"));
+    if (!players.length) return;
 
-    function remaining() {
-        return Math.max(0, maxPlays - plays);
-    }
+    players.forEach(function (audio) {
+        var choice = audio.getAttribute("data-choice") || "main";
+        var key = "audioPlays_{{ exam_id }}_{{ q_no }}_" + choice;
+        var plays = parseInt(sessionStorage.getItem(key) || "0", 10) || 0;
+        var inPlaySession = false;
 
-    function updateStatus() {
-        if (leftEl) leftEl.textContent = String(remaining());
-    }
+        function disableAudio() {
+            audio.pause();
+            audio.removeAttribute("controls");
+            audio.removeAttribute("src");
+            audio.load();
+            audio.style.display = "none";
+        }
 
-    function disableAudio() {
-        audio.pause();
-        audio.removeAttribute("controls");
-        audio.removeAttribute("src");
-        audio.load();
-        audio.style.display = "none";
-        var status = document.getElementById("audioPlayStatus");
-        if (status) status.textContent = "音声の再生回数の上限に達しました。";
-    }
+        function finishPlaySession() {
+            inPlaySession = false;
+            if (plays >= maxPlays) {
+                disableAudio();
+            }
+        }
 
-    function finishPlaySession() {
-        inPlaySession = false;
-        updateStatus();
-        // 上限消化後も「今回の再生」は最後まで聴ける。終わってから無効化。
+        audio.addEventListener("play", function () {
+            if (inPlaySession) return;
+            if (plays >= maxPlays) {
+                disableAudio();
+                return;
+            }
+            // 同時再生を避ける
+            players.forEach(function (other) {
+                if (other !== audio) other.pause();
+            });
+            inPlaySession = true;
+            plays += 1;
+            sessionStorage.setItem(key, String(plays));
+        });
+        audio.addEventListener("ended", finishPlaySession);
         if (plays >= maxPlays) {
             disableAudio();
         }
-    }
-
-    audio.addEventListener("play", function () {
-        if (inPlaySession) return;
-        if (plays >= maxPlays) {
-            disableAudio();
-            return;
-        }
-        inPlaySession = true;
-        plays += 1;
-        sessionStorage.setItem(key, String(plays));
-        updateStatus();
     });
-    audio.addEventListener("ended", finishPlaySession);
-    updateStatus();
-    if (plays >= maxPlays) {
-        disableAudio();
-    }
 })();
 </script>
 {% endif %}

@@ -7,11 +7,14 @@ from unittest.mock import patch
 from audio_support import (
     audio_filename_for_question,
     get_audio_play_info,
+    get_choice_audio_info,
     get_listening_settings_for_category,
     is_listening_share_flag,
     is_safe_audio_filename,
+    map_choice_audio_to_display,
     resolve_audio_path,
     resolve_audio_stem,
+    resolve_choice_audio_paths,
 )
 
 
@@ -57,9 +60,11 @@ class AudioSupportTests(unittest.TestCase):
 
     def test_safe_filename(self) -> None:
         self.assertTrue(is_safe_audio_filename("6101.mp3"))
+        self.assertTrue(is_safe_audio_filename("101-A.mp3"))
         self.assertFalse(is_safe_audio_filename("../6101.mp3"))
         self.assertFalse(is_safe_audio_filename("6101.wav"))
         self.assertFalse(is_safe_audio_filename("abc.mp3"))
+        self.assertFalse(is_safe_audio_filename("101-E.mp3"))
 
     def test_resolve_path_and_play_info(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -82,6 +87,62 @@ class AudioSupportTests(unittest.TestCase):
                 handle.write(b"ID3")
             with patch.dict(os.environ, {"EXAM_AUDIO_DIR": tmp}):
                 self.assertEqual(resolve_audio_path(6101, 215), path)
+
+    def test_resolve_mp3_from_image_dir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "101.mp3")
+            with open(path, "wb") as handle:
+                handle.write(b"ID3")
+            with patch.dict(os.environ, {"EXAM_AUDIO_DIR": os.path.join(tmp, "missing"), "EXAM_IMAGE_DIR": tmp}):
+                self.assertEqual(resolve_audio_path(101, 0), path)
+
+    def test_choice_audio_from_image_dir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            for letter in "ABCD":
+                with open(os.path.join(tmp, f"101-{letter}.mp3"), "wb") as handle:
+                    handle.write(b"ID3")
+            with patch.dict(
+                os.environ,
+                {"EXAM_AUDIO_DIR": os.path.join(tmp, "missing"), "EXAM_IMAGE_DIR": tmp, "APP_PROFILE": "TOEIC"},
+            ):
+                from config_loader import clear_config_cache
+                from exam_plan_loader import clear_exam_plan_cache
+
+                clear_config_cache()
+                clear_exam_plan_cache()
+                paths = resolve_choice_audio_paths(101)
+                self.assertEqual(set(paths), {"A", "B", "C", "D"})
+                question = SimpleNamespace(
+                    number=101, flag=0, category=11, permutation=[1, 2, 3, 4]
+                )
+                info = get_choice_audio_info(question)
+                self.assertIsNotNone(info)
+                assert info is not None
+                self.assertEqual(info["choices"]["A"], "101-A.mp3")
+                self.assertIsNone(get_audio_play_info(question))
+
+                remapped = SimpleNamespace(
+                    number=101, flag=0, category=11, permutation=[2, 1, 3, 4]
+                )
+                info2 = get_choice_audio_info(remapped)
+                assert info2 is not None
+                self.assertEqual(info2["choices"]["A"], "101-B.mp3")
+                self.assertEqual(info2["choices"]["B"], "101-A.mp3")
+                self.assertEqual(info2["choices"]["C"], "101-C.mp3")
+                self.assertEqual(info2["choices"]["D"], "101-D.mp3")
+
+    def test_map_choice_audio_to_display(self) -> None:
+        paths = {
+            "A": r"C:\tmp\101-A.mp3",
+            "B": r"C:\tmp\101-B.mp3",
+            "C": r"C:\tmp\101-C.mp3",
+            "D": r"C:\tmp\101-D.mp3",
+        }
+        mapped = map_choice_audio_to_display(paths, "3142")
+        self.assertEqual(mapped["A"], "101-C.mp3")
+        self.assertEqual(mapped["B"], "101-A.mp3")
+        self.assertEqual(mapped["C"], "101-D.mp3")
+        self.assertEqual(mapped["D"], "101-B.mp3")
 
 
 if __name__ == "__main__":
