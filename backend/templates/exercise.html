@@ -276,13 +276,20 @@
              style="max-width:100%;max-height:360px;height:auto;border:1px solid #ccc;"/>
     </TD></TR>
     {% endif %}
+    {% if audio_set_note %}
+    <TR><TD colspan="3" style="padding:4px 0;font-size:small;color:#444;" id="audioSetNoteCell">{{ audio_set_note }}</TD></TR>
+    {% endif %}
     {% if show_audio %}
     <TR><TD colspan="3" style="padding:8px 0;">
         <audio id="listeningAudio" class="listeningAudio" controls controlsList="nodownload noplaybackrate"
                preload="metadata" src="{{ audio_url }}"></audio>
         {% if enforce_audio_limit %}
         <div id="audioPlayStatus" style="margin-top:4px;font-size:small;">
+            {% if max_audio_plays == 1 %}
+            音声の再生は <strong>1回のみ</strong>です（残り <span id="audioPlaysLeft">{{ max_audio_plays }}</span> 回）
+            {% else %}
             音声の再生: 残り <span id="audioPlaysLeft">{{ max_audio_plays }}</span> / {{ max_audio_plays }} 回
+            {% endif %}
         </div>
         {% endif %}
     </TD></TR>
@@ -370,6 +377,20 @@
     <H4>経過時間  <input type="text" id="time"
                    style="border:0;font-size:large;width:100px;bgcolor:white;"/></H4>
     </form>
+
+{% if audio_set_note and set_head_q_no %}
+<script>
+(function () {
+    var cell = document.getElementById("audioSetNoteCell");
+    if (!cell) return;
+    var key = "audioPlays_{{ exam_id }}_{{ set_head_q_no }}_main";
+    var plays = parseInt(sessionStorage.getItem(key) || "0", 10) || 0;
+    if (plays > 0 && cell.textContent.indexOf("再生済み") < 0) {
+        cell.textContent = cell.textContent.replace(/\s*$/, "") + "（再生済みです）";
+    }
+})();
+</script>
+{% endif %}
 
 {% if (show_audio or show_choice_audio) and enforce_audio_limit %}
 <script>

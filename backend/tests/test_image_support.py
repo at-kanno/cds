@@ -28,6 +28,20 @@ class ImageSupportTests(unittest.TestCase):
                 assert info is not None
                 self.assertEqual(info["filename"], "101.png")
 
+    def test_part3_set_image_uses_flag_for_all_questions(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            pack = os.path.join(tmp, "TOEIC-3")
+            os.makedirs(pack)
+            path = os.path.join(pack, "310.png")
+            with open(path, "wb") as handle:
+                handle.write(b"\x89PNG")
+            with patch.dict(os.environ, {"EXAM_IMAGE_DIR": tmp}):
+                self.assertEqual(resolve_image_path(311, 310), path)
+                info = get_image_info(SimpleNamespace(number=312, flag=310))
+                self.assertIsNotNone(info)
+                assert info is not None
+                self.assertEqual(info["filename"], "310.png")
+
 
 if __name__ == "__main__":
     unittest.main()

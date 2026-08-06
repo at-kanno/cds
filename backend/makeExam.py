@@ -12,15 +12,20 @@ from exercise import _media_template_kwargs
 def _single_question_media(num, category, permutation, *, enforce_play_limit: bool = True) -> dict:
     """Build image / choice-audio kwargs for 一問一答 (permutation-aware)."""
     db_category = None
+    flag = 0
     try:
         conn = sqlite3.connect(db_path)
         row = conn.execute(
-            "SELECT CATEGORY FROM knowledge_base WHERE NUMBER = ?",
+            "SELECT CATEGORY, FLAG FROM knowledge_base WHERE NUMBER = ?",
             (int(num),),
         ).fetchone()
         conn.close()
         if row:
             db_category = int(row[0])
+            try:
+                flag = int(row[1] or 0)
+            except (TypeError, ValueError):
+                flag = 0
     except Exception:
         pass
     if db_category is None:
@@ -33,9 +38,15 @@ def _single_question_media(num, category, permutation, *, enforce_play_limit: bo
         number=int(num),
         category=db_category,
         permutation=permutation,
-        flag=0,
+        flag=flag,
     )
-    return _media_template_kwargs(stub, enforce_play_limit=enforce_play_limit)
+    # 一問一答: every question can play set audio; no multi-exam set navigation notes.
+    return _media_template_kwargs(
+        stub,
+        enforce_play_limit=enforce_play_limit,
+        hide_set_follow_up=False,
+        show_set_note=False,
+    )
 
 
 def _multi_exam_settings(

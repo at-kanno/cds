@@ -95,10 +95,18 @@
              style="max-width:100%;max-height:360px;height:auto;border:1px solid #ccc;"/>
     </TD></TR>
     {% endif %}
+    {% if audio_set_note %}
+    <TR><TD colspan="3" style="padding:4px 0;font-size:small;color:#444;">{{ audio_set_note }}</TD></TR>
+    {% endif %}
     {% if show_audio %}
     <TR><TD colspan="3" style="padding:8px 0;">
         <audio class="listeningAudio" controls controlsList="nodownload noplaybackrate"
                preload="metadata" src="{{ audio_url }}"></audio>
+    </TD></TR>
+    {% endif %}
+    {% if show_audio and enforce_audio_limit and max_audio_plays == 1 %}
+    <TR><TD colspan="3" style="padding:4px 0;font-size:small;">
+        音声の再生は <strong>1回のみ</strong>です
     </TD></TR>
     {% endif %}
     {% if show_choice_audio and enforce_audio_limit %}

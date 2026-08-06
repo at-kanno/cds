@@ -8,9 +8,19 @@ from typing import Any
 
 import constant
 
-# Shared conversation audio uses FLAG in this range (optional).
+# Spanish shared listening stem uses FLAG in this range (optional).
 LISTENING_FLAG_MIN = 201
 LISTENING_FLAG_MAX = 299
+# TOEIC Part3/4 set audio: FLAG = set-head NUMBER → {FLAG}.mp3 (301-399 / 401-499).
+SET_AUDIO_FLAG_MIN = 301
+SET_AUDIO_FLAG_MAX = 499
+
+SET_HEAD_NOTE = (
+    "この会話音声は続く問題でも使います。再生は1回のみです。ここで再生してください。"
+)
+SET_FOLLOW_NOTE = "このセットの音声は先頭の問題で再生してください。"
+SET_FOLLOW_NOTE_WITH_Q = "このセットの音声は問題{head_q_no}で再生してください。"
+SET_FOLLOW_PLAYED_SUFFIX = "（再生済みです）"
 
 _SAFE_STEM = re.compile(r"^[0-9]+$")
 _SAFE_CHOICE_STEM = re.compile(r"^[0-9]+-[A-D]$")
@@ -50,9 +60,24 @@ def is_listening_share_flag(flag) -> bool:
     return LISTENING_FLAG_MIN <= value <= LISTENING_FLAG_MAX
 
 
+def is_set_audio_flag(flag) -> bool:
+    """True when FLAG is a TOEIC set-head id used as shared conversation audio."""
+    if flag is None or flag == "":
+        return False
+    try:
+        value = int(flag)
+    except (TypeError, ValueError):
+        return False
+    return SET_AUDIO_FLAG_MIN <= value <= SET_AUDIO_FLAG_MAX
+
+
+def uses_flag_audio_stem(flag) -> bool:
+    return is_listening_share_flag(flag) or is_set_audio_flag(flag)
+
+
 def resolve_audio_stem(number, flag=0) -> str:
-    """Return filename stem: shared FLAG when 201-299, else question NUMBER."""
-    if is_listening_share_flag(flag):
+    """Return filename stem: shared/set FLAG when applicable, else question NUMBER."""
+    if uses_flag_audio_stem(flag):
         return str(int(flag))
     return str(int(number))
 
@@ -68,12 +93,45 @@ def get_listening_settings_for_category(category: int | None) -> dict[str, Any] 
                 continue
             if not area.get("listening"):
                 return None
-            return {
+            settings: dict[str, Any] = {
                 "max_audio_plays": int(area.get("max_audio_plays", 2)),
             }
+            if area.get("set_size"):
+                settings["set_size"] = int(area["set_size"])
+            return settings
     except Exception as exc:
         print(f"listening settings lookup failed for category={category}: {exc}")
         return None
+
+
+def get_set_listening_role(question) -> str | None:
+    """Return 'head' / 'follow_up' for set listening, else None."""
+    category = getattr(question, "category", None)
+    settings = get_listening_settings_for_category(category)
+    if not settings or not settings.get("set_size"):
+        return None
+    try:
+        number = int(getattr(question, "number"))
+        flag = int(getattr(question, "flag", 0) or 0)
+    except (TypeError, ValueError):
+        return None
+    if not is_set_audio_flag(flag):
+        return None
+    if number == flag:
+        return "head"
+    return "follow_up"
+
+
+def get_set_listening_note(question, *, head_q_no: int | None = None) -> str:
+    """Exam navigation note for set listening. Analysis screens omit this."""
+    role = get_set_listening_role(question)
+    if role == "head":
+        return SET_HEAD_NOTE
+    if role == "follow_up":
+        if head_q_no is not None and int(head_q_no) > 0:
+            return SET_FOLLOW_NOTE_WITH_Q.format(head_q_no=int(head_q_no))
+        return SET_FOLLOW_NOTE
+    return ""
 
 
 def audio_filename_for_question(number, flag=0) -> str:
@@ -83,11 +141,11 @@ def audio_filename_for_question(number, flag=0) -> str:
 def resolve_audio_path(number, flag=0) -> str | None:
     """Return absolute path for a stem mp3 if it exists.
 
-    Order: shared FLAG file (201-299), then ``{NUMBER}-Q.mp3`` (Part2),
+    Order: shared/set FLAG file, then ``{NUMBER}-Q.mp3`` (Part2),
     then ``{NUMBER}.mp3``. Searches audio/ and image/TOEIC-* packs.
     """
     candidates: list[str] = []
-    if is_listening_share_flag(flag):
+    if uses_flag_audio_stem(flag):
         candidates.append(audio_filename_for_question(number, flag))
     try:
         stem = str(int(number))
@@ -202,10 +260,16 @@ def get_choice_audio_info(question) -> dict[str, Any] | None:
     }
 
 
-def get_audio_play_info(question) -> dict[str, Any] | None:
+def get_audio_play_info(
+    question,
+    *,
+    hide_set_follow_up: bool = False,
+) -> dict[str, Any] | None:
     """Stem / question mp3 ({NUMBER}-Q.mp3 or {NUMBER}.mp3), or None.
 
     May coexist with choice clips (Part2: Q + A/B/C).
+    Multi-exam set listening can hide the player on follow-up questions;
+    一問一答 keeps audio available on every question.
     """
     category = getattr(question, "category", None)
     settings = get_listening_settings_for_category(category)
@@ -216,6 +280,10 @@ def get_audio_play_info(question) -> dict[str, Any] | None:
     if number is None:
         return None
     flag = getattr(question, "flag", 0)
+    role = get_set_listening_role(question)
+    if hide_set_follow_up and role == "follow_up":
+        return None
+
     path = resolve_audio_path(number, flag)
     if not path:
         if resolve_choice_audio_paths(number):
@@ -231,11 +299,14 @@ def get_audio_play_info(question) -> dict[str, Any] | None:
     if not (_SAFE_STEM.match(stem) or _SAFE_QUESTION_STEM.match(stem)):
         return None
 
-    return {
+    info: dict[str, Any] = {
         "filename": filename,
         "max_audio_plays": settings["max_audio_plays"],
         "path": path,
     }
+    if role:
+        info["set_role"] = role
+    return info
 
 
 def is_safe_audio_filename(filename: str) -> bool:

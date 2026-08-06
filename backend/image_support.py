@@ -46,17 +46,38 @@ def is_safe_image_filename(filename: str) -> bool:
     return bool(_SAFE_STEM.match(stem))
 
 
-def resolve_image_path(number) -> str | None:
-    """Return absolute path for {NUMBER}.png/.jpg if present."""
+def resolve_image_path(number, flag=0) -> str | None:
+    """Return absolute path for set-head or question image if present.
+
+    TOEIC Part3/4: try ``{FLAG}.png`` first (shared chart for the whole set),
+    then ``{NUMBER}.png``.
+    """
+    stems: list[str] = []
     try:
-        stem = str(int(number))
+        flag_value = int(flag)
+        # Same band as set audio (Part3 301-399 / Part4 401-499).
+        if 301 <= flag_value <= 499:
+            stems.append(str(flag_value))
+    except (TypeError, ValueError):
+        pass
+    try:
+        stems.append(str(int(number)))
     except (TypeError, ValueError):
         return None
+
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for stem in stems:
+        if stem not in seen:
+            seen.add(stem)
+            ordered.append(stem)
+
     for directory in media_pack_dirs():
-        for ext in _IMAGE_EXTENSIONS:
-            path = os.path.join(directory, f"{stem}{ext}")
-            if os.path.isfile(path):
-                return path
+        for stem in ordered:
+            for ext in _IMAGE_EXTENSIONS:
+                path = os.path.join(directory, f"{stem}{ext}")
+                if os.path.isfile(path):
+                    return path
     return None
 
 
@@ -74,7 +95,8 @@ def get_image_info(question) -> dict[str, Any] | None:
     number = getattr(question, "number", None)
     if number is None:
         return None
-    path = resolve_image_path(number)
+    flag = getattr(question, "flag", 0)
+    path = resolve_image_path(number, flag)
     if not path:
         return None
     filename = os.path.basename(path)

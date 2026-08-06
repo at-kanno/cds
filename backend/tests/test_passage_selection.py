@@ -2,7 +2,13 @@ import os
 import unittest
 from unittest.mock import patch
 
-from examDB import get_passage_settings_for_category, order_passage_selection
+from examDB import (
+    allocate_set_counts,
+    find_exam_q_no_for_number,
+    get_passage_settings_for_category,
+    order_passage_selection,
+    resolve_passage_count,
+)
 
 
 class PassageSelectionTests(unittest.TestCase):
@@ -32,6 +38,8 @@ class PassageSelectionTests(unittest.TestCase):
         assert settings is not None
         self.assertEqual(settings["group"], "flag")
         self.assertEqual(settings["passages"], 2)
+        self.assertEqual(settings["flag_min"], 101)
+        self.assertEqual(settings["flag_max"], 199)
 
     def test_grammar_has_no_passage_settings(self) -> None:
         self.assertIsNone(get_passage_settings_for_category(11))
@@ -79,6 +87,75 @@ class PassageSelectionTests(unittest.TestCase):
     def test_fails_when_not_enough_passages(self) -> None:
         groups = {101: [1, 2, 3]}
         self.assertIsNone(order_passage_selection(groups, passage_count=2, amount=5))
+
+    def test_toeic_part3_set_settings(self) -> None:
+        os.environ["APP_PROFILE"] = "TOEIC"
+        from config_loader import clear_config_cache
+        from exam_plan_loader import clear_exam_plan_cache
+
+        clear_config_cache()
+        clear_exam_plan_cache()
+        settings = get_passage_settings_for_category(31)
+        self.assertIsNotNone(settings)
+        assert settings is not None
+        self.assertEqual(settings["group"], "flag")
+        self.assertEqual(settings["passages"], 2)
+        self.assertEqual(settings["set_size"], 3)
+        self.assertEqual(settings["flag_min"], 301)
+        self.assertEqual(settings["flag_max"], 399)
+        self.assertTrue(settings["order_by_number"])
+        self.assertEqual(resolve_passage_count(5, settings), 2)
+        self.assertEqual(resolve_passage_count(3, settings), 1)
+        self.assertEqual(resolve_passage_count(2, settings), 1)
+
+    def test_allocate_set_counts_five_is_three_plus_two(self) -> None:
+        self.assertEqual(allocate_set_counts(5, 3, 2), [3, 2])
+        self.assertEqual(allocate_set_counts(3, 3, 1), [3])
+        self.assertEqual(allocate_set_counts(2, 3, 1), [2])
+        self.assertEqual(allocate_set_counts(6, 3, 2), [3, 3])
+
+    def test_toeic_five_questions_are_full_set_then_two_with_heads(self) -> None:
+        groups = {
+            301: [303, 301, 302],
+            304: [306, 304, 305],
+            307: [307, 308, 309],
+        }
+
+        def choose(candidates, *_args, **_kwargs):
+            # First block (count=3) prefers 301; second (count=2) prefers 304.
+            if 301 in candidates:
+                return 301
+            if 304 in candidates:
+                return 304
+            return candidates[0]
+
+        with patch("examDB.random.choice", side_effect=choose):
+            with patch("examDB.random.sample", side_effect=lambda seq, k: sorted(seq)[:k]):
+                result = order_passage_selection(
+                    groups,
+                    passage_count=2,
+                    amount=5,
+                    flag_min=301,
+                    flag_max=399,
+                    set_size=3,
+                )
+
+        self.assertIsNotNone(result)
+        assert result is not None
+        self.assertEqual(len(result), 5)
+        # 3 + 2 blocks; each block starts with its FLAG head.
+        self.assertEqual(result[0], 301)
+        self.assertEqual(result[:3], [301, 302, 303])
+        self.assertEqual(result[3], 304)
+        self.assertEqual(len(result[3:]), 2)
+        self.assertTrue(all(n in {304, 305, 306} for n in result[3:]))
+        self.assertIn(304, result[3:])
+
+    def test_find_exam_q_no_for_number(self) -> None:
+        examlist = "(101:1,2,3,4)(301:1,2,3,4)(302:2,1,3,4)"
+        self.assertEqual(find_exam_q_no_for_number(examlist, 301), 2)
+        self.assertEqual(find_exam_q_no_for_number(examlist, 302), 3)
+        self.assertIsNone(find_exam_q_no_for_number(examlist, 999))
 
 
 if __name__ == "__main__":

@@ -137,7 +137,7 @@ def getQuestion(examlist, q_no):
     q.choice_count = sum(1 for value in idx if int(value) != 0) or 4
     q.number = _safe_int(number)
     q.category = _safe_int(r[9])
-    # FLAG may hold legacy non-numeric labels; only 101-199 / 201-299 are used as ints.
+    # FLAG may hold legacy non-numeric labels; grouping/audio use numeric ranges.
     q.flag = _safe_int(r[10])
     # Same slot order used for shuffled answer text; choice audio remaps with this.
     q.permutation = [int(value) for value in idx]
@@ -274,8 +274,33 @@ def getExamlist(exam_id):
 
     return examlist, arealist, answerlist
 
+def find_exam_q_no_for_number(examlist: str, number: int) -> int | None:
+    """Return 1-based exam question index whose NUMBER matches ``number``, or None."""
+    if not examlist:
+        return None
+    try:
+        target = int(number)
+    except (TypeError, ValueError):
+        return None
+    s1 = examlist.strip("()")
+    s2 = s1.replace(")(", ",")
+    parts = re.split(r"[:,]", s2)
+    for index in range(0, len(parts), 5):
+        if index >= len(parts):
+            break
+        token = parts[index]
+        if token == "":
+            continue
+        try:
+            if int(token) == target:
+                return index // 5 + 1
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
 def get_passage_settings_for_category(category: int):
-    """Return passage-grouping settings from YAML area metadata, or None."""
+    """Return passage/set-grouping settings from YAML area metadata, or None."""
     try:
         from config_loader import get_areas
 
@@ -284,44 +309,179 @@ def get_passage_settings_for_category(category: int):
                 continue
             if not (area.get("passages") or area.get("passage_group")):
                 return None
+            flag_min = int(area.get("flag_min", PASSAGE_FLAG_MIN))
+            flag_max = int(area.get("flag_max", PASSAGE_FLAG_MAX))
+            set_size = int(area["set_size"]) if area.get("set_size") else None
             return {
                 "passages": int(area.get("passages", 2)),
                 "group": str(area.get("passage_group", "flag")).lower(),
+                "flag_min": flag_min,
+                "flag_max": flag_max,
+                "set_size": set_size,
+                # Listening sets keep NUMBER order within a FLAG block.
+                "order_by_number": bool(set_size),
             }
     except Exception as exc:
         print(f"passage settings lookup failed for category={category}: {exc}")
     return None
 
 
-# Reading passages use knowledge_base.FLAG in this reserved range only.
+# Default reading passages (Spanish): knowledge_base.FLAG in 101-199.
 PASSAGE_FLAG_MIN = 101
 PASSAGE_FLAG_MAX = 199
 
 
-def is_passage_flag(flag) -> bool:
-    """True when FLAG is reserved for Spanish reading passage grouping (101-199)."""
+def is_passage_flag(flag, flag_min: int = PASSAGE_FLAG_MIN, flag_max: int = PASSAGE_FLAG_MAX) -> bool:
+    """True when FLAG is in the configured grouping range for an area."""
     if flag is None or flag == "":
         return False
     try:
         value = int(flag)
     except (TypeError, ValueError):
         return False
-    return PASSAGE_FLAG_MIN <= value <= PASSAGE_FLAG_MAX
+    return flag_min <= value <= flag_max
+
+
+def resolve_passage_count(amount: int, settings: dict) -> int:
+    """Choose how many FLAG groups to draw for ``amount`` questions.
+
+    Set listening (Part3): one set when amount <= set_size; otherwise at least
+    ``passages`` groups (e.g. 2 sets → 5 questions).
+    """
+    passages = int(settings.get("passages", 2))
+    set_size = settings.get("set_size")
+    if not set_size:
+        return passages
+    set_size = int(set_size)
+    if amount <= set_size:
+        return 1
+    return max(passages, (amount + set_size - 1) // set_size)
+
+
+def allocate_set_counts(amount: int, set_size: int, passage_count: int) -> list[int] | None:
+    """Split ``amount`` across sets, preferring full sets first (e.g. 5 → [3, 2])."""
+    if amount < passage_count or set_size < 1 or passage_count < 1:
+        return None
+    counts: list[int] = []
+    remaining = amount
+    for index in range(passage_count):
+        left = passage_count - index
+        if left == 1:
+            take = remaining
+        else:
+            # Leave at least one question for each later set.
+            take = min(set_size, remaining - (left - 1))
+        if take < 1 or take > set_size:
+            return None
+        counts.append(take)
+        remaining -= take
+    if remaining != 0:
+        return None
+    return counts
+
+
+def _pick_set_block(members: list[int], flag_key: int, count: int) -> list[int] | None:
+    """Pick ``count`` NUMBERs from a set, always including the head (FLAG)."""
+    values = sorted(int(n) for n in members)
+    if count < 1 or count > len(values):
+        return None
+    head = int(flag_key)
+    if head not in values:
+        head = values[0]
+    others = [n for n in values if n != head]
+    need_others = count - 1
+    if need_others > len(others):
+        return None
+    picked_others = random.sample(others, need_others) if need_others else []
+    return sorted([head] + picked_others)
+
+
+def order_set_selection(
+    groups: dict,
+    passage_count: int,
+    amount: int,
+    set_size: int,
+    *,
+    flag_min: int = PASSAGE_FLAG_MIN,
+    flag_max: int = PASSAGE_FLAG_MAX,
+) -> list | None:
+    """Select listening-set questions with head always included in each block.
+
+    For Part3 field quizzes (5問): fixed ``[3, 2]`` blocks so audio heads land on
+    exam Q1 and Q4.
+    """
+    eligible = {
+        int(key): [int(n) for n in values]
+        for key, values in groups.items()
+        if values and is_passage_flag(key, flag_min, flag_max)
+    }
+    counts = allocate_set_counts(amount, set_size, passage_count)
+    if counts is None:
+        print(
+            f"Invalid set allocation: amount={amount}, set_size={set_size}, "
+            f"passages={passage_count}"
+        )
+        return None
+
+    remaining_keys = list(eligible.keys())
+    if len(remaining_keys) < passage_count:
+        print(
+            f"Not enough passages: have={len(remaining_keys)}, need={passage_count}"
+        )
+        return None
+
+    chosen_pairs: list[tuple[int, int]] = []
+    for count in counts:
+        candidates = [key for key in remaining_keys if len(eligible[key]) >= count]
+        if not candidates:
+            print(
+                f"No set with enough members for count={count}: "
+                f"remaining={remaining_keys}"
+            )
+            return None
+        key = random.choice(candidates)
+        remaining_keys.remove(key)
+        chosen_pairs.append((key, count))
+
+    ordered: list[int] = []
+    for key, count in chosen_pairs:
+        block = _pick_set_block(eligible[key], key, count)
+        if block is None:
+            print(f"Failed to pick set block: flag={key}, count={count}")
+            return None
+        ordered.extend(block)
+    return ordered
 
 
 def order_passage_selection(
-    groups: dict, passage_count: int, amount: int
+    groups: dict,
+    passage_count: int,
+    amount: int,
+    *,
+    flag_min: int = PASSAGE_FLAG_MIN,
+    flag_max: int = PASSAGE_FLAG_MAX,
+    order_by_number: bool = False,
+    set_size: int | None = None,
 ) -> list | None:
     """Pick ``passage_count`` FLAG groups, sample ``amount`` questions, keep groups contiguous.
 
     ``groups`` maps passage key -> list of question NUMBERs.
-    Any group size is allowed (e.g. 3 or 5 rows sharing the same FLAG).
-    Only FLAG values in 101-199 are treated as passage groups.
+    When ``set_size`` is set (TOEIC Part3/4), each block always includes the set head.
     """
+    if set_size:
+        return order_set_selection(
+            groups,
+            passage_count,
+            amount,
+            int(set_size),
+            flag_min=flag_min,
+            flag_max=flag_max,
+        )
+
     eligible = {
         key: list(values)
         for key, values in groups.items()
-        if values and is_passage_flag(key)
+        if values and is_passage_flag(key, flag_min, flag_max)
     }
     keys = list(eligible.keys())
     if len(keys) < passage_count:
@@ -349,13 +509,22 @@ def order_passage_selection(
     ordered: list[int] = []
     for key in chosen_keys:
         picks = [int(n) for n in pool_by_key[key] if int(n) in selected]
-        random.shuffle(picks)
+        if order_by_number:
+            picks.sort()
+        else:
+            random.shuffle(picks)
         ordered.extend(picks)
     return ordered
 
 
-def get_exam_candidates_by_passage_flag(amount, category, passage_count: int):
-    """Select questions grouped by knowledge_base.FLAG (Spanish passage id)."""
+def get_exam_candidates_by_passage_flag(amount, category, settings: dict):
+    """Select questions grouped by knowledge_base.FLAG (passage / set id)."""
+    flag_min = int(settings.get("flag_min", PASSAGE_FLAG_MIN))
+    flag_max = int(settings.get("flag_max", PASSAGE_FLAG_MAX))
+    passage_count = resolve_passage_count(amount, settings)
+    order_by_number = bool(settings.get("order_by_number"))
+    set_size = settings.get("set_size")
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute(
@@ -367,17 +536,25 @@ def get_exam_candidates_by_passage_flag(amount, category, passage_count: int):
 
     groups: dict[int, list[int]] = {}
     for number, flag in rows:
-        if not is_passage_flag(flag):
+        if not is_passage_flag(flag, flag_min, flag_max):
             continue
         flag_key = int(flag)
         groups.setdefault(flag_key, []).append(int(number))
 
     print(
         f"passage candidates: category={category}, groups={len(groups)}, "
-        f"flag_range={PASSAGE_FLAG_MIN}-{PASSAGE_FLAG_MAX}, "
-        f"passages={passage_count}, amount={amount}"
+        f"flag_range={flag_min}-{flag_max}, "
+        f"passages={passage_count}, amount={amount}, set_size={set_size}"
     )
-    return order_passage_selection(groups, passage_count, amount)
+    return order_passage_selection(
+        groups,
+        passage_count,
+        amount,
+        flag_min=flag_min,
+        flag_max=flag_max,
+        order_by_number=order_by_number,
+        set_size=int(set_size) if set_size else None,
+    )
 
 
 def getExamCandidate(amount, category, level, mode):
@@ -386,13 +563,11 @@ def getExamCandidate(amount, category, level, mode):
 
     passage = get_passage_settings_for_category(int(category))
     if passage and passage.get("group") == "flag":
-        candidate = get_exam_candidates_by_passage_flag(
-            amount, category, passage["passages"]
-        )
+        candidate = get_exam_candidates_by_passage_flag(amount, category, passage)
         if candidate is None:
             print(
                 f"Passage selection failed: category={category}, "
-                f"amount={amount}, passages={passage['passages']}"
+                f"amount={amount}, passages={resolve_passage_count(amount, passage)}"
             )
         return candidate
 

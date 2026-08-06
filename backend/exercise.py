@@ -6,10 +6,16 @@ from flask import Flask, session, render_template, request, Blueprint, send_from
 from users import getStage, setStage, getStatus, rankUp, rankDown, getMailadress
 import sqlite3, os
 import datetime
-from examDB import getQuestion, getQuestions, Question, getCorrectList
+from examDB import find_exam_q_no_for_number, getQuestion, getQuestions, Question, getCorrectList
 from resultDB import putResult
 from mail import sendMail
-from audio_support import get_audio_play_info, get_choice_audio_info, locate_audio_file
+from audio_support import (
+    get_audio_play_info,
+    get_choice_audio_info,
+    get_set_listening_note,
+    get_set_listening_role,
+    locate_audio_file,
+)
 from image_support import get_image_info, locate_image_file
 
 exec_module = Blueprint("exercise", __name__, static_folder='./static')
@@ -21,11 +27,26 @@ def _request_value(key: str, default: str = "") -> str:
     return request.args.get(key, default)
 
 
-def _media_template_kwargs(question, *, enforce_play_limit: bool = True) -> dict:
+def _media_template_kwargs(
+    question,
+    *,
+    enforce_play_limit: bool = True,
+    hide_set_follow_up: bool | None = None,
+    show_set_note: bool | None = None,
+    examlist: str | None = None,
+) -> dict:
     # Part2: stem Q + choice A/B/C can both be present.
+    # Part3 multi-exam: stem audio on set head only; analysis has no set notes.
+    if hide_set_follow_up is None:
+        hide_set_follow_up = enforce_play_limit
+    if show_set_note is None:
+        show_set_note = enforce_play_limit
     choice_audio = get_choice_audio_info(question)
-    audio = get_audio_play_info(question)
+    audio = get_audio_play_info(question, hide_set_follow_up=hide_set_follow_up)
     image = get_image_info(question)
+    head_q_no = None
+    if show_set_note and examlist and get_set_listening_role(question) == "follow_up":
+        head_q_no = find_exam_q_no_for_number(examlist, getattr(question, "flag", 0))
     kwargs = {
         "show_audio": False,
         "audio_url": "",
@@ -35,6 +56,10 @@ def _media_template_kwargs(question, *, enforce_play_limit: bool = True) -> dict
         "enforce_audio_limit": False,
         "show_image": False,
         "image_url": "",
+        "audio_set_note": (
+            get_set_listening_note(question, head_q_no=head_q_no) if show_set_note else ""
+        ),
+        "set_head_q_no": head_q_no or 0,
     }
     if audio:
         kwargs.update(
@@ -230,7 +255,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
-                               **_media_template_kwargs(q),
+                               **_media_template_kwargs(q, examlist=examlist),
                                )
 
     elif command == 'next':
@@ -273,7 +298,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
-                               **_media_template_kwargs(q),
+                               **_media_template_kwargs(q, examlist=examlist),
                                )
 
     elif command == 'previous':
@@ -316,7 +341,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
-                               **_media_template_kwargs(q),
+                               **_media_template_kwargs(q, examlist=examlist),
                                )
 
     elif command == 'move':
@@ -360,7 +385,7 @@ def exercise():
                                timeSec=timeSec,
                                title=title,
                                timePerQ=timePerQ,
-                               **_media_template_kwargs(q),
+                               **_media_template_kwargs(q, examlist=examlist),
                                )
 
     elif (command == 'finish') or (command == 'timeout'):

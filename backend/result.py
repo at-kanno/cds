@@ -12,7 +12,8 @@ result_module = Blueprint("result", __name__, static_folder='./static')
 
 def _audio_template_kwargs(question) -> dict:
     choice_audio = get_choice_audio_info(question)
-    audio = get_audio_play_info(question)
+    # Analysis: replay shared set audio on any question; no exam navigation notes.
+    audio = get_audio_play_info(question, hide_set_follow_up=False)
     image = get_image_info(question)
     kwargs = {
         "show_audio": False,
@@ -21,6 +22,7 @@ def _audio_template_kwargs(question) -> dict:
         "choice_audio_urls": {},
         "show_image": False,
         "image_url": "",
+        "audio_set_note": "",
     }
     if audio:
         kwargs.update(

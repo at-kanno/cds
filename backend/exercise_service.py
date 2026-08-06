@@ -13,23 +13,31 @@ from constant import (
     PASS_MESSAGE_ON_SCREEN,
     db_path,
 )
-from examDB import getCorrectList, getQuestion, makeExam2, saveExam
+from examDB import find_exam_q_no_for_number, getCorrectList, getQuestion, makeExam2, saveExam
 from mail import sendMail
 from resultDB import putResult
 from users import getMailadress, getStage, getStatus, rankDown, rankUp, setStage
-from audio_support import get_audio_play_info, get_choice_audio_info
+from audio_support import (
+    get_audio_play_info,
+    get_choice_audio_info,
+    get_set_listening_note,
+    get_set_listening_role,
+)
 from image_support import get_image_info
 
 
-def _audio_payload(question) -> dict[str, Any] | None:
-    info = get_audio_play_info(question)
+def _audio_payload(question, *, hide_set_follow_up: bool = True) -> dict[str, Any] | None:
+    info = get_audio_play_info(question, hide_set_follow_up=hide_set_follow_up)
     if not info:
         return None
-    return {
+    payload = {
         "filename": info["filename"],
         "url": f"/audio/{info['filename']}",
         "max_audio_plays": info["max_audio_plays"],
     }
+    if info.get("set_role"):
+        payload["set_role"] = info["set_role"]
+    return payload
 
 
 def _choice_audio_payload(question) -> dict[str, Any] | None:
@@ -102,6 +110,10 @@ def _question_payload(
             q_obj.a4,
         )
 
+    head_q_no = None
+    if get_set_listening_role(q_obj) == "follow_up":
+        head_q_no = find_exam_q_no_for_number(examlist, getattr(q_obj, "flag", 0))
+
     return {
         "finished": False,
         "user_id": user_id,
@@ -117,9 +129,11 @@ def _question_payload(
         "selection3": selection3,
         "selection4": selection4,
         "choice_count": getattr(q_obj, "choice_count", 4),
-        "audio": _audio_payload(q_obj),
+        "audio": _audio_payload(q_obj, hide_set_follow_up=True),
         "choice_audio": choice_audio,
         "image": _image_payload(q_obj),
+        "audio_set_note": get_set_listening_note(q_obj, head_q_no=head_q_no),
+        "set_head_q_no": head_q_no,
         "marklist": marklist,
         "answerlist": answerlist,
         "selected_answer": selected,

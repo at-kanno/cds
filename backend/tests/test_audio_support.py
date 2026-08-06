@@ -9,8 +9,11 @@ from audio_support import (
     get_audio_play_info,
     get_choice_audio_info,
     get_listening_settings_for_category,
+    get_set_listening_note,
+    get_set_listening_role,
     is_listening_share_flag,
     is_safe_audio_filename,
+    is_set_audio_flag,
     map_choice_audio_to_display,
     resolve_audio_path,
     resolve_audio_stem,
@@ -177,6 +180,61 @@ class AudioSupportTests(unittest.TestCase):
         self.assertEqual(mapped["C"], "101-D.mp3")
         self.assertEqual(mapped["D"], "101-B.mp3")
 
+    def test_part3_set_flag_audio_head_and_follow_up(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            pack = os.path.join(tmp, "TOEIC-3")
+            os.makedirs(pack)
+            path = os.path.join(pack, "301.mp3")
+            with open(path, "wb") as handle:
+                handle.write(b"ID3")
+            with patch.dict(
+                os.environ,
+                {
+                    "EXAM_AUDIO_DIR": os.path.join(tmp, "missing"),
+                    "EXAM_IMAGE_DIR": tmp,
+                    "APP_PROFILE": "TOEIC",
+                },
+            ):
+                from config_loader import clear_config_cache
+                from exam_plan_loader import clear_exam_plan_cache
+
+                clear_config_cache()
+                clear_exam_plan_cache()
+
+                self.assertTrue(is_set_audio_flag(301))
+                self.assertFalse(is_set_audio_flag(201))
+                self.assertEqual(resolve_audio_stem(302, 301), "301")
+                self.assertEqual(resolve_audio_path(302, 301), path)
+
+                head = SimpleNamespace(number=301, flag=301, category=31)
+                follow = SimpleNamespace(number=302, flag=301, category=31)
+                self.assertEqual(get_set_listening_role(head), "head")
+                self.assertEqual(get_set_listening_role(follow), "follow_up")
+                self.assertTrue(get_set_listening_note(head))
+                self.assertEqual(
+                    get_set_listening_note(follow),
+                    "このセットの音声は先頭の問題で再生してください。",
+                )
+                self.assertEqual(
+                    get_set_listening_note(follow, head_q_no=7),
+                    "このセットの音声は問題7で再生してください。",
+                )
+                self.assertNotIn("戻って", get_set_listening_note(follow, head_q_no=7))
+
+                head_info = get_audio_play_info(head, hide_set_follow_up=True)
+                follow_multi = get_audio_play_info(follow, hide_set_follow_up=True)
+                follow_single = get_audio_play_info(follow, hide_set_follow_up=False)
+                self.assertIsNotNone(head_info)
+                assert head_info is not None
+                self.assertEqual(head_info["filename"], "301.mp3")
+                self.assertEqual(head_info["set_role"], "head")
+                self.assertEqual(head_info["max_audio_plays"], 1)
+                self.assertIsNone(follow_multi)
+                self.assertIsNotNone(follow_single)
+                assert follow_single is not None
+                self.assertEqual(follow_single["filename"], "301.mp3")
+
 
 if __name__ == "__main__":
     unittest.main()
+

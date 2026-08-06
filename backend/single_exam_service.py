@@ -10,27 +10,55 @@ from image_support import get_image_info
 from users import getStage, setStage
 
 
-def _media_payloads(num, db_category: int, permutation) -> dict[str, Any]:
+def _flag_and_category_for_number(num, fallback_category: int) -> tuple[int, int]:
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT FLAG, CATEGORY FROM knowledge_base WHERE NUMBER = ?",
+        (int(num),),
+    )
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return 0, int(fallback_category)
+    try:
+        flag = int(row[0] or 0)
+    except (TypeError, ValueError):
+        flag = 0
+    try:
+        category = int(row[1] or fallback_category)
+    except (TypeError, ValueError):
+        category = int(fallback_category)
+    return flag, category
+
+
+def _media_payloads(num, db_category: int, permutation, *, enforce_play_limit: bool = True) -> dict[str, Any]:
+    flag, category = _flag_and_category_for_number(num, db_category)
     stub = SimpleNamespace(
         number=int(num),
-        category=int(db_category),
+        category=int(category),
         permutation=permutation,
-        flag=0,
+        flag=flag,
     )
     choice = get_choice_audio_info(stub)
-    audio = get_audio_play_info(stub)
+    # 一問一答: always expose set conversation audio (any question in the set).
+    audio = get_audio_play_info(stub, hide_set_follow_up=False)
     image = get_image_info(stub)
     payload: dict[str, Any] = {
         "audio": None,
         "choice_audio": None,
         "image": None,
+        "audio_set_note": "",
     }
     if audio:
-        payload["audio"] = {
+        audio_payload = {
             "filename": audio["filename"],
             "url": f"/audio/{audio['filename']}",
             "max_audio_plays": audio["max_audio_plays"],
         }
+        if audio.get("set_role"):
+            audio_payload["set_role"] = audio["set_role"]
+        payload["audio"] = audio_payload
     if choice:
         payload["choice_audio"] = {
             "choices": {
@@ -65,7 +93,12 @@ def _question_response(
     choice_count: int = 4,
     db_category: int | None = None,
 ) -> dict[str, Any]:
-    media = _media_payloads(num, db_category if db_category is not None else category, permutation)
+    media = _media_payloads(
+        num,
+        db_category if db_category is not None else category,
+        permutation,
+        enforce_play_limit=True,
+    )
     if media.get("choice_audio"):
         selection1 = selection2 = selection3 = selection4 = ""
     return {
@@ -176,7 +209,7 @@ def check_single_answer(
 
     entry = get_exam_entry(int(category))
     db_category = int(entry["category_range"][0]) if entry and entry.get("category_range") else int(category)
-    media = _media_payloads(num, db_category, permutation)
+    media = _media_payloads(num, db_category, permutation, enforce_play_limit=False)
 
     return {
         "mode": "single_result",

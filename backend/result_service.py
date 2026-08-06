@@ -8,15 +8,18 @@ from audio_support import get_audio_play_info, get_choice_audio_info
 from image_support import get_image_info
 
 
-def _audio_payload(question) -> dict[str, Any] | None:
-    info = get_audio_play_info(question)
+def _audio_payload(question, *, hide_set_follow_up: bool = False) -> dict[str, Any] | None:
+    info = get_audio_play_info(question, hide_set_follow_up=hide_set_follow_up)
     if not info:
         return None
-    return {
+    payload = {
         "filename": info["filename"],
         "url": f"/audio/{info['filename']}",
         "max_audio_plays": info["max_audio_plays"],
     }
+    if info.get("set_role"):
+        payload["set_role"] = info["set_role"]
+    return payload
 
 
 def _choice_audio_payload(question) -> dict[str, Any] | None:
@@ -291,7 +294,7 @@ def build_question_analysis(data: dict[str, Any]) -> dict[str, Any]:
         "selection4": question.a4,
         "prompt_text": getattr(question, "prompt_text", "") or "",
         "choice_count": getattr(question, "choice_count", 4),
-        "audio": _audio_payload(question),
+        "audio": _audio_payload(question, hide_set_follow_up=False),
         "choice_audio": _choice_audio_payload(question),
         "image": _image_payload(question),
         "correct_answer": correct_answer,
