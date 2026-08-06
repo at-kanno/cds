@@ -1,13 +1,12 @@
-# Question images / Part1 media (not in git)
+# TOEIC / question media
 
-Place files here (or set `EXAM_IMAGE_DIR`).
+Media packs live in subfolders (tracked in git):
 
-| 種別 | ファイル名 |
+| パック | 内容 |
 |---|---|
-| 写真（Part1） | `{NUMBER}.png`（`.jpg` / `.webp` も可） |
-| 音声（Part1） | `{NUMBER}-A.mp3` … `{NUMBER}-D.mp3`（選択肢ごと） |
+| `TOEIC-1/` | Part1 写真 `{NUMBER}.png` + 選択肢 `{NUMBER}-A.mp3` … `D` |
+| `TOEIC-2/` | Part2 設問 `{NUMBER}-Q.mp3` + 選択肢 `{NUMBER}-A.mp3` … `C` |
 
-例: 問題番号 `101` → `101.png` + `101-A.mp3` … `101-D.mp3`
+西検など従来の1ファイル音声は `backend/audio/{NUMBER}.mp3`。
 
-- 西検など従来のヒアリングは `backend/audio/{NUMBER}.mp3`（1問1ファイル）
-- Part1 の選択肢 mp3 は `image/` 同居のままで可（`audio/` にあっても可）
+Override roots with `EXAM_IMAGE_DIR` / `EXAM_AUDIO_DIR` if needed.

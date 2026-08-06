@@ -104,7 +104,8 @@ reading2:
 | `backend/image/`（TOEIC Part1。`EXAM_IMAGE_DIR`） | `{NUMBER}.png` と任意で `{NUMBER}.mp3` |
 
 例: 西検 `6101` → `backend/audio/6101.mp3`  
-例: TOEIC Part1 `101` → `backend/image/101.png` + `101-A.mp3` … `101-D.mp3`
+例: TOEIC Part1 → `backend/image/TOEIC-1/101.png` + `101-A.mp3` … `101-D.mp3`  
+例: TOEIC Part2 → `backend/image/TOEIC-2/201-Q.mp3` + `201-A.mp3` … `201-C.mp3`
 
 - メディアは **git 管理外**（サーバへ別途配置）
 - mp3 は `audio/` を優先し、無ければ `image/` を参照

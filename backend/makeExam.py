@@ -264,7 +264,9 @@ def makeExam3():
         else:
             correct = '誤りです。'
 
-        q, a1, a2, a3, a4, cidx[0], cidx[1],cidx[2],cidx[3], conn, c = getQuestionFromNum(num, permutation)
+        q, a1, a2, a3, a4, cidx[0], cidx[1], cidx[2], cidx[3], prompt_text, conn, c = (
+            getQuestionFromNum(num, permutation)
+        )
 
         if ans != 9:
             cid = cidx[ans-1]
@@ -287,6 +289,9 @@ def makeExam3():
                                    )
 
         area = request.form.get('area')
+        media = _single_question_media(
+            num, category, permutation, enforce_play_limit=False
+        )
         return render_template('analysis2.html',
                                user_id=user_id,
                                q=q,
@@ -294,15 +299,15 @@ def makeExam3():
                                a2=a2,
                                a3=a3,
                                a4=a4,
+                               prompt_text=prompt_text,
+                               choice_count=sum(1 for text in (a1, a2, a3, a4) if text),
                                correct=correct,
                                comment=comment,
                                answer="ABCD"[crct],
                                category=category,
                                area=area,
                                subject=constant.SUBJECT,
-                               **_single_question_media(
-                                   num, category, permutation, enforce_play_limit=False
-                               ),
+                               **media,
                                )
     else:
         stage = getStage(user_id)
@@ -322,19 +327,19 @@ def makeExam3():
         entry = get_exam_entry(int(category))
         if entry and entry.get("category_range"):
             start, end = entry["category_range"]
-            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = \
+            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count, _prompt = \
                 getQuestionFromCategory(int(start), int(end))
         elif (category == '91'):
-            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = \
+            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count, _prompt = \
                 getQuestionFromCategory(11, 19)
         elif (category == '92'):
-            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = \
+            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count, _prompt = \
                 getQuestionFromCategory(21, 29)
         elif (category == '93'):
-            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = \
+            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count, _prompt = \
                 getQuestionFromCategory(31, 39)
         elif (category == '94'):
-            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = \
+            q, a1, a2, a3, a4, crct, cid, num, permutation, choice_count, _prompt = \
                 getQuestionFromCategory(41, 49)
         else:
             setStage(user_id, 1)

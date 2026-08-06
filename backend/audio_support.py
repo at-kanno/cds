@@ -1,4 +1,4 @@
-"""Listening audio helpers: NUMBER.mp3 or Part1 NUMBER-A..D.mp3 (FLAG 201-299)."""
+"""Listening audio: NUMBER.mp3, NUMBER-Q.mp3, or choice NUMBER-A..D.mp3."""
 
 from __future__ import annotations
 
@@ -9,17 +9,17 @@ from typing import Any
 import constant
 
 # Shared conversation audio uses FLAG in this range (optional).
-# Normal questions use {NUMBER}.mp3 with FLAG outside this range (0, etc.).
 LISTENING_FLAG_MIN = 201
 LISTENING_FLAG_MAX = 299
 
 _SAFE_STEM = re.compile(r"^[0-9]+$")
 _SAFE_CHOICE_STEM = re.compile(r"^[0-9]+-[A-D]$")
+_SAFE_QUESTION_STEM = re.compile(r"^[0-9]+-Q$")
 _CHOICE_LETTERS = ("A", "B", "C", "D")
 
 
 def resolve_audio_dir() -> str:
-    """Directory for mp3 files (not in git). Override with EXAM_AUDIO_DIR."""
+    """Directory for mp3 files. Override with EXAM_AUDIO_DIR."""
     override = os.environ.get("EXAM_AUDIO_DIR", "").strip()
     if override:
         return override if os.path.isabs(override) else os.path.join(constant.base_path, override)
@@ -27,14 +27,14 @@ def resolve_audio_dir() -> str:
 
 
 def _media_search_dirs() -> list[str]:
-    """Dirs to search for mp3: audio/ first, then image/ (TOEIC Part1 colocated)."""
+    """Dirs to search for mp3: audio/, then image/ and image/TOEIC-* packs."""
     dirs = [resolve_audio_dir()]
     try:
-        from image_support import resolve_image_dir
+        from image_support import media_pack_dirs
 
-        image_dir = resolve_image_dir()
-        if image_dir not in dirs:
-            dirs.append(image_dir)
+        for directory in media_pack_dirs():
+            if directory not in dirs:
+                dirs.append(directory)
     except Exception:
         pass
     return dirs
@@ -81,18 +81,31 @@ def audio_filename_for_question(number, flag=0) -> str:
 
 
 def resolve_audio_path(number, flag=0) -> str | None:
-    """Return absolute path if a single mp3 exists.
+    """Return absolute path for a stem mp3 if it exists.
 
-    Prefer shared FLAG file when FLAG is 201-299; fall back to NUMBER.mp3.
-    Searches backend/audio/ then backend/image/.
+    Order: shared FLAG file (201-299), then ``{NUMBER}-Q.mp3`` (Part2),
+    then ``{NUMBER}.mp3``. Searches audio/ and image/TOEIC-* packs.
     """
-    candidates = [audio_filename_for_question(number, flag)]
-    number_name = f"{int(number)}.mp3"
-    if candidates[0] != number_name:
-        candidates.append(number_name)
+    candidates: list[str] = []
+    if is_listening_share_flag(flag):
+        candidates.append(audio_filename_for_question(number, flag))
+    try:
+        stem = str(int(number))
+    except (TypeError, ValueError):
+        return None
+    candidates.append(f"{stem}-Q.mp3")
+    candidates.append(f"{stem}.mp3")
+
+    # Keep unique order
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for name in candidates:
+        if name not in seen:
+            seen.add(name)
+            ordered.append(name)
 
     for directory in _media_search_dirs():
-        for name in candidates:
+        for name in ordered:
             path = os.path.join(directory, name)
             if os.path.isfile(path):
                 return path
@@ -136,10 +149,7 @@ def map_choice_audio_to_display(
     original_paths: dict[str, str],
     permutation,
 ) -> dict[str, str]:
-    """Map original A1..A4 files onto display slots A..D via permutation.
-
-    Example: permutation [2,1,3,4] → display A plays *-B.mp3, B plays *-A.mp3.
-    """
+    """Map original A1..A4 files onto display slots A..D via permutation."""
     slots = parse_permutation(permutation)
     mapped: dict[str, str] = {}
     for i, display_letter in enumerate(_CHOICE_LETTERS):
@@ -165,11 +175,7 @@ def locate_audio_file(filename: str) -> str | None:
 
 
 def get_choice_audio_info(question) -> dict[str, Any] | None:
-    """Part1-style per-choice clips ({NUMBER}-A.mp3 .. D), or None.
-
-    Filenames are stored for original A1..A4; ``question.permutation`` remaps
-    them onto the shuffled display order (same rule as answer text).
-    """
+    """Per-choice clips ({NUMBER}-A.mp3 .. D), remapped by permutation."""
     category = getattr(question, "category", None)
     settings = get_listening_settings_for_category(category)
     if not settings:
@@ -197,10 +203,9 @@ def get_choice_audio_info(question) -> dict[str, Any] | None:
 
 
 def get_audio_play_info(question) -> dict[str, Any] | None:
-    """Build single-file listening info, or None.
+    """Stem / question mp3 ({NUMBER}-Q.mp3 or {NUMBER}.mp3), or None.
 
-    Prefer a single {NUMBER}.mp3. If only Part1 choice clips exist, return None
-    (use get_choice_audio_info instead).
+    May coexist with choice clips (Part2: Q + A/B/C).
     """
     category = getattr(question, "category", None)
     settings = get_listening_settings_for_category(category)
@@ -222,7 +227,8 @@ def get_audio_play_info(question) -> dict[str, Any] | None:
         return None
 
     filename = os.path.basename(path)
-    if not _SAFE_STEM.match(filename[:-4]) or not filename.endswith(".mp3"):
+    stem = filename[:-4] if filename.endswith(".mp3") else ""
+    if not (_SAFE_STEM.match(stem) or _SAFE_QUESTION_STEM.match(stem)):
         return None
 
     return {
@@ -238,4 +244,8 @@ def is_safe_audio_filename(filename: str) -> bool:
     if not filename.endswith(".mp3"):
         return False
     stem = filename[:-4]
-    return bool(_SAFE_STEM.match(stem) or _SAFE_CHOICE_STEM.match(stem))
+    return bool(
+        _SAFE_STEM.match(stem)
+        or _SAFE_CHOICE_STEM.match(stem)
+        or _SAFE_QUESTION_STEM.match(stem)
+    )

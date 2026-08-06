@@ -5,7 +5,7 @@ backend/.env
 backend/DEBUG.log
 backend/exam.sqlite
 backend/exam-*.sqlite
-# Listening / Part1 media are tracked (mp3/png). Keep other junk out of these dirs.
+# Listening / TOEIC media are tracked (mp3/png). Keep other junk out of these dirs.
 backend/audio/*
 !backend/audio/README.md
 !backend/audio/*.mp3
@@ -13,6 +13,8 @@ backend/image/*
 !backend/image/README.md
 !backend/image/*.png
 !backend/image/*.mp3
+!backend/image/TOEIC-*/
+!backend/image/TOEIC-*/**
 frontend/.dart_tool/
 frontend/build/
 frontend/all

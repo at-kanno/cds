@@ -61,6 +61,7 @@ class AudioSupportTests(unittest.TestCase):
     def test_safe_filename(self) -> None:
         self.assertTrue(is_safe_audio_filename("6101.mp3"))
         self.assertTrue(is_safe_audio_filename("101-A.mp3"))
+        self.assertTrue(is_safe_audio_filename("201-Q.mp3"))
         self.assertFalse(is_safe_audio_filename("../6101.mp3"))
         self.assertFalse(is_safe_audio_filename("6101.wav"))
         self.assertFalse(is_safe_audio_filename("abc.mp3"))
@@ -98,8 +99,10 @@ class AudioSupportTests(unittest.TestCase):
 
     def test_choice_audio_from_image_dir(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
+            pack = os.path.join(tmp, "TOEIC-1")
+            os.makedirs(pack)
             for letter in "ABCD":
-                with open(os.path.join(tmp, f"101-{letter}.mp3"), "wb") as handle:
+                with open(os.path.join(pack, f"101-{letter}.mp3"), "wb") as handle:
                     handle.write(b"ID3")
             with patch.dict(
                 os.environ,
@@ -130,6 +133,36 @@ class AudioSupportTests(unittest.TestCase):
                 self.assertEqual(info2["choices"]["B"], "101-A.mp3")
                 self.assertEqual(info2["choices"]["C"], "101-C.mp3")
                 self.assertEqual(info2["choices"]["D"], "101-D.mp3")
+
+    def test_part2_question_and_choice_audio(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            pack = os.path.join(tmp, "TOEIC-2")
+            os.makedirs(pack)
+            for name in ("201-Q.mp3", "201-A.mp3", "201-B.mp3", "201-C.mp3"):
+                with open(os.path.join(pack, name), "wb") as handle:
+                    handle.write(b"ID3")
+            with patch.dict(
+                os.environ,
+                {"EXAM_AUDIO_DIR": os.path.join(tmp, "missing"), "EXAM_IMAGE_DIR": tmp, "APP_PROFILE": "TOEIC"},
+            ):
+                from config_loader import clear_config_cache
+                from exam_plan_loader import clear_exam_plan_cache
+
+                clear_config_cache()
+                clear_exam_plan_cache()
+                question = SimpleNamespace(
+                    number=201, flag=0, category=21, permutation=[2, 1, 3, 0]
+                )
+                stem = get_audio_play_info(question)
+                choices = get_choice_audio_info(question)
+                self.assertIsNotNone(stem)
+                self.assertIsNotNone(choices)
+                assert stem is not None and choices is not None
+                self.assertEqual(stem["filename"], "201-Q.mp3")
+                self.assertEqual(choices["choices"]["A"], "201-B.mp3")
+                self.assertEqual(choices["choices"]["B"], "201-A.mp3")
+                self.assertEqual(choices["choices"]["C"], "201-C.mp3")
+                self.assertNotIn("D", choices["choices"])
 
     def test_map_choice_audio_to_display(self) -> None:
         paths = {

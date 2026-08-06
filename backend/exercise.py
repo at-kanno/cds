@@ -10,7 +10,7 @@ from examDB import getQuestion, getQuestions, Question, getCorrectList
 from resultDB import putResult
 from mail import sendMail
 from audio_support import get_audio_play_info, get_choice_audio_info, locate_audio_file
-from image_support import get_image_info, is_safe_image_filename, resolve_image_dir
+from image_support import get_image_info, locate_image_file
 
 exec_module = Blueprint("exercise", __name__, static_folder='./static')
 
@@ -22,8 +22,9 @@ def _request_value(key: str, default: str = "") -> str:
 
 
 def _media_template_kwargs(question, *, enforce_play_limit: bool = True) -> dict:
+    # Part2: stem Q + choice A/B/C can both be present.
     choice_audio = get_choice_audio_info(question)
-    audio = None if choice_audio else get_audio_play_info(question)
+    audio = get_audio_play_info(question)
     image = get_image_info(question)
     kwargs = {
         "show_audio": False,
@@ -35,6 +36,15 @@ def _media_template_kwargs(question, *, enforce_play_limit: bool = True) -> dict
         "show_image": False,
         "image_url": "",
     }
+    if audio:
+        kwargs.update(
+            {
+                "show_audio": True,
+                "audio_url": url_for("exercise.serve_audio", filename=audio["filename"]),
+                "max_audio_plays": audio["max_audio_plays"],
+                "enforce_audio_limit": enforce_play_limit,
+            }
+        )
     if choice_audio:
         urls = {
             letter: url_for("exercise.serve_audio", filename=filename)
@@ -45,15 +55,6 @@ def _media_template_kwargs(question, *, enforce_play_limit: bool = True) -> dict
                 "show_choice_audio": True,
                 "choice_audio_urls": urls,
                 "max_audio_plays": choice_audio["max_audio_plays"],
-                "enforce_audio_limit": enforce_play_limit,
-            }
-        )
-    elif audio:
-        kwargs.update(
-            {
-                "show_audio": True,
-                "audio_url": url_for("exercise.serve_audio", filename=audio["filename"]),
-                "max_audio_plays": audio["max_audio_plays"],
                 "enforce_audio_limit": enforce_play_limit,
             }
         )
@@ -87,12 +88,9 @@ def serve_audio(filename: str):
 
 @exec_module.route("/image/<filename>")
 def serve_image(filename: str):
-    """Serve question images from EXAM_IMAGE_DIR / backend/image."""
-    if not is_safe_image_filename(filename):
-        abort(404)
-    image_dir = resolve_image_dir()
-    path = os.path.join(image_dir, filename)
-    if not os.path.isfile(path):
+    """Serve question images from image/ or image/TOEIC-* packs."""
+    path = locate_image_file(filename)
+    if not path:
         abort(404)
     lower = filename.lower()
     if lower.endswith(".png"):
@@ -101,7 +99,11 @@ def serve_image(filename: str):
         mime = "image/webp"
     else:
         mime = "image/jpeg"
-    return send_from_directory(image_dir, filename, mimetype=mime)
+    return send_from_directory(
+        os.path.dirname(path),
+        os.path.basename(path),
+        mimetype=mime,
+    )
 
 
 def _resolve_exam_lists(

@@ -30,16 +30,18 @@ areas:
     choice_count: 4
     listening: true
     max_audio_plays: 1
-    # メディア: backend/image/{NUMBER}.png と {NUMBER}-A..D.mp3
+    # メディア: backend/image/TOEIC-1/{NUMBER}.png と {NUMBER}-A..D.mp3
     # 出題時は選択肢テキスト非表示（音声のみ）。解説では表示。
   part2:
     name: 応答問題
     abbrev: P2
     categories: [21]
     practices: [応答問題]
-    choice_count: 4
+    choice_count: 3
     listening: true
-    max_audio_plays: 2
+    max_audio_plays: 1
+    # メディア: backend/image/TOEIC-2/{NUMBER}-Q.mp3 と {NUMBER}-A..C.mp3
+    # DB: A1-A3=応答, A4=英文の質問（解説で設問音声の横に表示）
   part3:
     name: 会話問題
     abbrev: P3

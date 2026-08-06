@@ -18,13 +18,19 @@ def _media_payloads(num, db_category: int, permutation) -> dict[str, Any]:
         flag=0,
     )
     choice = get_choice_audio_info(stub)
-    audio = None if choice else get_audio_play_info(stub)
+    audio = get_audio_play_info(stub)
     image = get_image_info(stub)
     payload: dict[str, Any] = {
         "audio": None,
         "choice_audio": None,
         "image": None,
     }
+    if audio:
+        payload["audio"] = {
+            "filename": audio["filename"],
+            "url": f"/audio/{audio['filename']}",
+            "max_audio_plays": audio["max_audio_plays"],
+        }
     if choice:
         payload["choice_audio"] = {
             "choices": {
@@ -32,12 +38,6 @@ def _media_payloads(num, db_category: int, permutation) -> dict[str, Any]:
                 for letter, filename in choice["choices"].items()
             },
             "max_audio_plays": choice["max_audio_plays"],
-        }
-    elif audio:
-        payload["audio"] = {
-            "filename": audio["filename"],
-            "url": f"/audio/{audio['filename']}",
-            "max_audio_plays": audio["max_audio_plays"],
         }
     if image:
         payload["image"] = {
@@ -115,7 +115,7 @@ def start_single_exam(user_id: int, category: int) -> dict[str, Any]:
     if result is False or not isinstance(result, tuple):
         raise ValueError("No questions available for this category.")
 
-    question, a1, a2, a3, a4, crct, cid, num, permutation, choice_count = result
+    question, a1, a2, a3, a4, crct, cid, num, permutation, choice_count, _prompt = result
     return _question_response(
         user_id=user_id,
         category=category,
@@ -157,7 +157,7 @@ def check_single_answer(
     if fetched is False:
         raise ValueError("Question not found.")
 
-    question, a1, a2, a3, a4, cid0, cid1, cid2, cid3, conn, _cursor = fetched
+    question, a1, a2, a3, a4, cid0, cid1, cid2, cid3, prompt_text, conn, _cursor = fetched
     if answer != 9 and 1 <= answer <= 4:
         comment_id = [cid0, cid1, cid2, cid3][answer - 1]
     else:
@@ -191,6 +191,7 @@ def check_single_answer(
         "selection2": a2,
         "selection3": a3,
         "selection4": a4,
+        "prompt_text": prompt_text,
         "choice_count": sum(1 for text in (a1, a2, a3, a4) if text),
         "comment": comment,
         **media,

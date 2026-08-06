@@ -9,3 +9,5 @@ image/*
 !image/README.md
 !image/*.png
 !image/*.mp3
+!image/TOEIC-*/
+!image/TOEIC-*/**

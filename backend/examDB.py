@@ -141,6 +141,8 @@ def getQuestion(examlist, q_no):
     q.flag = _safe_int(r[10])
     # Same slot order used for shuffled answer text; choice audio remaps with this.
     q.permutation = [int(value) for value in idx]
+    # Original A4 (Part2: English question prompt; not shuffled with choices).
+    q.prompt_text = r[4] or ""
 
     _debug_print('Question=', q.q)
     return q, conn, c
@@ -503,8 +505,10 @@ def getQuestionFromCategory(start, end):
             crct = i
     cid = items[m][5]
     num = items[m][6]
+    # Original A4 (Part2 English prompt); independent of choice shuffle.
+    prompt_text = items[m][4] or ""
 
-    return q, a1, a2, a3, a4, crct, cid, num, perm, choice_n
+    return q, a1, a2, a3, a4, crct, cid, num, perm, choice_n, prompt_text
 
 def getQuestionFromNum(number,permutation):
 
@@ -543,7 +547,8 @@ def getQuestionFromNum(number,permutation):
         a[i] = _answer_from_row(items[0], slots[i])
         cid[i] = _cid_from_row(items[0], slots[i])
 
-    return q,a[0],a[1],a[2],a[3],cid[0],cid[1],cid[2],cid[3], conn, c
+    prompt_text = items[0][4] or ""
+    return q, a[0], a[1], a[2], a[3], cid[0], cid[1], cid[2], cid[3], prompt_text, conn, c
 
 def saveExam(user, category, level, amount, examlist, arealist):
 

@@ -12,7 +12,7 @@ result_module = Blueprint("result", __name__, static_folder='./static')
 
 def _audio_template_kwargs(question) -> dict:
     choice_audio = get_choice_audio_info(question)
-    audio = None if choice_audio else get_audio_play_info(question)
+    audio = get_audio_play_info(question)
     image = get_image_info(question)
     kwargs = {
         "show_audio": False,
@@ -22,6 +22,13 @@ def _audio_template_kwargs(question) -> dict:
         "show_image": False,
         "image_url": "",
     }
+    if audio:
+        kwargs.update(
+            {
+                "show_audio": True,
+                "audio_url": url_for("exercise.serve_audio", filename=audio["filename"]),
+            }
+        )
     if choice_audio:
         kwargs.update(
             {
@@ -30,13 +37,6 @@ def _audio_template_kwargs(question) -> dict:
                     letter: url_for("exercise.serve_audio", filename=filename)
                     for letter, filename in choice_audio["choices"].items()
                 },
-            }
-        )
-    elif audio:
-        kwargs.update(
-            {
-                "show_audio": True,
-                "audio_url": url_for("exercise.serve_audio", filename=audio["filename"]),
             }
         )
     if image:
@@ -402,6 +402,8 @@ def analize():
                                a2=q.a2,
                                a3=q.a3,
                                a4=q.a4,
+                               prompt_text=getattr(q, "prompt_text", "") or "",
+                               choice_count=getattr(q, "choice_count", 4),
                                correct=correct,
                                comment=comment,
                                resultlist=resultlist,

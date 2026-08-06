@@ -16,7 +16,9 @@ class ImageSupportTests(unittest.TestCase):
 
     def test_resolve_png_and_info(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            path = os.path.join(tmp, "101.png")
+            pack = os.path.join(tmp, "TOEIC-1")
+            os.makedirs(pack)
+            path = os.path.join(pack, "101.png")
             with open(path, "wb") as handle:
                 handle.write(b"\x89PNG")
             with patch.dict(os.environ, {"EXAM_IMAGE_DIR": tmp}):

@@ -289,6 +289,7 @@ def build_question_analysis(data: dict[str, Any]) -> dict[str, Any]:
         "selection2": question.a2,
         "selection3": question.a3,
         "selection4": question.a4,
+        "prompt_text": getattr(question, "prompt_text", "") or "",
         "choice_count": getattr(question, "choice_count", 4),
         "audio": _audio_payload(question),
         "choice_audio": _choice_audio_payload(question),

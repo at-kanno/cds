@@ -30,7 +30,11 @@
 {% endif %}
 {% if show_audio %}
 <TR><TD colspan="2" style="padding:8px 0;">
-    <audio controls controlsList="nodownload" preload="metadata" src="{{ audio_url }}"></audio>
+    <audio controls controlsList="nodownload" preload="metadata" src="{{ audio_url }}"
+           style="vertical-align:middle;"></audio>
+    {% if prompt_text and show_choice_audio %}
+    <span style="margin-left:12px;vertical-align:middle;">{{ prompt_text }}</span>
+    {% endif %}
 </TD></TR>
 {% endif %}
 <TR><TD>A.</TD><TD>
@@ -47,7 +51,7 @@
     {% endif %}
     {{ a2 }}
 </TD></TR>
-{% if a3 %}
+{% if choice_count|default(4) >= 3 and a3 %}
 <TR><TD>C.</TD><TD>
     {% if show_choice_audio and choice_audio_urls.get('C') %}
     <audio controls controlsList="nodownload" preload="metadata" src="{{ choice_audio_urls['C'] }}"
@@ -56,7 +60,7 @@
     {{ a3 }}
 </TD></TR>
 {% endif %}
-{% if a4 %}
+{% if choice_count|default(4) >= 4 and a4 %}
 <TR><TD>D.</TD><TD>
     {% if show_choice_audio and choice_audio_urls.get('D') %}
     <audio controls controlsList="nodownload" preload="metadata" src="{{ choice_audio_urls['D'] }}"
