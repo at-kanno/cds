@@ -85,6 +85,10 @@ def main() -> None:
             "android_flavor": "spanish4",
             "ios_asset": "AppIcon-Spanish4.appiconset",
         },
+        "toeic": {
+            "android_flavor": "toeic",
+            "ios_asset": "AppIcon-Toeic.appiconset",
+        },
     }
 
     for subject, targets in subjects.items():

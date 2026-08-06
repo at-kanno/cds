@@ -1,3 +1,5 @@
+import 'exam_media.dart';
+
 class ExamSummaryContext {
   const ExamSummaryContext({
     required this.userId,
@@ -190,22 +192,44 @@ class QuestionAnalysisData {
     required this.selection2,
     required this.selection3,
     required this.selection4,
+    required this.choiceCount,
     required this.correctAnswer,
     required this.commentHtml,
+    this.promptText,
+    this.audio,
+    this.choiceAudio,
+    this.image,
   });
 
   factory QuestionAnalysisData.fromJson(Map<String, dynamic> json) {
+    final selection1 = json['selection1'] as String? ?? '';
+    final selection2 = json['selection2'] as String? ?? '';
+    final selection3 = json['selection3'] as String? ?? '';
+    final selection4 = json['selection4'] as String? ?? '';
+    final choiceAudio = parseChoiceAudio(json['choice_audio']);
     return QuestionAnalysisData(
       context: ExamSummaryContext.fromJson(json),
       title: json['title'] as String? ?? '',
-      qNo: json['q_no'] as int,
+      qNo: (json['q_no'] as num).toInt(),
       question: json['question'] as String? ?? '',
-      selection1: json['selection1'] as String? ?? '',
-      selection2: json['selection2'] as String? ?? '',
-      selection3: json['selection3'] as String? ?? '',
-      selection4: json['selection4'] as String? ?? '',
+      selection1: selection1,
+      selection2: selection2,
+      selection3: selection3,
+      selection4: selection4,
+      choiceCount: effectiveChoiceCount(
+        choiceCount: (json['choice_count'] as num?)?.toInt() ?? 4,
+        choiceAudio: choiceAudio,
+        selection1: selection1,
+        selection2: selection2,
+        selection3: selection3,
+        selection4: selection4,
+      ),
       correctAnswer: json['correct_answer'] as String? ?? '',
       commentHtml: json['comment_html'] as String? ?? '',
+      promptText: json['prompt_text'] as String?,
+      audio: parseExamAudio(json['audio']),
+      choiceAudio: choiceAudio,
+      image: parseExamImage(json['image']),
     );
   }
 
@@ -217,6 +241,11 @@ class QuestionAnalysisData {
   final String selection2;
   final String selection3;
   final String selection4;
+  final int choiceCount;
   final String correctAnswer;
   final String commentHtml;
+  final String? promptText;
+  final ExamAudio? audio;
+  final ChoiceAudioBundle? choiceAudio;
+  final ExamImage? image;
 }

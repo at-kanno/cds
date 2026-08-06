@@ -1,3 +1,5 @@
+import 'exam_media.dart';
+
 class SingleQuestionSession {
   const SingleQuestionSession({
     required this.userId,
@@ -9,29 +11,55 @@ class SingleQuestionSession {
     required this.selection2,
     required this.selection3,
     required this.selection4,
+    required this.choiceCount,
     required this.crct,
     required this.cid,
     required this.num,
     required this.permutation,
     required this.timeLimitSeconds,
+    this.audio,
+    this.choiceAudio,
+    this.image,
   });
 
   factory SingleQuestionSession.fromJson(Map<String, dynamic> json) {
+    final selection1 = json['selection1'] as String? ?? '';
+    final selection2 = json['selection2'] as String? ?? '';
+    final selection3 = json['selection3'] as String? ?? '';
+    final selection4 = json['selection4'] as String? ?? '';
+    final choiceAudio = parseChoiceAudio(json['choice_audio']);
+    int asInt(dynamic value, [int fallback = 0]) {
+      if (value is int) return value;
+      if (value is double) return value.toInt();
+      return int.tryParse('$value') ?? fallback;
+    }
+
     return SingleQuestionSession(
-      userId: json['user_id'] as int,
-      category: json['category'] as int,
+      userId: asInt(json['user_id']),
+      category: asInt(json['category']),
       area: json['area'] as String? ?? '',
       title: json['title'] as String? ?? '',
       question: json['question'] as String? ?? '',
-      selection1: json['selection1'] as String? ?? '',
-      selection2: json['selection2'] as String? ?? '',
-      selection3: json['selection3'] as String? ?? '',
-      selection4: json['selection4'] as String? ?? '',
-      crct: json['crct'] as int? ?? 0,
-      cid: json['cid'] as int? ?? 0,
+      selection1: selection1,
+      selection2: selection2,
+      selection3: selection3,
+      selection4: selection4,
+      choiceCount: effectiveChoiceCount(
+        choiceCount: asInt(json['choice_count'], 4),
+        choiceAudio: choiceAudio,
+        selection1: selection1,
+        selection2: selection2,
+        selection3: selection3,
+        selection4: selection4,
+      ),
+      crct: asInt(json['crct']),
+      cid: asInt(json['cid']),
       num: json['num'] as String? ?? '',
       permutation: json['permutation'] as String? ?? '',
-      timeLimitSeconds: json['time_limit_seconds'] as int? ?? 135,
+      timeLimitSeconds: asInt(json['time_limit_seconds'], 135),
+      audio: parseExamAudio(json['audio']),
+      choiceAudio: choiceAudio,
+      image: parseExamImage(json['image']),
     );
   }
 
@@ -44,11 +72,15 @@ class SingleQuestionSession {
   final String selection2;
   final String selection3;
   final String selection4;
+  final int choiceCount;
   final int crct;
   final int cid;
   final String num;
   final String permutation;
   final int timeLimitSeconds;
+  final ExamAudio? audio;
+  final ChoiceAudioBundle? choiceAudio;
+  final ExamImage? image;
 }
 
 class SingleQuestionResult {
@@ -64,23 +96,51 @@ class SingleQuestionResult {
     required this.selection2,
     required this.selection3,
     required this.selection4,
+    required this.choiceCount,
     required this.comment,
+    this.promptText,
+    this.audio,
+    this.choiceAudio,
+    this.image,
   });
 
   factory SingleQuestionResult.fromJson(Map<String, dynamic> json) {
+    final selection1 = json['selection1'] as String? ?? '';
+    final selection2 = json['selection2'] as String? ?? '';
+    final selection3 = json['selection3'] as String? ?? '';
+    final selection4 = json['selection4'] as String? ?? '';
+    final choiceAudio = parseChoiceAudio(json['choice_audio']);
+    int asInt(dynamic value, [int fallback = 0]) {
+      if (value is int) return value;
+      if (value is double) return value.toInt();
+      return int.tryParse('$value') ?? fallback;
+    }
+
     return SingleQuestionResult(
-      userId: json['user_id'] as int,
-      category: json['category'] as int,
+      userId: asInt(json['user_id']),
+      category: asInt(json['category']),
       area: json['area'] as String? ?? '',
       title: json['title'] as String? ?? '',
       resultMessage: json['result_message'] as String? ?? '',
       correctAnswer: json['correct_answer'] as String? ?? '',
       question: json['question'] as String? ?? '',
-      selection1: json['selection1'] as String? ?? '',
-      selection2: json['selection2'] as String? ?? '',
-      selection3: json['selection3'] as String? ?? '',
-      selection4: json['selection4'] as String? ?? '',
+      selection1: selection1,
+      selection2: selection2,
+      selection3: selection3,
+      selection4: selection4,
+      choiceCount: effectiveChoiceCount(
+        choiceCount: asInt(json['choice_count'], 4),
+        choiceAudio: choiceAudio,
+        selection1: selection1,
+        selection2: selection2,
+        selection3: selection3,
+        selection4: selection4,
+      ),
       comment: json['comment'] as String? ?? '',
+      promptText: json['prompt_text'] as String?,
+      audio: parseExamAudio(json['audio']),
+      choiceAudio: choiceAudio,
+      image: parseExamImage(json['image']),
     );
   }
 
@@ -95,5 +155,10 @@ class SingleQuestionResult {
   final String selection2;
   final String selection3;
   final String selection4;
+  final int choiceCount;
   final String comment;
+  final String? promptText;
+  final ExamAudio? audio;
+  final ChoiceAudioBundle? choiceAudio;
+  final ExamImage? image;
 }

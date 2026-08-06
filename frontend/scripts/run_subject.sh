@@ -3,15 +3,16 @@
 # Usage:
 #   bash scripts/run_subject.sh cds
 #   bash scripts/run_subject.sh spanish4
-# Optional: API_BASE_URL=http://192.168.x.x:8081 bash scripts/run_subject.sh spanish4
+#   bash scripts/run_subject.sh toeic
+# Optional: API_BASE_URL=http://192.168.x.x:8082 bash scripts/run_subject.sh toeic
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
 FLAVOR="${1:-}"
 DEVICE="${2:-}"
-if [[ "$FLAVOR" != "cds" && "$FLAVOR" != "spanish4" ]]; then
-  echo "Usage: $0 cds|spanish4 [device_id]"
+if [[ "$FLAVOR" != "cds" && "$FLAVOR" != "spanish4" && "$FLAVOR" != "toeic" ]]; then
+  echo "Usage: $0 cds|spanish4|toeic [device_id]"
   exit 1
 fi
 
@@ -23,6 +24,10 @@ case "$FLAVOR" in
   spanish4)
     DEFAULT_API="https://traveltokio.com/spanish4"
     APP_TITLE="スペイン語検定4級"
+    ;;
+  toeic)
+    DEFAULT_API="https://traveltokio.com/toeic"
+    APP_TITLE="TOEIC 模擬試験"
     ;;
 esac
 

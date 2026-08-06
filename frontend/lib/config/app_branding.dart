@@ -1,18 +1,18 @@
 import 'package:flutter/foundation.dart';
 
-/// Build-time branding for CDS vs SPANISH4 store apps.
+/// Build-time branding for subject store apps (CDS / SPANISH4 / TOEIC).
 ///
 /// Example:
 /// ```
-/// flutter build appbundle --flavor spanish4 --release \
-///   --dart-define=APP_FLAVOR=spanish4 \
-///   --dart-define=APP_TITLE=スペイン語検定4級 \
-///   --dart-define=API_BASE_URL=https://traveltokio.com/spanish4
+/// flutter build appbundle --flavor toeic --release \
+///   --dart-define=APP_FLAVOR=toeic \
+///   --dart-define=APP_TITLE=TOEIC 模擬試験 \
+///   --dart-define=API_BASE_URL=https://traveltokio.com/toeic
 /// ```
 class AppBranding {
   const AppBranding._();
 
-  /// `cds` or `spanish4` (informational; URL/title are the real switches).
+  /// `cds`, `spanish4`, or `toeic` (informational; URL/title are the real switches).
   static const String flavor = String.fromEnvironment(
     'APP_FLAVOR',
     defaultValue: 'cds',

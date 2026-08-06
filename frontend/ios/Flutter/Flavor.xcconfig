@@ -1,0 +1,5 @@
+// Subject branding — overwritten by scripts/build_ios.sh per flavor.
+// Defaults = CDS. Do not put secrets here.
+APP_DISPLAY_NAME=CDS
+APP_BUNDLE_IDENTIFIER=jp.co.olivenet.cds
+APP_ICON_NAME=AppIcon

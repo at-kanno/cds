@@ -141,18 +141,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.email],
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      autofillHints: const [AutofillHints.username, AutofillHints.email],
                       decoration: const InputDecoration(
-                        labelText: 'メールアドレス',
-                        prefixIcon: Icon(Icons.email_outlined),
+                        // HTML 版と同じく「ログイン名」（多くはメールアドレス）
+                        labelText: 'ログイン名',
+                        prefixIcon: Icon(Icons.person_outline),
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'メールアドレスを入力してください';
-                        }
-                        if (!value.contains('@')) {
-                          return '有効なメールアドレスを入力してください';
+                          return 'ログイン名を入力してください';
                         }
                         return null;
                       },
@@ -182,11 +182,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       validator: (value) {
+                        // HTML 版と同様、長さ制限は設けない（仮パスワードが短い場合がある）
                         if (value == null || value.isEmpty) {
                           return 'パスワードを入力してください';
-                        }
-                        if (value.length < 6) {
-                          return 'パスワードは6文字以上で入力してください';
                         }
                         return null;
                       },

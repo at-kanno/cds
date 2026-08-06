@@ -55,4 +55,19 @@ class ApiConfig {
   static String get adminDeleteUserEndpoint => '$baseUrl/api/admin/users/delete';
   static String get adminRankUpEndpoint => '$baseUrl/api/admin/users/rankup';
   static String get adminPasswordResetEndpoint => '$baseUrl/api/admin/password-reset';
+
+  /// Resolve API-relative media paths (`/audio/...`, `/image/...`) to absolute URLs.
+  static String resolveMediaUrl(String pathOrUrl) {
+    final value = pathOrUrl.trim();
+    if (value.isEmpty) {
+      return value;
+    }
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      return value;
+    }
+    if (value.startsWith('/')) {
+      return '$baseUrl$value';
+    }
+    return '$baseUrl/$value';
+  }
 }

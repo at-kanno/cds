@@ -28,7 +28,6 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        resValue("string", "app_name", "CDS")
     }
 
     flavorDimensions += "subject"
@@ -36,12 +35,14 @@ android {
         create("cds") {
             dimension = "subject"
             applicationId = "jp.co.olivenet.cds"
-            resValue("string", "app_name", "CDS")
         }
         create("spanish4") {
             dimension = "subject"
             applicationId = "jp.co.olivenet.spanish4"
-            resValue("string", "app_name", "西検4級")
+        }
+        create("toeic") {
+            dimension = "subject"
+            applicationId = "jp.co.olivenet.toeic"
         }
     }
 

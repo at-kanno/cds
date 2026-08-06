@@ -1,16 +1,20 @@
 # CDS / スペイン語 — 2アプリ配布ガイド
 
-同じ Flutter コードから **科目別の2アプリ** をビルドして配布します。  
+同じ Flutter コードから **科目別アプリ** をビルドして配布します。  
 ユーザーには URL を見せず、接続先はビルド時に埋め込みます。
 
-| | CDS | スペイン語 |
-|---|---|---|
-| Android applicationId | `jp.co.olivenet.cds` | `jp.co.olivenet.spanish4` |
-| iOS Bundle ID | `jp.co.olivenet.cds` | `jp.co.olivenet.spanish4`（要 App Store Connect 登録） |
-| ホーム画面名 | CDS | 西検4級 |
-| ログイン表示名 | CDS | スペイン語検定4級 |
-| API | `https://traveltokio.com/cds` | `https://traveltokio.com/spanish4` |
-| アイコン | `android/.../src/cds/` に配置 | `android/.../src/spanish4/` に配置 |
+ストア登録:
+- 西検４級: [`store-registration-seiken4.md`](store-registration-seiken4.md)
+- TOEIC: [`store-registration-toeic.md`](store-registration-toeic.md)
+
+| | CDS | スペイン語 | TOEIC |
+|---|---|---|---|
+| Android applicationId | `jp.co.olivenet.cds` | `jp.co.olivenet.spanish4` | `jp.co.olivenet.toeic` |
+| iOS Bundle ID | `jp.co.olivenet.cds` | `jp.co.olivenet.spanish4` | `jp.co.olivenet.toeic` |
+| ホーム画面名（ストア正式名） | CDS | **西検４級** | **TOEIC** |
+| ログイン表示名 | CDS | スペイン語検定4級 | TOEIC 模擬試験 |
+| API | `https://traveltokio.com/cds` | `https://traveltokio.com/spanish4` | `https://traveltokio.com/toeic` |
+| アイコン | `android/.../src/cds/` | `android/.../src/spanish4/` | `android/.../src/toeic/` |
 
 ---
 
@@ -74,11 +78,15 @@ flutter build ipa --release \
 1. App Store Connect で Bundle ID `jp.co.olivenet.spanish4` を登録  
 2. Xcode で spanish4 用 Configuration / Scheme を追加（または別ターゲット）  
    - `PRODUCT_BUNDLE_IDENTIFIER = jp.co.olivenet.spanish4`  
-   - `APP_DISPLAY_NAME = 西検4級`  
+   - `APP_DISPLAY_NAME = 西検４級`  
 3. スペイン語用 AppIcon をセット  
 4. ビルド:
 
 ```bash
+# 推奨（scheme 未作成でも dart-define でビルド可）
+bash scripts/build_ios.sh spanish4
+
+# または scheme 作成後:
 flutter build ipa --release --flavor spanish4 \
   --dart-define=APP_FLAVOR=spanish4 \
   --dart-define=APP_TITLE=スペイン語検定4級 \

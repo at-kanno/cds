@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/single_question_session.dart';
 import '../services/exam_service.dart';
+import '../widgets/exam_question_body.dart';
 import 'main_menu_screen.dart';
 
 class SingleExerciseScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class SingleExerciseScreen extends StatefulWidget {
 
 class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
   final _examService = ExamService();
+  final Map<String, int> _audioPlayCounts = {};
   Timer? _timer;
   int _elapsedSeconds = 0;
   int? _selectedAnswer;
@@ -51,6 +53,19 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
     final minutes = (_elapsedSeconds ~/ 60).toString().padLeft(2, '0');
     final seconds = (_elapsedSeconds % 60).toString().padLeft(2, '0');
     return '$minutes:$seconds';
+  }
+
+  String get _limitLabel {
+    final total = widget.session.timeLimitSeconds;
+    final minutes = total ~/ 60;
+    final seconds = total % 60;
+    if (minutes > 0 && seconds > 0) {
+      return '解答時間は${minutes}分${seconds}秒/1問です。';
+    }
+    if (minutes > 0) {
+      return '解答時間は${minutes}分/1問です。';
+    }
+    return '解答時間は${seconds}秒/1問です。';
   }
 
   Future<void> _submitAnswer({bool timeout = false}) async {
@@ -108,28 +123,30 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 children: [
                   Text('経過時間 $_elapsedLabel'),
-                  const Text('解答時間は2分15秒/1問です。'),
+                  Text(_limitLabel),
                   const SizedBox(height: 16),
                   Text(
                     '問題:',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  Text(_stripHtml(session.question)),
-                  const SizedBox(height: 16),
-                  for (final entry in [
-                    (1, 'A', session.selection1),
-                    (2, 'B', session.selection2),
-                    (3, 'C', session.selection3),
-                    (4, 'D', session.selection4),
-                  ])
-                    RadioListTile<int>(
-                      value: entry.$1,
-                      groupValue: _selectedAnswer,
-                      onChanged: (value) => setState(() => _selectedAnswer = value),
-                      title: Text('${entry.$2}. ${_stripHtml(entry.$3)}'),
-                      contentPadding: EdgeInsets.zero,
-                    ),
+                  ExamQuestionBody(
+                    question: session.question,
+                    choiceCount: session.choiceCount,
+                    selection1: session.selection1,
+                    selection2: session.selection2,
+                    selection3: session.selection3,
+                    selection4: session.selection4,
+                    image: session.image,
+                    audio: session.audio,
+                    choiceAudio: session.choiceAudio,
+                    selectedAnswer: _selectedAnswer,
+                    onSelect: (value) => setState(() => _selectedAnswer = value),
+                    playCounts: _audioPlayCounts,
+                    audioScopeKey: 'single_${session.cid}',
+                    enforceAudioLimit: true,
+                    showChoiceTextWhenAudio: false,
+                  ),
                 ],
               ),
       ),
@@ -150,17 +167,10 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
             ),
     );
   }
-
-  String _stripHtml(String value) {
-    return value
-        .replaceAll(RegExp(r'<[^>]*>'), '')
-        .replaceAll('&nbsp;', ' ')
-        .trim();
-  }
 }
 
 class SingleAnalysisScreen extends StatelessWidget {
-  const SingleAnalysisScreen({
+  SingleAnalysisScreen({
     super.key,
     required this.result,
     required this.email,
@@ -168,6 +178,7 @@ class SingleAnalysisScreen extends StatelessWidget {
 
   final SingleQuestionResult result;
   final String email;
+  final Map<String, int> _playCounts = {};
 
   Future<void> _continue(BuildContext context) async {
     final examService = ExamService();
@@ -204,17 +215,27 @@ class SingleAnalysisScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 16),
-          Text(result.question.replaceAll(RegExp(r'<[^>]*>'), '')),
-          const SizedBox(height: 8),
-          Text('A. ${result.selection1}'),
-          Text('B. ${result.selection2}'),
-          Text('C. ${result.selection3}'),
-          Text('D. ${result.selection4}'),
+          ExamQuestionBody(
+            question: result.question,
+            choiceCount: result.choiceCount,
+            selection1: result.selection1,
+            selection2: result.selection2,
+            selection3: result.selection3,
+            selection4: result.selection4,
+            image: result.image,
+            audio: result.audio,
+            choiceAudio: result.choiceAudio,
+            promptText: result.promptText,
+            playCounts: _playCounts,
+            audioScopeKey: 'single_result_${result.userId}_${result.category}',
+            enforceAudioLimit: false,
+            showChoiceTextWhenAudio: true,
+          ),
           const SizedBox(height: 16),
           Text('正解は 「${result.correctAnswer}」です。'),
           const SizedBox(height: 16),
           Text(
-            result.comment.replaceAll(RegExp(r'<[^>]*>'), ''),
+            stripExamHtml(result.comment),
             style: const TextStyle(color: Colors.red),
           ),
           const SizedBox(height: 24),

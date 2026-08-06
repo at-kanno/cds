@@ -3,15 +3,10 @@ import 'package:flutter/material.dart';
 import '../models/exam_analysis.dart';
 import '../models/exercise_session.dart';
 import '../services/exam_service.dart';
+import '../widgets/exam_question_body.dart';
 import 'main_menu_screen.dart';
 
-String stripHtml(String value) {
-  return value
-      .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
-      .replaceAll(RegExp(r'<[^>]*>'), '')
-      .replaceAll('&nbsp;', ' ')
-      .trim();
-}
+String stripHtml(String value) => stripExamHtml(value);
 
 class ExamFinishScreen extends StatefulWidget {
   const ExamFinishScreen({
@@ -410,7 +405,7 @@ class _CommentsAnalysisScreenLoaderState extends State<CommentsAnalysisScreenLoa
 }
 
 class QuestionAnalysisScreen extends StatelessWidget {
-  const QuestionAnalysisScreen({
+  QuestionAnalysisScreen({
     super.key,
     required this.data,
     required this.email,
@@ -418,6 +413,7 @@ class QuestionAnalysisScreen extends StatelessWidget {
 
   final QuestionAnalysisData data;
   final String email;
+  final Map<String, int> _playCounts = {};
 
   @override
   Widget build(BuildContext context) {
@@ -430,12 +426,22 @@ class QuestionAnalysisScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Text('問題 ${data.qNo}', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          Text(stripHtml(data.question)),
-          const SizedBox(height: 12),
-          Text('A. ${stripHtml(data.selection1)}'),
-          Text('B. ${stripHtml(data.selection2)}'),
-          Text('C. ${stripHtml(data.selection3)}'),
-          Text('D. ${stripHtml(data.selection4)}'),
+          ExamQuestionBody(
+            question: data.question,
+            choiceCount: data.choiceCount,
+            selection1: data.selection1,
+            selection2: data.selection2,
+            selection3: data.selection3,
+            selection4: data.selection4,
+            image: data.image,
+            audio: data.audio,
+            choiceAudio: data.choiceAudio,
+            promptText: data.promptText,
+            playCounts: _playCounts,
+            audioScopeKey: 'analysis_${data.context.examId}_${data.qNo}',
+            enforceAudioLimit: false,
+            showChoiceTextWhenAudio: true,
+          ),
           const SizedBox(height: 16),
           Text('正解は 「${data.correctAnswer}」 です。'),
           const SizedBox(height: 16),

@@ -1,3 +1,5 @@
+import 'exam_media.dart';
+
 class ExerciseSession {
   const ExerciseSession({
     required this.finished,
@@ -13,6 +15,7 @@ class ExerciseSession {
     required this.selection2,
     required this.selection3,
     required this.selection4,
+    required this.choiceCount,
     required this.marklist,
     required this.answerlist,
     required this.selectedAnswer,
@@ -21,6 +24,9 @@ class ExerciseSession {
     required this.canGoBack,
     required this.canGoForward,
     required this.timeLimitSeconds,
+    this.audio,
+    this.choiceAudio,
+    this.image,
     this.correct,
     this.rate,
     this.resultlist,
@@ -32,33 +38,51 @@ class ExerciseSession {
   });
 
   factory ExerciseSession.fromJson(Map<String, dynamic> json) {
+    final selection1 = json['selection1'] as String? ?? '';
+    final selection2 = json['selection2'] as String? ?? '';
+    final selection3 = json['selection3'] as String? ?? '';
+    final selection4 = json['selection4'] as String? ?? '';
+    final choiceAudio = parseChoiceAudio(json['choice_audio']);
+    final choiceCount = effectiveChoiceCount(
+      choiceCount: (json['choice_count'] as num?)?.toInt() ?? 4,
+      choiceAudio: choiceAudio,
+      selection1: selection1,
+      selection2: selection2,
+      selection3: selection3,
+      selection4: selection4,
+    );
+
     return ExerciseSession(
       finished: json['finished'] as bool? ?? false,
-      userId: json['user_id'] as int,
-      examId: json['exam_id'] as int,
+      userId: (json['user_id'] as num).toInt(),
+      examId: (json['exam_id'] as num).toInt(),
       title: json['title'] as String? ?? '',
-      total: json['total'] as int,
-      qNo: json['q_no'] as int? ?? 1,
+      total: (json['total'] as num).toInt(),
+      qNo: (json['q_no'] as num?)?.toInt() ?? 1,
       examlist: json['examlist'] as String? ?? '',
       arealist: json['arealist'] as String? ?? '',
       question: json['question'] as String? ?? '',
-      selection1: json['selection1'] as String? ?? '',
-      selection2: json['selection2'] as String? ?? '',
-      selection3: json['selection3'] as String? ?? '',
-      selection4: json['selection4'] as String? ?? '',
+      selection1: selection1,
+      selection2: selection2,
+      selection3: selection3,
+      selection4: selection4,
+      choiceCount: choiceCount,
+      audio: parseExamAudio(json['audio']),
+      choiceAudio: choiceAudio,
+      image: parseExamImage(json['image']),
       marklist: json['marklist'] as String? ?? '',
       answerlist: json['answerlist'] as String? ?? '',
-      selectedAnswer: json['selected_answer'] as int? ?? 0,
-      timeMin: json['time_min'] as int? ?? 0,
-      timeSec: json['time_sec'] as int? ?? 0,
+      selectedAnswer: (json['selected_answer'] as num?)?.toInt() ?? 0,
+      timeMin: (json['time_min'] as num?)?.toInt() ?? 0,
+      timeSec: (json['time_sec'] as num?)?.toInt() ?? 0,
       canGoBack: json['can_go_back'] as bool? ?? false,
       canGoForward: json['can_go_forward'] as bool? ?? false,
-      timeLimitSeconds: json['time_limit_seconds'] as int? ?? 0,
-      correct: json['correct'] as int?,
+      timeLimitSeconds: (json['time_limit_seconds'] as num?)?.toInt() ?? 0,
+      correct: (json['correct'] as num?)?.toInt(),
       rate: (json['rate'] as num?)?.toDouble(),
       resultlist: json['resultlist'] as String?,
       message: json['message'] as String?,
-      flag: json['flag'] as int?,
+      flag: (json['flag'] as num?)?.toInt(),
       stime: json['stime'] as String?,
       passed: json['passed'] as bool?,
       result: json['result'] as String?,
@@ -78,6 +102,10 @@ class ExerciseSession {
   final String selection2;
   final String selection3;
   final String selection4;
+  final int choiceCount;
+  final ExamAudio? audio;
+  final ChoiceAudioBundle? choiceAudio;
+  final ExamImage? image;
   final String marklist;
   final String answerlist;
   final int selectedAnswer;
@@ -128,8 +156,8 @@ class ExerciseSession {
       'answerlist': answerlist,
       'time_min': timeMin ?? this.timeMin,
       'time_sec': timeSec ?? this.timeSec,
-      'target_q_no': ?targetQNo,
-      'selected_answer': ?selectedAnswer,
+      if (targetQNo != null) 'target_q_no': targetQNo,
+      if (selectedAnswer != null) 'selected_answer': selectedAnswer,
     };
   }
 
@@ -155,6 +183,10 @@ class ExerciseSession {
       selection2: selection2,
       selection3: selection3,
       selection4: selection4,
+      choiceCount: choiceCount,
+      audio: audio,
+      choiceAudio: choiceAudio,
+      image: image,
       marklist: marklist ?? this.marklist,
       answerlist: answerlist ?? this.answerlist,
       selectedAnswer: selectedAnswer ?? this.selectedAnswer,
@@ -168,6 +200,9 @@ class ExerciseSession {
       resultlist: resultlist,
       message: message,
       flag: flag,
+      stime: stime,
+      passed: passed,
+      result: result,
     );
   }
 }

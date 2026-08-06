@@ -9,6 +9,7 @@
 |---|---|
 | スペイン語 | `frontend/branding/spanish4/app_icon_1024.png` |
 | CDS | `frontend/branding/cds/app_icon_1024.png` |
+| TOEIC | `frontend/branding/toeic/app_icon_1024.png` |
 
 Windows のフルパス例（スペイン語）:
 
@@ -34,5 +35,6 @@ python scripts/generate_app_icons.py
 |---|---|---|
 | CDS | `android/app/src/cds/res/mipmap-*/ic_launcher.png` | `ios/.../AppIcon.appiconset/` |
 | スペイン語 | `android/app/src/spanish4/res/mipmap-*/ic_launcher.png` | `ios/.../AppIcon-Spanish4.appiconset/` |
+| TOEIC | `android/app/src/toeic/res/mipmap-*/ic_launcher.png` | `ios/.../AppIcon-Toeic.appiconset/` |
 
 ※ `mipmap-*` に直接 1024 を置く必要はありません。

@@ -37,15 +37,36 @@ class AuthService {
           )
           .timeout(const Duration(seconds: 10));
 
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        return const AuthResult(
+          success: false,
+          message: 'Unexpected server response.',
+        );
+      }
+      final body = decoded;
 
       if (response.statusCode == 200) {
+        final rawUserId = body['user_id'];
+        final userId = rawUserId is int
+            ? rawUserId
+            : int.tryParse('$rawUserId');
+        final rawStatus = body['status'];
+        final status = rawStatus is int
+            ? rawStatus
+            : int.tryParse('$rawStatus');
+        if (userId == null) {
+          return const AuthResult(
+            success: false,
+            message: 'Login succeeded but user_id was missing.',
+          );
+        }
         return AuthResult(
           success: true,
           token: body['token'] as String?,
           message: body['message'] as String?,
-          userId: body['user_id'] as int?,
-          status: body['status'] as int?,
+          userId: userId,
+          status: status,
         );
       }
 
@@ -53,10 +74,15 @@ class AuthService {
         success: false,
         message: body['message'] as String? ?? 'Login failed.',
       );
+    } on FormatException {
+      return const AuthResult(
+        success: false,
+        message: 'Server returned an invalid response.',
+      );
     } catch (_) {
       return const AuthResult(
         success: false,
-        message: 'Could not reach the server. Check that Flask is running.',
+        message: 'Could not reach the server. Check the network connection.',
       );
     }
   }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/exercise_session.dart';
 import '../services/exam_service.dart';
+import '../widgets/exam_question_body.dart';
 import 'exam_analysis_screen.dart';
 
 class ExerciseScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class ExerciseScreen extends StatefulWidget {
 
 class _ExerciseScreenState extends State<ExerciseScreen> {
   final _examService = ExamService();
+  final Map<String, int> _audioPlayCounts = {};
   late ExerciseSession _session;
   Timer? _timer;
   int _elapsedSeconds = 0;
@@ -135,11 +137,6 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   }
 
   Future<void> _confirmFinish() async {
-    if (_session.total != 40) {
-      await _submitAction('finish');
-      return;
-    }
-
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -187,21 +184,23 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  Text(_stripHtml(_session.question)),
-                  const SizedBox(height: 16),
-                  for (final entry in [
-                    (1, 'A', _session.selection1),
-                    (2, 'B', _session.selection2),
-                    (3, 'C', _session.selection3),
-                    (4, 'D', _session.selection4),
-                  ])
-                    RadioListTile<int>(
-                      value: entry.$1,
-                      groupValue: _selectedAnswer,
-                      onChanged: (value) => setState(() => _selectedAnswer = value),
-                      title: Text('${entry.$2}. ${_stripHtml(entry.$3)}'),
-                      contentPadding: EdgeInsets.zero,
-                    ),
+                  ExamQuestionBody(
+                    question: _session.question,
+                    choiceCount: _session.choiceCount,
+                    selection1: _session.selection1,
+                    selection2: _session.selection2,
+                    selection3: _session.selection3,
+                    selection4: _session.selection4,
+                    image: _session.image,
+                    audio: _session.audio,
+                    choiceAudio: _session.choiceAudio,
+                    selectedAnswer: _selectedAnswer,
+                    onSelect: (value) => setState(() => _selectedAnswer = value),
+                    playCounts: _audioPlayCounts,
+                    audioScopeKey: '${_session.examId}_${_session.qNo}',
+                    enforceAudioLimit: true,
+                    showChoiceTextWhenAudio: false,
+                  ),
                 ],
               ),
       ),
@@ -226,23 +225,20 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                       child: const Text('前に戻る'),
                     ),
                     FilledButton(
-                      onPressed: _session.canGoForward
-                          ? () => _submitAction('next')
-                          : null,
-                      child: const Text('次へ'),
+                      onPressed: () {
+                        if (_session.canGoForward) {
+                          _submitAction('next');
+                        } else {
+                          _confirmFinish();
+                        }
+                      },
+                      child: Text(_session.canGoForward ? '次へ' : '終了する'),
                     ),
                   ],
                 ),
               ),
             ),
     );
-  }
-
-  String _stripHtml(String value) {
-    return value
-        .replaceAll(RegExp(r'<[^>]*>'), '')
-        .replaceAll('&nbsp;', ' ')
-        .trim();
   }
 }
 
