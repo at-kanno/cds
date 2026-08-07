@@ -27,6 +27,8 @@ class ExerciseSession {
     this.audio,
     this.choiceAudio,
     this.image,
+    this.audioSetNote,
+    this.setHeadQNo,
     this.correct,
     this.rate,
     this.resultlist,
@@ -70,6 +72,8 @@ class ExerciseSession {
       audio: parseExamAudio(json['audio']),
       choiceAudio: choiceAudio,
       image: parseExamImage(json['image']),
+      audioSetNote: json['audio_set_note'] as String?,
+      setHeadQNo: (json['set_head_q_no'] as num?)?.toInt(),
       marklist: json['marklist'] as String? ?? '',
       answerlist: json['answerlist'] as String? ?? '',
       selectedAnswer: (json['selected_answer'] as num?)?.toInt() ?? 0,
@@ -106,6 +110,8 @@ class ExerciseSession {
   final ExamAudio? audio;
   final ChoiceAudioBundle? choiceAudio;
   final ExamImage? image;
+  final String? audioSetNote;
+  final int? setHeadQNo;
   final String marklist;
   final String answerlist;
   final int selectedAnswer;
@@ -187,6 +193,8 @@ class ExerciseSession {
       audio: audio,
       choiceAudio: choiceAudio,
       image: image,
+      audioSetNote: audioSetNote,
+      setHeadQNo: setHeadQNo,
       marklist: marklist ?? this.marklist,
       answerlist: answerlist ?? this.answerlist,
       selectedAnswer: selectedAnswer ?? this.selectedAnswer,

@@ -20,6 +20,7 @@ class SingleQuestionSession {
     this.audio,
     this.choiceAudio,
     this.image,
+    this.audioSetNote,
   });
 
   factory SingleQuestionSession.fromJson(Map<String, dynamic> json) {
@@ -60,6 +61,7 @@ class SingleQuestionSession {
       audio: parseExamAudio(json['audio']),
       choiceAudio: choiceAudio,
       image: parseExamImage(json['image']),
+      audioSetNote: json['audio_set_note'] as String?,
     );
   }
 
@@ -81,6 +83,7 @@ class SingleQuestionSession {
   final ExamAudio? audio;
   final ChoiceAudioBundle? choiceAudio;
   final ExamImage? image;
+  final String? audioSetNote;
 }
 
 class SingleQuestionResult {

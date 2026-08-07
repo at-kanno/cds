@@ -437,6 +437,7 @@ class QuestionAnalysisScreen extends StatelessWidget {
             audio: data.audio,
             choiceAudio: data.choiceAudio,
             promptText: data.promptText,
+            audioSetNote: data.audioSetNote,
             playCounts: _playCounts,
             audioScopeKey: 'analysis_${data.context.examId}_${data.qNo}',
             enforceAudioLimit: false,

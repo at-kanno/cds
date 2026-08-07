@@ -140,6 +140,7 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
                     image: session.image,
                     audio: session.audio,
                     choiceAudio: session.choiceAudio,
+                    audioSetNote: session.audioSetNote,
                     selectedAnswer: _selectedAnswer,
                     onSelect: (value) => setState(() => _selectedAnswer = value),
                     playCounts: _audioPlayCounts,

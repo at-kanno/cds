@@ -24,6 +24,7 @@ class ExamAudio {
     required this.filename,
     required this.url,
     required this.maxAudioPlays,
+    this.setRole,
   });
 
   factory ExamAudio.fromJson(Map<String, dynamic> json) {
@@ -31,12 +32,16 @@ class ExamAudio {
       filename: json['filename'] as String? ?? '',
       url: json['url'] as String? ?? '',
       maxAudioPlays: (json['max_audio_plays'] as num?)?.toInt() ?? 0,
+      setRole: json['set_role'] as String?,
     );
   }
 
   final String filename;
   final String url;
   final int maxAudioPlays;
+
+  /// Part3/4 set listening: `head` or `follow_up` when present.
+  final String? setRole;
 
   String get absoluteUrl => ApiConfig.resolveMediaUrl(url);
 }

@@ -63,6 +63,15 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     return '$minutes:$seconds';
   }
 
+  /// Follow-up set-listening head Q number; null on head / non-set questions.
+  int? get _effectiveSetHeadQNo {
+    final head = _session.setHeadQNo;
+    if (head == null || head <= 0) {
+      return null;
+    }
+    return head;
+  }
+
   void _toggleMark(int qNo) {
     final index = qNo - 1;
     if (index < 0 || index >= _session.total) {
@@ -194,10 +203,20 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                     image: _session.image,
                     audio: _session.audio,
                     choiceAudio: _session.choiceAudio,
+                    audioSetNote: _session.audioSetNote,
+                    setHeadQNo: _effectiveSetHeadQNo,
+                    onJumpToSetHead: _effectiveSetHeadQNo == null
+                        ? null
+                        : () => _submitAction(
+                              'move',
+                              targetQNo: _effectiveSetHeadQNo,
+                            ),
                     selectedAnswer: _selectedAnswer,
                     onSelect: (value) => setState(() => _selectedAnswer = value),
                     playCounts: _audioPlayCounts,
                     audioScopeKey: '${_session.examId}_${_session.qNo}',
+                    stemAudioScopeKey:
+                        '${_session.examId}_${_effectiveSetHeadQNo ?? _session.qNo}',
                     enforceAudioLimit: true,
                     showChoiceTextWhenAudio: false,
                   ),

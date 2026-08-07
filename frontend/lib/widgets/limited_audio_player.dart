@@ -151,7 +151,9 @@ class _LimitedAudioPlayerState extends State<LimitedAudioPlayer> {
             ),
             if (_limitActive)
               Text(
-                '残り $remaining / ${widget.maxPlays} 回',
+                widget.maxPlays == 1
+                    ? '音声の再生は 1回のみです（残り $remaining 回）'
+                    : '残り $remaining / ${widget.maxPlays} 回',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
           ],

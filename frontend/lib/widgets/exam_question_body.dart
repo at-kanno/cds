@@ -23,10 +23,14 @@ class ExamQuestionBody extends StatelessWidget {
     required this.selection4,
     required this.playCounts,
     required this.audioScopeKey,
+    this.stemAudioScopeKey,
     this.image,
     this.audio,
     this.choiceAudio,
     this.promptText,
+    this.audioSetNote,
+    this.setHeadQNo,
+    this.onJumpToSetHead,
     this.selectedAnswer,
     this.onSelect,
     this.enforceAudioLimit = true,
@@ -40,15 +44,24 @@ class ExamQuestionBody extends StatelessWidget {
   final String selection3;
   final String selection4;
   final Map<String, int> playCounts;
+  /// Scope for choice audio play limits (`{examId}_{qNo}`).
   final String audioScopeKey;
+  /// Scope for main stem audio + set-listening “再生済み” check.
+  /// Defaults to [audioScopeKey] when null.
+  final String? stemAudioScopeKey;
   final ExamImage? image;
   final ExamAudio? audio;
   final ChoiceAudioBundle? choiceAudio;
   final String? promptText;
+  final String? audioSetNote;
+  final int? setHeadQNo;
+  final VoidCallback? onJumpToSetHead;
   final int? selectedAnswer;
   final ValueChanged<int>? onSelect;
   final bool enforceAudioLimit;
   final bool showChoiceTextWhenAudio;
+
+  String get _stemScope => stemAudioScopeKey ?? audioScopeKey;
 
   List<(int, String, String)> get _choices {
     final all = [
@@ -58,6 +71,21 @@ class ExamQuestionBody extends StatelessWidget {
       (4, 'D', selection4),
     ];
     return all.take(choiceCount.clamp(2, 4)).toList();
+  }
+
+  String? get _resolvedSetNote {
+    final note = audioSetNote?.trim();
+    if (note == null || note.isEmpty) {
+      return null;
+    }
+    final headQ = setHeadQNo;
+    if (headQ != null && headQ > 0) {
+      final plays = playCounts['${_stemScope}_main'] ?? 0;
+      if (plays > 0 && !note.contains('再生済み')) {
+        return '$note（再生済みです）';
+      }
+    }
+    return note;
   }
 
   @override
@@ -70,6 +98,9 @@ class ExamQuestionBody extends StatelessWidget {
         choiceAudio != null &&
         promptText != null &&
         promptText!.trim().isNotEmpty;
+    final setNote = _resolvedSetNote;
+    final headQ = setHeadQNo;
+    final showJump = headQ != null && headQ > 0 && onJumpToSetHead != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,12 +110,34 @@ class ExamQuestionBody extends StatelessWidget {
           const SizedBox(height: 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              image!.absoluteUrl,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Text('画像を表示できませんでした。'),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 360),
+              child: Image.network(
+                image!.absoluteUrl,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Text('画像を表示できませんでした。'),
+              ),
             ),
           ),
+        ],
+        if (setNote != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            setNote,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.grey.shade700,
+                ),
+          ),
+          if (showJump)
+            TextButton(
+              onPressed: onJumpToSetHead,
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text('問題$headQへ'),
+            ),
         ],
         if (audio != null) ...[
           const SizedBox(height: 12),
@@ -94,7 +147,7 @@ class ExamQuestionBody extends StatelessWidget {
               Expanded(
                 child: LimitedAudioPlayer(
                   url: audio!.absoluteUrl,
-                  storageKey: '${audioScopeKey}_main',
+                  storageKey: '${_stemScope}_main',
                   playCounts: playCounts,
                   maxPlays: audio!.maxAudioPlays,
                   enforceLimit: enforceAudioLimit,

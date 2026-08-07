@@ -199,6 +199,7 @@ class QuestionAnalysisData {
     this.audio,
     this.choiceAudio,
     this.image,
+    this.audioSetNote,
   });
 
   factory QuestionAnalysisData.fromJson(Map<String, dynamic> json) {
@@ -230,6 +231,7 @@ class QuestionAnalysisData {
       audio: parseExamAudio(json['audio']),
       choiceAudio: choiceAudio,
       image: parseExamImage(json['image']),
+      audioSetNote: json['audio_set_note'] as String?,
     );
   }
 
@@ -248,4 +250,5 @@ class QuestionAnalysisData {
   final ExamAudio? audio;
   final ChoiceAudioBundle? choiceAudio;
   final ExamImage? image;
+  final String? audioSetNote;
 }
