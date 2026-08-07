@@ -9,7 +9,8 @@
 #   Part6 長文穴埋め 61  （セット予定）
 #   Part7 読解       71 シングル / 72 ダブル / 73 トリプル
 #
-# 時間（暫定）: Listening 30秒/問, Reading 45秒/問
+# 時間: 一問一答 Listening(P1-P4) 90秒/問（正本は各 exam の time_limit_seconds）
+#       Reading 一問一答は各 exam を参照。分野別・総合の合計は別途（当面変更なし）
 
 area_order:
   - part1
@@ -152,7 +153,7 @@ exams:
     mode: single
     action: makeExam3
     category_range: [11, 11]
-    time_limit_seconds: 30
+    time_limit_seconds: 90
     menu:
       label: 写真描写問題
       color: "#3B82F6"
@@ -160,7 +161,7 @@ exams:
     mode: single
     action: makeExam3
     category_range: [21, 21]
-    time_limit_seconds: 30
+    time_limit_seconds: 90
     menu:
       label: 応答問題
       color: "#2563EB"

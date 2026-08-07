@@ -39,16 +39,17 @@
     var strS
     var seconds=0;
     var minutes=0;
+    var timeLimit = parseInt("{{ time_limit_seconds|default(90) }}", 10) || 90;
 
     var nTime = (new Date().getTime()).toString().slice(0, 10);
 
-    // 経過時間を表示する関数
+    // 経過時間を表示する関数（制限は YAML time_limit_seconds）
     function countTime(){
         rTime = (new Date().getTime()).toString().slice(0, 10);
         elapsedTime = rTime - nTime;
         minutes = Math.trunc(elapsedTime / 60);
         seconds = elapsedTime % 60;
-        if((elapsedTime > 90) && (flag == 0)){
+        if((elapsedTime > timeLimit) && (flag == 0)){
                 flag ++;
                 }
         strM = minutes;

@@ -358,6 +358,12 @@ def makeExam3():
             return render_main_menu_page(user_id)
 
     n = int(category) - 91
+    time_limit_seconds = 90
+    if entry and entry.get("time_limit_seconds") is not None:
+        time_limit_seconds = int(entry["time_limit_seconds"])
+    elif getattr(constant, "TimePerQuestion", None):
+        time_limit_seconds = int(constant.TimePerQuestion)
+
     return render_template('exercise2.html',
                            user_id=user_id,
                            question=q,
@@ -368,6 +374,7 @@ def makeExam3():
                            choice_count=choice_count,
                            timeMin=0,
                            timeSec=0,
+                           time_limit_seconds=time_limit_seconds,
                            selectStr="",
                            crct=crct,
                            cid=cid,

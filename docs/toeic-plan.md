@@ -30,10 +30,12 @@
 | 全領域 100 | 60（= L50+R50） |
 | 本番 200 | 70（= L100+R100） |
 
-## 暫定時間
+## 制限時間（正本: `toeic.exams.yaml` の `time_limit_seconds`）
 
-- Listening: 30秒/問  
-- Reading: 45秒/問  
+- 一問一答 Listening（P1–P4 / 91–94）: **90秒/問**（Flutter・HTML とも YAML 準拠）
+- 一問一答 Reading: 各 exam を参照（例: P5=45秒）
+- 分野別・総合: YAML の合計秒（当面、一問あたり30秒換算のまま。別途見直し）  
+- HTML 一問一答は `exercise2.html` が YAML 値を使用（固定90秒ハードコードは廃止）
 
 ## ローカル確認
 
