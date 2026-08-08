@@ -358,11 +358,10 @@ def makeExam3():
             return render_main_menu_page(user_id)
 
     n = int(category) - 91
+    # Default 90s to match exercise2.html; never use profile TimePerQuestion (TOEIC multi=30).
     time_limit_seconds = 90
     if entry and entry.get("time_limit_seconds") is not None:
         time_limit_seconds = int(entry["time_limit_seconds"])
-    elif getattr(constant, "TimePerQuestion", None):
-        time_limit_seconds = int(constant.TimePerQuestion)
 
     return render_template('exercise2.html',
                            user_id=user_id,

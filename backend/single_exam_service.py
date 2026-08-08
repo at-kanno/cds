@@ -131,9 +131,15 @@ def start_single_exam(user_id: int, category: int) -> dict[str, Any]:
     if not category_range or len(category_range) != 2:
         raise ValueError("Single-question category is missing category_range.")
 
-    area_index = entry.get("area_index", 0)
     areas = get_areas()
-    if area_index >= len(areas):
+    # Prefer YAML area_index; else match HTML makeExam3 (abbreviation[category-91]).
+    if entry.get("area_index") is not None:
+        area_index = int(entry["area_index"])
+    elif int(category) >= 91:
+        area_index = int(category) - 91
+    else:
+        area_index = 0
+    if area_index < 0 or area_index >= len(areas):
         raise ValueError("Single-question category has invalid area_index.")
 
     area = areas[area_index]["abbrev"]

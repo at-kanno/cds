@@ -154,6 +154,7 @@ exams:
   "91":
     mode: single
     action: makeExam3
+    area_index: 0
     category_range: [11, 11]
     time_limit_seconds: 90
     menu:
@@ -162,6 +163,7 @@ exams:
   "92":
     mode: single
     action: makeExam3
+    area_index: 1
     category_range: [21, 21]
     time_limit_seconds: 90
     menu:
@@ -170,6 +172,7 @@ exams:
   "93":
     mode: single
     action: makeExam3
+    area_index: 2
     category_range: [31, 31]
     time_limit_seconds: 90
     menu:
@@ -179,6 +182,7 @@ exams:
   "94":
     mode: single
     action: makeExam3
+    area_index: 3
     category_range: [41, 41]
     time_limit_seconds: 90
     menu:
@@ -188,6 +192,7 @@ exams:
   "95":
     mode: single
     action: makeExam3
+    area_index: 4
     category_range: [51, 55]
     time_limit_seconds: 45
     menu:
@@ -196,6 +201,7 @@ exams:
   "96":
     mode: single
     action: makeExam3
+    area_index: 5
     category_range: [61, 61]
     time_limit_seconds: 180
     menu:
@@ -205,6 +211,7 @@ exams:
   "97":
     mode: single
     action: makeExam3
+    area_index: 6
     category_range: [71, 73]
     time_limit_seconds: 180
     menu:

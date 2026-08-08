@@ -40,7 +40,7 @@ class ExamAudio {
   final String url;
   final int maxAudioPlays;
 
-  /// Part3/4 set listening: `head` or `follow_up` when present.
+  /// Part3/4 set listening (FLAG 301-399 / 401-499): `head` or `follow_up`.
   final String? setRole;
 
   String get absoluteUrl => ApiConfig.resolveMediaUrl(url);

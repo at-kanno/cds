@@ -57,7 +57,8 @@ class SingleQuestionSession {
       cid: asInt(json['cid']),
       num: json['num'] as String? ?? '',
       permutation: json['permutation'] as String? ?? '',
-      timeLimitSeconds: asInt(json['time_limit_seconds'], 135),
+      // Match exercise2.html default when API omits the field (YAML is source of truth).
+      timeLimitSeconds: asInt(json['time_limit_seconds'], 90),
       audio: parseExamAudio(json['audio']),
       choiceAudio: choiceAudio,
       image: parseExamImage(json['image']),

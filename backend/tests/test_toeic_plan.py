@@ -47,6 +47,31 @@ class ToeicPlanTests(unittest.TestCase):
         assert entry is not None
         self.assertEqual(entry["amount"], 200)
 
+    def test_single_listening_time_limit_ninety_seconds(self) -> None:
+        for exam_id in (91, 92, 93, 94):
+            with self.subTest(exam_id=exam_id):
+                entry = get_exam_entry(exam_id)
+                self.assertIsNotNone(entry)
+                assert entry is not None
+                self.assertEqual(entry["mode"], "single")
+                self.assertEqual(entry["time_limit_seconds"], 90)
+        part5 = get_exam_entry(95)
+        assert part5 is not None
+        self.assertEqual(part5["time_limit_seconds"], 45)
+
+    def test_single_listening_menu_subtitle_shows_ninety_seconds(self) -> None:
+        """P1/P2 auto-subtitle comes from time_limit_seconds (not hardcoded 30秒)."""
+        menu = get_menu_template()
+        items = {
+            item["category"]: item
+            for item in menu["submenus"]["single_question"]["items"]
+        }
+        self.assertEqual(items[91]["subtitle"], "時間:1分30秒 / 1問")
+        self.assertEqual(items[92]["subtitle"], "時間:1分30秒 / 1問")
+        # P3/P4 keep explicit set-oriented copy (timer still 90s from YAML).
+        self.assertIn("1セット", items[93]["subtitle"])
+        self.assertIn("1セット", items[94]["subtitle"])
+
     def test_hierarchical_menu_payload(self) -> None:
         menu = get_menu_template()
         self.assertTrue(menu["hierarchy"])
