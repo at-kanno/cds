@@ -5,7 +5,8 @@
 #   Part2 応答       21
 #   Part3 会話       31  （セット: FLAG=先頭NUMBER, 音声 {FLAG}.mp3）
 #   Part4 説明文     41  （セット: FLAG=先頭NUMBER, 音声 {FLAG}.mp3）
-#   Part5 短文穴埋め 51-55（品詞/時制/前置詞/接続詞/語彙）均等
+#   Part5 短文穴埋め 51-55（品詞/時制/前置詞/接続詞/語彙）
+#       分野別メニュー: 141-145（カテゴリ別5問）。総合では equal_from で均等配分
 #   Part6 長文穴埋め 61  （セット予定）
 #   Part7 読解       71 シングル / 72 ダブル / 73 トリプル
 #
@@ -133,7 +134,8 @@ menu:
       items: [91, 92, 93, 94, 95, 96, 97]
     area_quiz:
       title: 分野別問題
-      items: [10, 11, 12, 13, 14, 15, 16]
+      # 14 は廃止。短文穴埋めはカテゴリ別 141-145
+      items: [10, 11, 12, 13, 141, 142, 143, 144, 145, 15, 16]
     comprehensive:
       title: 総合問題
       status_rule: mock_exam
@@ -265,19 +267,72 @@ exams:
       # Part3 と同様 3+2（各ブロック先頭で音声）
       - repeat: 5
         from: [41]
-  "14":
+  # --- 分野別 Part5（カテゴリ別）。旧 14（51-55均等）は廃止 ---
+  "141":
     mode: multi
     action: makeExam
-    title: 短文穴埋め問題：分野別
-    exam_type: 短文穴埋め(5問)
+    title: 短文穴埋め（品詞）：分野別
+    exam_type: 短文穴埋め-品詞(5問)
     time_limit_seconds: 225
     menu:
-      label: 短文穴埋め問題
-      subtitle: "5問（51-55均等）/ 約3分45秒"
+      label: 短文穴埋め（品詞）
+      subtitle: "5問 / 約3分45秒"
       color: "#059669"
     slots:
-      - equal_from: [51, 52, 53, 54, 55]
-        count: 5
+      - repeat: 5
+        from: [51]
+  "142":
+    mode: multi
+    action: makeExam
+    title: 短文穴埋め（時制）：分野別
+    exam_type: 短文穴埋め-時制(5問)
+    time_limit_seconds: 225
+    menu:
+      label: 短文穴埋め（時制）
+      subtitle: "5問 / 約3分45秒"
+      color: "#10B981"
+    slots:
+      - repeat: 5
+        from: [52]
+  "143":
+    mode: multi
+    action: makeExam
+    title: 短文穴埋め（前置詞）：分野別
+    exam_type: 短文穴埋め-前置詞(5問)
+    time_limit_seconds: 225
+    menu:
+      label: 短文穴埋め（前置詞）
+      subtitle: "5問 / 約3分45秒"
+      color: "#34D399"
+    slots:
+      - repeat: 5
+        from: [53]
+  "144":
+    mode: multi
+    action: makeExam
+    title: 短文穴埋め（接続詞）：分野別
+    exam_type: 短文穴埋め-接続詞(5問)
+    time_limit_seconds: 225
+    menu:
+      label: 短文穴埋め（接続詞）
+      subtitle: "5問 / 約3分45秒"
+      color: "#6EE7B7"
+    slots:
+      - repeat: 5
+        from: [54]
+  "145":
+    mode: multi
+    action: makeExam
+    title: 短文穴埋め（語彙）：分野別
+    exam_type: 短文穴埋め-語彙(5問)
+    time_limit_seconds: 225
+    menu:
+      label: 短文穴埋め（語彙）
+      subtitle: "5問 / 約3分45秒"
+      color: "#A7F3D0"
+    slots:
+      - repeat: 5
+        from: [55]
   "15":
     mode: multi
     action: makeExam

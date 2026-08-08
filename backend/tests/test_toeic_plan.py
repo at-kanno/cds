@@ -53,8 +53,27 @@ class ToeicPlanTests(unittest.TestCase):
         top_actions = {item["action"] for item in menu["sections"][0]["items"]}
         self.assertEqual(top_actions, {"openSubmenu"})
         self.assertEqual(len(menu["submenus"]["single_question"]["items"]), 7)
-        self.assertEqual(len(menu["submenus"]["area_quiz"]["items"]), 7)
+        area_items = menu["submenus"]["area_quiz"]["items"]
+        self.assertEqual(len(area_items), 11)
+        area_cats = [item["category"] for item in area_items]
+        self.assertEqual(area_cats, [10, 11, 12, 13, 141, 142, 143, 144, 145, 15, 16])
         self.assertEqual(len(menu["submenus"]["comprehensive"]["items"]), 8)
+
+    def test_part5_category_field_quizzes(self) -> None:
+        expected = {
+            141: [51, 51, 51, 51, 51],
+            142: [52, 52, 52, 52, 52],
+            143: [53, 53, 53, 53, 53],
+            144: [54, 54, 54, 54, 54],
+            145: [55, 55, 55, 55, 55],
+        }
+        for exam_id, categories in expected.items():
+            with self.subTest(exam_id=exam_id):
+                entry = get_exam_entry(exam_id)
+                self.assertIsNotNone(entry)
+                assert entry is not None
+                self.assertEqual(entry["amount"], 5)
+                self.assertEqual(resolve_assign_categories(exam_id), categories)
 
     def test_build_main_menu_passes_submenus(self) -> None:
         with patch("menu_service.getStatus", return_value=0), patch(
