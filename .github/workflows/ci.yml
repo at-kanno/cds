@@ -39,7 +39,14 @@ jobs:
       - name: Run unit tests
         env:
           APP_PROFILE: CDS
-        run: python -m unittest discover -s tests -p 'test_*.py' -v
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -t . -p 'test_*.py' -v 2>&1 | tee test-results.txt
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            python ../.github/scripts/annotate_unittest_failures.py test-results.txt
+          fi
+          exit "$status"
 
   frontend:
     name: Frontend

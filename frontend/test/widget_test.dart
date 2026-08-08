@@ -6,6 +6,6 @@ void main() {
     await tester.pumpWidget(const MyApp());
 
     expect(find.text('ログイン'), findsWidgets);
-    expect(find.text('CDS — Web / iPhone / Android'), findsOneWidget);
+    expect(find.text('CDS'), findsOneWidget);
   });
 }

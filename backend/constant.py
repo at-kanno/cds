@@ -11,7 +11,8 @@ def _load_env() -> None:
     try:
         from dotenv import load_dotenv
 
-        load_dotenv(os.path.join(base_path, ".env"), override=True)
+        # Do not override process env (CI sets APP_PROFILE explicitly).
+        load_dotenv(os.path.join(base_path, ".env"), override=False)
     except ImportError:
         pass
 
