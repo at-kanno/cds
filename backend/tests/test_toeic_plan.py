@@ -54,9 +54,11 @@ class ToeicPlanTests(unittest.TestCase):
         self.assertEqual(top_actions, {"openSubmenu"})
         self.assertEqual(len(menu["submenus"]["single_question"]["items"]), 7)
         area_items = menu["submenus"]["area_quiz"]["items"]
-        self.assertEqual(len(area_items), 11)
+        self.assertEqual(len(area_items), 12)
         area_cats = [item["category"] for item in area_items]
-        self.assertEqual(area_cats, [10, 11, 12, 13, 141, 142, 143, 144, 145, 15, 16])
+        self.assertEqual(
+            area_cats, [10, 11, 12, 13, 141, 142, 143, 144, 145, 146, 15, 16]
+        )
         self.assertEqual(len(menu["submenus"]["comprehensive"]["items"]), 8)
 
     def test_part5_category_field_quizzes(self) -> None:
@@ -74,6 +76,19 @@ class ToeicPlanTests(unittest.TestCase):
                 assert entry is not None
                 self.assertEqual(entry["amount"], 5)
                 self.assertEqual(resolve_assign_categories(exam_id), categories)
+
+    def test_part5_all_areas_ten_questions(self) -> None:
+        entry = get_exam_entry(146)
+        self.assertIsNotNone(entry)
+        assert entry is not None
+        self.assertEqual(entry["amount"], 10)
+        self.assertEqual(entry["time_limit_seconds"], 450)
+        with patch("exam_plan_loader.random.shuffle", side_effect=lambda xs: None):
+            cats = resolve_assign_categories(146)
+        self.assertEqual(len(cats), 10)
+        counts = Counter(cats)
+        self.assertEqual(set(counts), {51, 52, 53, 54, 55})
+        self.assertTrue(all(v == 2 for v in counts.values()))
 
     def test_build_main_menu_passes_submenus(self) -> None:
         with patch("menu_service.getStatus", return_value=0), patch(

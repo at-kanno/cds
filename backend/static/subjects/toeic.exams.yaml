@@ -134,8 +134,8 @@ menu:
       items: [91, 92, 93, 94, 95, 96, 97]
     area_quiz:
       title: 分野別問題
-      # 14 は廃止。短文穴埋めはカテゴリ別 141-145
-      items: [10, 11, 12, 13, 141, 142, 143, 144, 145, 15, 16]
+      # 14 は廃止。短文穴埋めはカテゴリ別 141-145 + 全領域 146
+      items: [10, 11, 12, 13, 141, 142, 143, 144, 145, 146, 15, 16]
     comprehensive:
       title: 総合問題
       status_rule: mock_exam
@@ -333,6 +333,19 @@ exams:
     slots:
       - repeat: 5
         from: [55]
+  "146":
+    mode: multi
+    action: makeExam
+    title: 短文穴埋め（全領域）：分野別
+    exam_type: 短文穴埋め-全領域(10問)
+    time_limit_seconds: 450
+    menu:
+      label: 短文穴埋め（全領域）
+      subtitle: "10問（51-55各2問）/ 約7分30秒"
+      color: "#047857"
+    slots:
+      - equal_from: [51, 52, 53, 54, 55]
+        count: 10
   "15":
     mode: multi
     action: makeExam
