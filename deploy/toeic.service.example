@@ -1,0 +1,20 @@
+[Unit]
+Description=TOEIC Flask Backend (APP_PROFILE=TOEIC)
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/toeic/backend
+Environment="PATH=/home/ubuntu/toeic/backend/.venv/bin"
+EnvironmentFile=/home/ubuntu/toeic/backend/.env
+# Set APP_PROFILE=TOEIC in .env
+# Apache sends X-Forwarded-Prefix; do NOT set SCRIPT_NAME here.
+ExecStart=/home/ubuntu/toeic/backend/.venv/bin/gunicorn \
+  --bind 127.0.0.1:8082 \
+  --workers 2 \
+  --timeout 120 \
+  "index:app"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -52,19 +52,25 @@ jobs:
             set -euo pipefail
             APP_DIR="${{ secrets.EC2_APP_PATH != '' && secrets.EC2_APP_PATH || vars.EC2_APP_PATH }}"
             SPANISH4_DIR="${{ secrets.EC2_SPANISH4_PATH != '' && secrets.EC2_SPANISH4_PATH || vars.EC2_SPANISH4_PATH }}"
+            TOEIC_DIR="${{ secrets.EC2_TOEIC_PATH != '' && secrets.EC2_TOEIC_PATH || vars.EC2_TOEIC_PATH }}"
             HEALTHCHECK_URL="${{ secrets.HEALTHCHECK_URL != '' && secrets.HEALTHCHECK_URL || vars.HEALTHCHECK_URL }}"
             SPANISH4_HEALTHCHECK_URL="${{ secrets.SPANISH4_HEALTHCHECK_URL != '' && secrets.SPANISH4_HEALTHCHECK_URL || vars.SPANISH4_HEALTHCHECK_URL }}"
+            TOEIC_HEALTHCHECK_URL="${{ secrets.TOEIC_HEALTHCHECK_URL != '' && secrets.TOEIC_HEALTHCHECK_URL || vars.TOEIC_HEALTHCHECK_URL }}"
             export APP_DIR="${APP_DIR:-/home/ubuntu/cds}"
             export SPANISH4_DIR="${SPANISH4_DIR:-/home/ubuntu/spanish4}"
+            export TOEIC_DIR="${TOEIC_DIR:-/home/ubuntu/toeic}"
             export HEALTHCHECK_URL="${HEALTHCHECK_URL:-https://traveltokio.com/cds/api/health}"
             export SPANISH4_HEALTHCHECK_URL="${SPANISH4_HEALTHCHECK_URL:-https://traveltokio.com/spanish4/api/health}"
+            export TOEIC_HEALTHCHECK_URL="${TOEIC_HEALTHCHECK_URL:-https://traveltokio.com/toeic/api/health}"
             if [ -z "$APP_DIR" ]; then export APP_DIR=/home/ubuntu/cds; fi
             if [ -z "$SPANISH4_DIR" ]; then export SPANISH4_DIR=/home/ubuntu/spanish4; fi
+            if [ -z "$TOEIC_DIR" ]; then export TOEIC_DIR=/home/ubuntu/toeic; fi
             if [ -z "$HEALTHCHECK_URL" ]; then export HEALTHCHECK_URL=https://traveltokio.com/cds/api/health; fi
             if [ -z "$SPANISH4_HEALTHCHECK_URL" ]; then export SPANISH4_HEALTHCHECK_URL=https://traveltokio.com/spanish4/api/health; fi
+            if [ -z "$TOEIC_HEALTHCHECK_URL" ]; then export TOEIC_HEALTHCHECK_URL=https://traveltokio.com/toeic/api/health; fi
 
             # Sync CDS first (bootstrap), then let deploy-backend.sh handle deps,
-            # SPANISH4 sync (if present), service restarts, and health checks.
+            # SPANISH4/TOEIC sync (if present), service restarts, and health checks.
             cd "$APP_DIR"
             git fetch origin main
             git checkout main
@@ -97,5 +103,5 @@ jobs:
             shopt -u nullglob
             rm -rf "$BACKUP_DIR"
 
-            # CDS already synced; script will still sync SPANISH4 if the dir exists.
+            # CDS already synced; script still syncs SPANISH4/TOEIC when present.
             SKIP_GIT_SYNC=1 bash deploy/deploy-backend.sh

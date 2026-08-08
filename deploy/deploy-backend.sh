@@ -4,13 +4,17 @@ set -euo pipefail
 # Guard: CI may inject empty strings via envs; treat empty as unset.
 APP_DIR="${APP_DIR:-/home/ubuntu/cds}"
 SPANISH4_DIR="${SPANISH4_DIR:-/home/ubuntu/spanish4}"
+TOEIC_DIR="${TOEIC_DIR:-/home/ubuntu/toeic}"
 BRANCH="${DEPLOY_BRANCH:-main}"
 HEALTHCHECK_URL="${HEALTHCHECK_URL:-https://traveltokio.com/cds/api/health}"
 SPANISH4_HEALTHCHECK_URL="${SPANISH4_HEALTHCHECK_URL:-https://traveltokio.com/spanish4/api/health}"
+TOEIC_HEALTHCHECK_URL="${TOEIC_HEALTHCHECK_URL:-https://traveltokio.com/toeic/api/health}"
 if [ -z "$APP_DIR" ]; then APP_DIR=/home/ubuntu/cds; fi
 if [ -z "$HEALTHCHECK_URL" ]; then HEALTHCHECK_URL=https://traveltokio.com/cds/api/health; fi
 if [ -z "$SPANISH4_DIR" ]; then SPANISH4_DIR=/home/ubuntu/spanish4; fi
 if [ -z "$SPANISH4_HEALTHCHECK_URL" ]; then SPANISH4_HEALTHCHECK_URL=https://traveltokio.com/spanish4/api/health; fi
+if [ -z "$TOEIC_DIR" ]; then TOEIC_DIR=/home/ubuntu/toeic; fi
+if [ -z "$TOEIC_HEALTHCHECK_URL" ]; then TOEIC_HEALTHCHECK_URL=https://traveltokio.com/toeic/api/health; fi
 
 # Live DBs must survive git reset. skip-worktree alone is fragile when the
 # working tree is dirty ("Entry 'backend/exam.sqlite' not uptodate").
@@ -89,6 +93,36 @@ install_backend_deps() {
   fi
 }
 
+resolve_subject_dir() {
+  # Prefer systemd WorkingDirectory (.../backend) when the unit exists.
+  local unit="$1"
+  local default_dir="$2"
+  local wd=""
+  if systemctl cat "${unit}.service" >/dev/null 2>&1; then
+    wd="$(systemctl show -p WorkingDirectory --value "${unit}.service" 2>/dev/null || true)"
+    if [ -n "$wd" ] && [ "$wd" != "/" ] && [ -d "$wd" ]; then
+      dirname "$wd"
+      return 0
+    fi
+  fi
+  printf '%s\n' "$default_dir"
+}
+
+sync_subject_checkout() {
+  local unit="$1"
+  local default_dir="$2"
+  local profile="$3"
+  local dir
+  dir="$(resolve_subject_dir "$unit" "$default_dir")"
+
+  if [ -d "${dir}/.git" ]; then
+    preserve_and_sync_git "${dir}" "${BRANCH}"
+    install_backend_deps "${dir}" "${profile}"
+  else
+    echo "==> ${unit}: checkout not found (${dir}); skip (clone once or set path env)"
+  fi
+}
+
 restart_service_if_present() {
   local unit="$1"
   if systemctl list-unit-files "${unit}.service" >/dev/null 2>&1 \
@@ -96,6 +130,8 @@ restart_service_if_present() {
     echo "==> Restart ${unit}"
     if ! sudo -n systemctl restart "${unit}"; then
       echo "ERROR: sudo systemctl requires NOPASSWD for ${unit}."
+      echo "       Update /etc/sudoers.d/cds-deploy to include:"
+      echo "       /bin/systemctl restart ${unit}, /bin/systemctl is-active ${unit}"
       exit 1
     fi
     sudo -n systemctl is-active "${unit}"
@@ -129,20 +165,20 @@ fi
 
 install_backend_deps "${APP_DIR}" "CDS"
 
-if [ -d "${SPANISH4_DIR}/.git" ]; then
-  # Always sync SPANISH4 when present (CDS may already be synced by Actions bootstrap).
-  preserve_and_sync_git "${SPANISH4_DIR}" "${BRANCH}"
-  install_backend_deps "${SPANISH4_DIR}" "SPANISH4"
-else
-  echo "==> SPANISH4 dir not found (${SPANISH4_DIR}); skip (run deploy/setup-multi-subject.sh once)"
-fi
+# CDS may already be synced by Actions bootstrap; always refresh other subjects.
+sync_subject_checkout spanish4 "${SPANISH4_DIR}" "SPANISH4"
+sync_subject_checkout toeic "${TOEIC_DIR}" "TOEIC"
 
 restart_service_if_present cds
 restart_service_if_present spanish4
+restart_service_if_present toeic
 
 healthcheck "${HEALTHCHECK_URL}" "CDS"
 if systemctl cat spanish4.service >/dev/null 2>&1; then
   healthcheck "${SPANISH4_HEALTHCHECK_URL}" "SPANISH4"
+fi
+if systemctl cat toeic.service >/dev/null 2>&1; then
+  healthcheck "${TOEIC_HEALTHCHECK_URL}" "TOEIC"
 fi
 
 echo "Deploy completed successfully."
