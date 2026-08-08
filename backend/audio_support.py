@@ -217,7 +217,8 @@ def map_choice_audio_to_display(
         orig_letter = _CHOICE_LETTERS[orig - 1]
         path = original_paths.get(orig_letter)
         if path:
-            mapped[display_letter] = os.path.basename(path)
+            # Normalize separators so Windows-style paths still yield a basename on Linux.
+            mapped[display_letter] = os.path.basename(path.replace("\\", "/"))
     return mapped
 
 

@@ -169,16 +169,27 @@ class AudioSupportTests(unittest.TestCase):
 
     def test_map_choice_audio_to_display(self) -> None:
         paths = {
-            "A": r"C:\tmp\101-A.mp3",
-            "B": r"C:\tmp\101-B.mp3",
-            "C": r"C:\tmp\101-C.mp3",
-            "D": r"C:\tmp\101-D.mp3",
+            "A": os.path.join("tmp", "101-A.mp3"),
+            "B": os.path.join("tmp", "101-B.mp3"),
+            "C": os.path.join("tmp", "101-C.mp3"),
+            "D": os.path.join("tmp", "101-D.mp3"),
         }
         mapped = map_choice_audio_to_display(paths, "3142")
         self.assertEqual(mapped["A"], "101-C.mp3")
         self.assertEqual(mapped["B"], "101-A.mp3")
         self.assertEqual(mapped["C"], "101-D.mp3")
         self.assertEqual(mapped["D"], "101-B.mp3")
+
+        # Windows-style separators must still resolve on Linux CI runners.
+        win_paths = {
+            "A": r"C:\tmp\101-A.mp3",
+            "B": r"C:\tmp\101-B.mp3",
+            "C": r"C:\tmp\101-C.mp3",
+            "D": r"C:\tmp\101-D.mp3",
+        }
+        mapped_win = map_choice_audio_to_display(win_paths, "3142")
+        self.assertEqual(mapped_win["A"], "101-C.mp3")
+        self.assertEqual(mapped_win["B"], "101-A.mp3")
 
     def test_part3_set_flag_audio_head_and_follow_up(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
