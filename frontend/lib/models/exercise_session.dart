@@ -162,8 +162,8 @@ class ExerciseSession {
       'answerlist': answerlist,
       'time_min': timeMin ?? this.timeMin,
       'time_sec': timeSec ?? this.timeSec,
-      if (targetQNo != null) 'target_q_no': targetQNo,
-      if (selectedAnswer != null) 'selected_answer': selectedAnswer,
+      'target_q_no': ?targetQNo,
+      'selected_answer': ?selectedAnswer,
     };
   }
 

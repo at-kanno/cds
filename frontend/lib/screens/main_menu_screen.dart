@@ -65,14 +65,14 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
         return;
       }
       final menu = await _menuFuture;
+      if (!mounted) {
+        return;
+      }
       final section = menu.submenus[key];
       if (section == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('サブメニュー "$key" が見つかりません。')),
         );
-        return;
-      }
-      if (!mounted) {
         return;
       }
       await Navigator.of(context).push(

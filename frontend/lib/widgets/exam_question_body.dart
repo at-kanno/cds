@@ -115,7 +115,7 @@ class ExamQuestionBody extends StatelessWidget {
               child: Image.network(
                 image!.absoluteUrl,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Text('画像を表示できませんでした。'),
+                errorBuilder: (_, _, _) => const Text('画像を表示できませんでした。'),
               ),
             ),
           ),

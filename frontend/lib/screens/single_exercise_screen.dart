@@ -60,12 +60,12 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
     final minutes = total ~/ 60;
     final seconds = total % 60;
     if (minutes > 0 && seconds > 0) {
-      return '解答時間は${minutes}分${seconds}秒/1問です。';
+      return '解答時間は$minutes分$seconds秒/1問です。';
     }
     if (minutes > 0) {
-      return '解答時間は${minutes}分/1問です。';
+      return '解答時間は$minutes分/1問です。';
     }
-    return '解答時間は${seconds}秒/1問です。';
+    return '解答時間は$seconds秒/1問です。';
   }
 
   Future<void> _submitAnswer({bool timeout = false}) async {
