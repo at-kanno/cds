@@ -341,7 +341,7 @@ exams:
     time_limit_seconds: 450
     menu:
       label: 短文穴埋め（全領域）
-      subtitle: "10問（51-55各2問）/ 約7分30秒"
+      subtitle: "10問 / 約7分30秒"
       color: "#047857"
     slots:
       - equal_from: [51, 52, 53, 54, 55]
