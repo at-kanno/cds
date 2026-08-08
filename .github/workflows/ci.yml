@@ -40,9 +40,11 @@ jobs:
         env:
           APP_PROFILE: CDS
         run: |
-          set -o pipefail
-          python -m unittest discover -s tests -t . -p 'test_*.py' -v 2>&1 | tee test-results.txt
-          status=${PIPESTATUS[0]}
+          set +e
+          python -m unittest discover -s tests -t . -p 'test_*.py' -v > test-results.txt 2>&1
+          status=$?
+          set -e
+          cat test-results.txt
           if [ "$status" -ne 0 ]; then
             python ../.github/scripts/annotate_unittest_failures.py test-results.txt
           fi
